@@ -81,6 +81,28 @@ Three radii chosen by role — 14px panel, 10px control, 7px chip, plus pills. A
 rest gets a hairline, never a shadow; only things that genuinely float (menus, popovers)
 cast one. That single rule is what stops a dense screen turning into a stack of cards.
 
+### Accessibility floor
+
+Measured, not eyeballed: text clears 4.5:1, and the edge of anything operable clears 3:1
+(WCAG 2.1 SC 1.4.3 and SC 1.4.11). That is why there are two line tokens. `--line`
+(1.3:1) is decoration — panel edges and table rules, exempt. `--edge` (`#7C7E77`, 3.4:1 on
+white) is the boundary of inputs, chips, outline buttons and the drop zone, because a
+control's edge is how you find it.
+
+A first pass of this audit against the locked palette found two defects, both fixed:
+
+- `--muted-2` was `#8C8E8B`: 3.00:1 on the canvas. Darkened to `#6E706C` (4.54:1), which
+  covers every surface it sits on.
+- Form controls borrowed the decorative hairline at 1.31:1. They now use `--edge`.
+
+Everything else already cleared: chalk on ink 15.2:1, ink on white 18.6:1, amber 5.6:1 and
+red 5.9:1 on their soft fills.
+
+The legal floor is **WCAG 2.1 Level AA** — ADA Title II, per the DOJ final rule (April
+2024) as amended by the Interim Final Rule of April 2026, which set compliance dates of
+April 26, 2027 (entities over 50,000 people) and April 26, 2028 (smaller). This design sets
+its internal bar at 2.2 AA, one level above what is enforced.
+
 ## The two devices
 
 These carry the design. Everything else is deliberately quiet.
@@ -116,3 +138,7 @@ points behind and says so.
 - Google Fonts is a network dependency. Offline, Archivo falls back to the system sans and
   the layout holds; only the tighter tracking is lost.
 - Row-level actions (`read`, `Open`, `Request a remark`) are visual only.
+- The Student / Teaching switch communicates its selected state with a fill at 1.26:1
+  against the unselected side. That is below the 3:1 an operable state needs, and it has no
+  non-colour cue. Either give the pressed segment the chalk edge marker or change the
+  control. Left open deliberately: it is a design decision, not a token one.

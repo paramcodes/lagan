@@ -22,10 +22,11 @@
 
   --line:       #E0E1DE;
   --line-soft:  #EDEDEA;
+  --edge:       #7C7E77;
 
   --fg:         #121312;
   --muted:      #616360;
-  --muted-2:    #8C8E8B;
+  --muted-2:    #6E706C;
   --rail-fg:    #B6B8B5;
   --rail-fg-2:  #82837E;
 
@@ -350,7 +351,7 @@ a{color:var(--brand);text-decoration-thickness:1px;text-underline-offset:2px}
 .btn-primary:hover{background:var(--brand-hi)}
 .btn-chalk{background:var(--chalk);color:var(--ink)}
 .btn-chalk:hover{background:#EDDE5C}
-.btn-outline{background:var(--surface);border-color:var(--line);color:var(--fg)}
+.btn-outline{background:var(--surface);border-color:var(--edge);color:var(--fg)}
 .btn-outline:hover{border-color:var(--muted-2);background:var(--surface-2)}
 .btn-ghost{color:var(--muted);padding:9px 10px}
 .btn-ghost:hover{background:var(--surface);color:var(--fg)}
@@ -549,7 +550,7 @@ a{color:var(--brand);text-decoration-thickness:1px;text-underline-offset:2px}
 .rubric .pts{font-weight:600;font-variant-numeric:tabular-nums}
 
 .dropzone{
-  border:1.5px dashed var(--line);border-radius:var(--r-panel);
+  border:1.5px dashed var(--edge);border-radius:var(--r-panel);
   padding:22px;text-align:center;color:var(--muted);background:var(--surface-2);
 }
 .dropzone .icon{width:24px;height:24px;color:var(--muted-2);margin-bottom:8px}
@@ -604,7 +605,7 @@ a{color:var(--brand);text-decoration-thickness:1px;text-underline-offset:2px}
    ============================================================ */
 .chips{display:flex;gap:7px;flex-wrap:wrap}
 .chip{
-  border:1px solid var(--line);background:var(--surface);border-radius:var(--r-pill);
+  border:1px solid var(--edge);background:var(--surface);border-radius:var(--r-pill);
   padding:5px 13px;font-size:.8125rem;color:var(--muted);
   transition:background .14s ease,border-color .14s ease,color .14s ease;
 }
@@ -624,7 +625,7 @@ a{color:var(--brand);text-decoration-thickness:1px;text-underline-offset:2px}
 .rubric-input{display:grid;grid-template-columns:1fr 74px;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line-soft)}
 .rubric-input .nm{font-size:.8125rem;line-height:1.4}
 .input{
-  width:100%;border:1px solid var(--line);border-radius:var(--r-control);
+  width:100%;border:1px solid var(--edge);border-radius:var(--r-control);
   padding:8px 11px;font-size:.875rem;background:var(--surface);text-align:right;
   font-variant-numeric:tabular-nums;
 }
@@ -636,7 +637,7 @@ a{color:var(--brand);text-decoration-thickness:1px;text-underline-offset:2px}
 .field{display:flex;flex-direction:column;gap:6px}
 .field label{font-size:.75rem;font-weight:500;color:var(--muted)}
 .control{
-  width:100%;border:1px solid var(--line);border-radius:var(--r-control);
+  width:100%;border:1px solid var(--edge);border-radius:var(--r-control);
   padding:9px 12px;font-size:.875rem;background:var(--surface);
 }
 .control:focus{outline:2px solid var(--brand);outline-offset:0;border-color:transparent}
@@ -1944,7 +1945,9 @@ body[data-role="teacher"] [data-only="student"]{display:none !important}
               <div class="swatch"><div class="swatch-chip" style="background:#171817"></div><div class="swatch-body"><b>Ink 2</b><code>#171817</code><span>Hover and active states inside the rail.</span></div></div>
               <div class="swatch"><div class="swatch-chip" style="background:#F4F4F2;border-bottom:1px solid #E0E1DE"></div><div class="swatch-body"><b>Canvas</b><code>#F4F4F2</code><span>Page background. A working grey, not cream.</span></div></div>
               <div class="swatch"><div class="swatch-chip" style="background:#FFFFFF;border-bottom:1px solid #E0E1DE"></div><div class="swatch-body"><b>Surface</b><code>#FFFFFF</code><span>Panels, tables, anything that sits above the canvas.</span></div></div>
-              <div class="swatch"><div class="swatch-chip" style="background:#E0E1DE"></div><div class="swatch-body"><b>Line</b><code>#E0E1DE</code><span>Borders and table rules. Quiet enough to disappear while you read.</span></div></div>
+              <div class="swatch"><div class="swatch-chip" style="background:#E0E1DE"></div><div class="swatch-body"><b>Line</b><code>#E0E1DE</code><span>Panel edges and table rules. Decoration, and exempt from the contrast floor.</span></div></div>
+              <div class="swatch"><div class="swatch-chip" style="background:#7C7E77"></div><div class="swatch-body"><b>Edge</b><code>#7C7E77</code><span>Boundaries of operable things only: inputs, chips, outline buttons, the drop zone. 3.4:1 on white, because a control's edge is how you find it.</span></div></div>
+              <div class="swatch"><div class="swatch-chip" style="background:#616360"></div><div class="swatch-body"><b>Quiet text</b><code>#616360 · #6E706C</code><span>Labels, captions, chart axes. The second step was darkened from <code>#8C8E8B</code> so both clear 4.5:1 on the canvas.</span></div></div>
               <div class="swatch"><div class="swatch-chip" style="background:#111311"></div><div class="swatch-body"><b>Brand</b><code>#111311</code><span>Primary actions, links, on-pace progress. Black, not a colour. 18.8:1 on white.</span></div></div>
               <div class="swatch"><div class="swatch-chip" style="background:#E9EAE7"></div><div class="swatch-body"><b>Brand soft</b><code>#E9EAE7</code><span>Course codes, completed markers, quiet confirmations.</span></div></div>
               <div class="swatch"><div class="swatch-chip" style="background:#F2E679"></div><div class="swatch-body"><b>Chalk</b><code>#F2E679</code><span>The only loud colour. Marks position: today, the current module, the hero action.</span></div></div>
@@ -2094,6 +2097,7 @@ body[data-role="teacher"] [data-only="student"]{display:none !important}
                 <div class="rule yes"><span class="mk">+</span><span>Body text at 15px with a 1.6 line height; nothing below 12px, ever.</span></div>
                 <div class="rule yes"><span class="mk">+</span><span>Every interactive target is at least 32px, 44px on the touch layouts.</span></div>
                 <div class="rule yes"><span class="mk">+</span><span>Status is never colour alone: every pill carries its own words.</span></div>
+                <div class="rule yes"><span class="mk">+</span><span>Text clears 4.5:1 and control boundaries clear 3:1, measured, not eyeballed. That is why there are two line tokens: <code style="font-family:ui-monospace,monospace;font-size:.85em">--line</code> for decoration, <code style="font-family:ui-monospace,monospace;font-size:.85em">--edge</code> for the edge of anything you can operate.</span></div>
               </div>
               <div>
                 <div class="rule yes"><span class="mk">+</span><span>Focus is a 2px ink ring on every control, drawn with <code style="font-family:ui-monospace,monospace;font-size:.85em">:focus-visible</code> so the mouse never sees it. On the black rail and the hero the ring switches to chalk, because a black ring on black is not a focus indicator.</span></div>
