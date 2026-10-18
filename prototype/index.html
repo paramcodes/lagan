@@ -1,0 +1,2215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lagan — higher-education LMS prototype</title>
+<meta name="description" content="Design prototype for a university LMS: term spine, pace bars, and a complete token set.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400..700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   LAGAN — design tokens
+   ============================================================ */
+:root{
+  --ink:        #0C0D0C;
+  --ink-2:      #171817;
+  --ink-3:      #2A2C2A;
+  --canvas:     #F4F4F2;
+  --surface:    #FFFFFF;
+  --surface-2:  #FAFAF9;
+
+  --line:       #E0E1DE;
+  --line-soft:  #EDEDEA;
+
+  --fg:         #121312;
+  --muted:      #616360;
+  --muted-2:    #8C8E8B;
+  --rail-fg:    #B6B8B5;
+  --rail-fg-2:  #82837E;
+
+  --brand:      #111311;
+  --brand-hi:   #000000;
+  --brand-soft: #E9EAE7;
+  --chalk:      #F2E679;
+  --chalk-soft: #FAF3CE;
+  --chalk-wash: #2B2C25;
+  --line-ink:   #3B3D3A;
+
+  --due:        #8A5200;
+  --due-soft:   #FBEFD6;
+  --alert:      #A62B22;
+  --alert-soft: #FAE7E4;
+
+  --ui: "Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  --r-panel:   14px;
+  --r-control: 10px;
+  --r-chip:     7px;
+  --r-pill:    999px;
+
+  --pop: 0 1px 2px rgba(12,13,12,.07), 0 14px 34px -18px rgba(12,13,12,.34);
+
+  --ease-out:    cubic-bezier(.23,1,.32,1);
+  --ease-in-out: cubic-bezier(.77,0,.175,1);
+
+  --rail-w: 248px;
+  --spine-w: 80px;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--canvas);
+  color:var(--fg);
+  font-family:var(--ui);
+  font-size:15px;
+  line-height:1.55;
+  font-feature-settings:"tnum" 0;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+h1,h2,h3,h4,p,ul,ol,figure{margin:0}
+ul,ol{padding:0;list-style:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+a{color:var(--brand);text-decoration-thickness:1px;text-underline-offset:2px}
+
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:3px}
+.rail :focus-visible,.hero :focus-visible{outline-color:var(--chalk)}
+.icon{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.icon-sm{width:16px;height:16px}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* ============================================================
+   Typography
+   ============================================================ */
+.display{
+  font-weight:600;
+  font-size:clamp(1.95rem,1.3rem + 2vw,2.75rem);
+  line-height:1.08;
+  letter-spacing:-.03em;
+}
+.h1{font-weight:600;font-size:1.75rem;line-height:1.14;letter-spacing:-.028em}
+.h2{font-weight:600;font-size:1.1875rem;line-height:1.24;letter-spacing:-.02em}
+.h3{font-size:1.0625rem;font-weight:600;line-height:1.3;letter-spacing:-.006em}
+.h4{font-size:.9375rem;font-weight:600;line-height:1.35}
+.body{font-size:.9375rem;line-height:1.6;color:var(--fg)}
+.lede{font-size:1.0625rem;line-height:1.6;color:var(--muted)}
+.small{font-size:.8125rem;line-height:1.5;color:var(--muted)}
+.label{font-size:.75rem;font-weight:500;line-height:1.3;color:var(--muted);letter-spacing:.005em}
+.num{font-variant-numeric:tabular-nums}
+.num-lg{font-variant-numeric:tabular-nums;font-weight:600;letter-spacing:-.022em}
+
+/* ============================================================
+   App shell
+   ============================================================ */
+.app{display:flex;min-height:100vh;align-items:stretch}
+
+/* --- left rail --- */
+.rail{
+  width:var(--rail-w);flex:none;
+  background:var(--ink);color:var(--rail-fg);
+  padding:18px 12px 14px;
+  display:flex;flex-direction:column;gap:20px;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.brand{display:flex;align-items:center;gap:10px;padding:0 8px 2px}
+.brand-mark{width:26px;height:26px;flex:none;color:var(--chalk)}
+.brand-text{min-width:0;display:flex;flex-direction:column}
+.brand-name{font-weight:600;font-size:1.1875rem;color:#fff;letter-spacing:-.028em;line-height:1}
+.brand-sub{font-size:.6875rem;color:var(--rail-fg-2);letter-spacing:.01em;margin-top:2px}
+
+.role-switch{
+  display:grid;grid-template-columns:1fr 1fr;gap:3px;
+  background:var(--ink-2);border-radius:var(--r-control);padding:3px;
+}
+.role-switch button{
+  padding:6px 8px;border-radius:7px;font-size:.75rem;font-weight:500;color:var(--rail-fg);
+  transition:background .15s ease,color .15s ease;
+}
+.role-switch button[aria-pressed="true"]{background:var(--ink-3);color:#fff}
+.role-switch button:hover:not([aria-pressed="true"]){color:#fff}
+
+.nav-group{display:flex;flex-direction:column;gap:1px}
+.nav-title{font-size:.6875rem;color:var(--rail-fg-2);padding:0 8px 6px;font-weight:500}
+.nav-link{
+  display:flex;align-items:center;gap:11px;
+  padding:8px 9px;border-radius:9px;
+  font-size:.875rem;color:var(--rail-fg);
+  position:relative;text-align:left;width:100%;
+  transition:background .14s ease,color .14s ease;
+}
+.nav-link .icon{opacity:.78}
+.nav-link:hover{background:var(--ink-2);color:#fff}
+.nav-link[aria-current="page"]{background:var(--ink-2);color:#fff;font-weight:500}
+.nav-link[aria-current="page"] .icon{opacity:1;color:var(--chalk)}
+.nav-link[aria-current="page"]::before{
+  content:"";position:absolute;left:-12px;top:9px;bottom:9px;width:3px;
+  background:var(--chalk);border-radius:0 3px 3px 0;
+}
+.nav-count{margin-left:auto;font-size:.6875rem;color:var(--rail-fg-2);font-variant-numeric:tabular-nums}
+.nav-link[aria-current="page"] .nav-count{color:var(--chalk)}
+
+.rail-courses{display:flex;flex-direction:column;gap:2px}
+.rail-course{
+  display:block;width:100%;text-align:left;padding:7px 9px;border-radius:9px;
+  color:var(--rail-fg);font-size:.8125rem;line-height:1.3;
+  transition:background .14s ease,color .14s ease;
+}
+.rail-course:hover{background:var(--ink-2);color:#fff}
+.rail-course b{display:block;font-weight:500;color:#fff;font-size:.8125rem}
+.rail-course span{color:var(--rail-fg-2);font-size:.6875rem}
+.rail-course.is-active{background:var(--ink-2)}
+.rail-course.is-active b{color:var(--chalk)}
+
+.rail-foot{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding-top:14px}
+.who{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;transition:background .14s ease}
+.who:hover{background:var(--ink-2)}
+.who-text{min-width:0;text-align:left;line-height:1.25}
+.who-text b{display:block;color:#fff;font-weight:500;font-size:.8125rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who-text span{font-size:.6875rem;color:var(--rail-fg-2)}
+.avatar{
+  width:32px;height:32px;border-radius:var(--r-pill);flex:none;
+  background:var(--brand-soft);color:var(--brand-hi);
+  display:grid;place-items:center;font-size:.75rem;font-weight:600;letter-spacing:.02em;
+}
+.avatar.lg{width:40px;height:40px;font-size:.8125rem}
+.avatar.dark{background:var(--ink-3);color:var(--chalk)}
+
+/* --- stage --- */
+.stage{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{
+  position:sticky;top:0;z-index:20;
+  display:flex;align-items:center;gap:16px;
+  padding:14px 28px;
+  background:color-mix(in srgb,var(--canvas) 88%,transparent);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line-soft);
+}
+.crumb{display:flex;align-items:center;gap:9px;min-width:0;flex-wrap:wrap}
+.crumb b{font-weight:600;font-size:.875rem}
+.crumb-sep{color:var(--muted-2)}
+.crumb .term{color:var(--muted);font-size:.8125rem;font-variant-numeric:tabular-nums}
+.searchbar{
+  margin-left:auto;display:flex;align-items:center;gap:9px;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-pill);
+  padding:7px 14px;width:min(320px,34vw);color:var(--muted);
+}
+.searchbar input{border:0;outline:0;background:none;width:100%;font-size:.8125rem}
+.searchbar kbd{
+  font-family:var(--ui);font-size:.6875rem;color:var(--muted-2);
+  border:1px solid var(--line);border-radius:5px;padding:1px 5px;
+}
+.iconbtn{
+  width:38px;height:38px;border-radius:var(--r-pill);display:grid;place-items:center;
+  color:var(--muted);position:relative;transition:background .14s ease,color .14s ease;
+}
+.iconbtn:hover{background:var(--surface);color:var(--fg)}
+.iconbtn .dot{
+  position:absolute;top:8px;right:9px;width:7px;height:7px;border-radius:var(--r-pill);
+  background:var(--alert);border:2px solid var(--canvas);
+}
+
+.view{flex:1;min-width:0}
+.screen{display:none;padding:26px 28px 72px}
+.screen.is-active{display:block;animation:enter .26s var(--ease-out) both}
+@keyframes enter{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* --- term spine --- */
+.spine{
+  width:var(--spine-w);flex:none;
+  position:sticky;top:78px;align-self:flex-start;
+  padding:6px 0 6px 4px;
+}
+.spine-head{margin-bottom:14px}
+.spine-head .label{color:var(--muted-2)}
+.spine-list{position:relative;display:flex;flex-direction:column;gap:2px}
+.spine-list::before{
+  content:"";position:absolute;left:11px;top:10px;bottom:10px;width:1.5px;
+  background:var(--line);border-radius:2px;
+}
+.spine-week{
+  position:relative;display:flex;align-items:center;gap:10px;
+  height:22px;color:var(--muted-2);font-size:.6875rem;
+}
+.spine-dot{
+  position:relative;z-index:1;width:11px;height:11px;border-radius:var(--r-pill);
+  background:var(--canvas);border:1.5px solid var(--line);flex:none;margin-left:6px;
+  transition:transform .16s ease;
+}
+.spine-week.is-done .spine-dot{background:var(--brand);border-color:var(--brand)}
+.spine-week.is-break .spine-dot{background:var(--canvas);border-color:var(--brand);border-style:dashed}
+.spine-week:hover{color:var(--fg)}
+@media (hover:hover) and (pointer:fine){.spine-week:hover .spine-dot{transform:scale(1.25)}}
+.spine-week.is-now{color:var(--fg);font-weight:600}
+.spine-week.is-now .spine-dot{
+  width:15px;height:15px;margin-left:4px;
+  background:var(--chalk);border-color:var(--fg);
+  box-shadow:0 0 0 4px var(--chalk-soft);
+}
+.spine-week.is-now::after{
+  content:"today";font-size:.625rem;color:var(--fg);background:var(--chalk);
+  border-radius:var(--r-pill);padding:1px 7px;font-weight:600;letter-spacing:.01em;
+}
+.spine-week .wk{font-variant-numeric:tabular-nums}
+
+@media (max-width:1180px){
+  .spine{width:auto;position:static;padding:0 0 22px}
+  .spine-head{margin:0 0 10px}
+  .spine-list{
+    flex-direction:row;align-items:center;gap:0;
+    overflow-x:auto;padding:18px 4px 10px;
+  }
+  .spine-list::before{left:10px;right:10px;top:23px;bottom:auto;width:auto;height:1.5px}
+  .spine-week{position:relative;height:auto;flex-direction:column;width:38px;flex:none}
+  .spine-dot{margin-left:0}
+  .spine-week.is-now .spine-dot{margin-left:0;width:13px;height:13px}
+  .spine-week.is-now::after{
+    content:"today";position:absolute;bottom:calc(100% + 2px);left:50%;
+    transform:translateX(-50%);white-space:nowrap;
+  }
+  .spine-week .wk{display:none}
+}
+
+/* ============================================================
+   Layout primitives
+   ============================================================ */
+.row{display:flex;gap:26px;align-items:flex-start}
+.col-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:28px}
+.col-aside{width:330px;flex:none;display:flex;flex-direction:column;gap:18px}
+@media (max-width:1080px){
+  .row{flex-direction:column;gap:26px}
+  .col-aside{width:100%}
+}
+
+.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:12px}
+.section-head .h2{letter-spacing:-.014em}
+.section-head .small{margin:0}
+
+.panel{
+  background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r-panel);
+  padding:20px;
+}
+.panel.tight{padding:0;overflow:hidden}
+.panel.flush{background:transparent;border:0;border-radius:0;padding:0}
+
+/* ============================================================
+   Page header
+   ============================================================ */
+.page-head{padding-bottom:22px}
+.page-head .kicker{color:var(--muted);font-size:.8125rem;margin-bottom:6px}
+.page-head .lede{margin-top:8px;max-width:62ch}
+
+/* ============================================================
+   Hero — the one bold moment
+   ============================================================ */
+.hero{
+  background:var(--ink);color:#fff;border-radius:var(--r-panel);
+  padding:26px 28px 24px;position:relative;overflow:hidden;
+}
+.hero::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(125% 150% at 88% 118%, rgba(242,230,121,.17), rgba(242,230,121,0) 56%);
+}
+.hero-tag{
+  display:inline-flex;align-items:center;gap:7px;
+  background:var(--chalk-wash);color:var(--chalk);
+  border-radius:var(--r-pill);padding:4px 11px;font-size:.75rem;font-weight:500;
+  margin-bottom:16px;
+}
+.hero-course{color:var(--rail-fg);font-size:.8125rem;margin-bottom:6px;font-weight:500}
+.hero h2{
+  font-weight:600;font-size:clamp(1.5rem,1.05rem + 1.5vw,2rem);
+  line-height:1.14;letter-spacing:-.028em;max-width:22ch;
+}
+.hero-meta{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:16px;color:var(--rail-fg);font-size:.8125rem}
+.hero-meta b{color:#fff;font-weight:500}
+.hero-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:22px;position:relative;z-index:1}
+.hero-note{color:var(--rail-fg-2);font-size:.75rem}
+.countdown{
+  font-variant-numeric:tabular-nums;
+  font-size:1.05rem;color:var(--chalk);font-weight:600;
+}
+
+/* ============================================================
+   Buttons
+   ============================================================ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  border-radius:var(--r-control);padding:9px 16px;
+  font-size:.875rem;font-weight:500;line-height:1.2;
+  border:1px solid transparent;white-space:nowrap;
+  transition:background .14s ease,border-color .14s ease,color .14s ease,transform .08s ease;
+}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--brand);color:#fff}
+.btn-primary:hover{background:var(--brand-hi)}
+.btn-chalk{background:var(--chalk);color:var(--ink)}
+.btn-chalk:hover{background:#EDDE5C}
+.btn-outline{background:var(--surface);border-color:var(--line);color:var(--fg)}
+.btn-outline:hover{border-color:var(--muted-2);background:var(--surface-2)}
+.btn-ghost{color:var(--muted);padding:9px 10px}
+.btn-ghost:hover{background:var(--surface);color:var(--fg)}
+.btn-on-ink{background:transparent;border-color:var(--line-ink);color:#fff}
+.btn-on-ink:hover{background:var(--ink-2)}
+.btn-danger{background:var(--alert-soft);color:var(--alert)}
+.btn-danger:hover{background:#F6DCD8}
+.btn-sm{padding:6px 12px;font-size:.8125rem;border-radius:8px}
+.btn-block{width:100%}
+
+/* ============================================================
+   Pills + badges
+   ============================================================ */
+.pill{
+  display:inline-flex;align-items:center;gap:6px;
+  border-radius:var(--r-pill);padding:3px 10px;
+  font-size:.75rem;font-weight:500;line-height:1.5;white-space:nowrap;
+  background:var(--line-soft);color:var(--muted);
+}
+.pill-ok{background:var(--brand-soft);color:var(--brand-hi)}
+.pill-due{background:var(--due-soft);color:var(--due)}
+.pill-late{background:var(--alert-soft);color:var(--alert)}
+.pill-chalk{background:var(--chalk-soft);color:#6B5A00}
+.pill-dark{background:rgba(255,255,255,.1);color:#fff}
+.dotmark{width:7px;height:7px;border-radius:var(--r-pill);flex:none;background:currentColor;opacity:.85}
+
+/* ============================================================
+   Ledger — hairline rows (a table, so rules are honest here)
+   ============================================================ */
+.ledger{border-top:1px solid var(--line-soft)}
+.ledger-row{
+  display:grid;grid-template-columns:74px 1fr auto;
+  gap:16px;align-items:center;
+  padding:14px 4px;border-bottom:1px solid var(--line-soft);
+  position:relative;
+  transition:background .14s ease;
+}
+.ledger-row:hover{background:var(--surface-2)}
+.ledger-row::before{
+  content:"";position:absolute;left:-16px;top:12px;bottom:12px;width:3px;
+  border-radius:3px;background:transparent;
+}
+.ledger-row.urgent::before{background:var(--alert)}
+.ledger-row.soon::before{background:var(--chalk)}
+.ledger-row.clear::before{background:var(--brand)}
+.ledger-when{font-size:.75rem;color:var(--muted);line-height:1.3}
+.ledger-when b{display:block;font-weight:600;color:var(--fg);font-size:.8125rem;font-variant-numeric:tabular-nums}
+.ledger-title{font-size:.9375rem;font-weight:500;line-height:1.35}
+.ledger-sub{font-size:.75rem;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ledger-right{display:flex;align-items:center;gap:12px}
+.ledger-time{font-size:.75rem;color:var(--muted);font-variant-numeric:tabular-nums;text-align:right;line-height:1.3}
+@media (max-width:620px){
+  .ledger-row{grid-template-columns:1fr;gap:8px}
+  .ledger-when{display:flex;gap:8px;align-items:baseline}
+  .ledger-when b{display:inline}
+  .ledger-right{justify-content:flex-start}
+}
+.row-link{text-decoration:none;color:inherit}
+
+/* ============================================================
+   Announcements
+   ============================================================ */
+.notes{display:flex;flex-direction:column}
+.note{display:flex;gap:14px;padding:14px 4px;border-bottom:1px solid var(--line-soft);text-align:left;width:100%}
+.note:last-child{border-bottom:0}
+.note:hover .note-title{text-decoration:underline;text-underline-offset:3px}
+.note-body{min-width:0;flex:1}
+.note-title{font-size:.875rem;font-weight:500;line-height:1.4}
+.note-meta{font-size:.75rem;color:var(--muted);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap}
+.note-code{
+  font-size:.6875rem;font-weight:600;color:var(--brand-hi);background:var(--brand-soft);
+  border-radius:var(--r-chip);padding:2px 7px;flex:none;align-self:flex-start;
+}
+
+/* ============================================================
+   Pace bar — signature device
+   ============================================================ */
+.pace{display:flex;flex-direction:column;gap:9px}
+.pace-item{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center}
+.pace-name{font-size:.8125rem;font-weight:500;line-height:1.3}
+.pace-pct{font-size:.75rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.pace-track{
+  grid-column:1/-1;position:relative;height:7px;border-radius:var(--r-pill);
+  background:var(--line-soft);overflow:visible;
+}
+.pace-fill{position:absolute;inset:0 auto 0 0;border-radius:var(--r-pill);background:var(--brand)}
+.pace-item.watch .pace-fill{background:#C08A1E}
+.pace-item.behind .pace-fill{background:var(--alert)}
+.pace-expected{
+  position:absolute;top:-4px;bottom:-4px;width:2px;border-radius:2px;
+  background:var(--muted-2);
+}
+.pace-legend{font-size:.6875rem;color:var(--muted-2);display:flex;align-items:center;gap:6px;margin-top:2px}
+.pace-legend i{display:inline-block;width:2px;height:11px;background:var(--muted-2);border-radius:2px}
+
+/* ============================================================
+   Week grid (aside)
+   ============================================================ */
+.week{display:flex;flex-direction:column;gap:2px}
+.week-day{display:grid;grid-template-columns:34px 1fr;gap:10px;padding:7px 0;border-bottom:1px solid var(--line-soft)}
+.week-day:last-child{border-bottom:0}
+.week-day.is-today{background:var(--chalk-soft);border-radius:8px;padding:7px 8px;margin:0 -8px}
+.week-dow{font-size:.6875rem;color:var(--muted-2);font-weight:600;padding-top:2px}
+.week-day.is-today .week-dow{color:#6B5A00}
+.week-events{display:flex;flex-direction:column;gap:6px}
+.week-event{font-size:.75rem;line-height:1.35}
+.week-event b{display:block;font-weight:500}
+.week-event span{color:var(--muted)}
+.week-day.is-today .week-event span{color:#7A6900}
+.week-idle{font-size:.75rem;color:var(--muted-2);padding-top:2px}
+
+/* ============================================================
+   Course header
+   ============================================================ */
+.course-head{
+  display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap;
+  padding-bottom:20px;border-bottom:1px solid var(--line);margin-bottom:24px;
+}
+.course-head-main{flex:1;min-width:260px}
+.course-code{
+  display:inline-block;font-size:.75rem;font-weight:600;color:var(--brand-hi);
+  background:var(--brand-soft);border-radius:var(--r-chip);padding:3px 9px;margin-bottom:12px;
+}
+.course-facts{display:flex;gap:8px 22px;flex-wrap:wrap;margin-top:16px}
+.fact{font-size:.8125rem;color:var(--muted);line-height:1.35}
+.fact b{display:block;color:var(--muted-2);font-size:.6875rem;font-weight:500}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:24px;overflow-x:auto}
+.tab{
+  padding:10px 14px;font-size:.875rem;color:var(--muted);
+  border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;
+  transition:color .14s ease,border-color .14s ease;
+}
+.tab:hover{color:var(--fg)}
+.tab[aria-selected="true"]{color:var(--fg);font-weight:500;border-bottom-color:var(--brand)}
+.tabpanel[hidden]{display:none}
+
+/* Modules */
+.module{border-bottom:1px solid var(--line-soft)}
+.module:last-child{border-bottom:0}
+.module > summary{
+  display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;
+  padding:16px 4px;cursor:pointer;list-style:none;
+}
+.module > summary::-webkit-details-marker{display:none}
+.module[open] > summary{background:var(--surface-2)}
+.module-chev{color:var(--muted-2);transition:transform .18s ease}
+.module[open] .module-chev{transform:rotate(90deg)}
+.module-num{
+  width:26px;height:26px;border-radius:8px;background:var(--line-soft);color:var(--muted);
+  display:grid;place-items:center;font-size:.75rem;font-weight:600;font-variant-numeric:tabular-nums;
+}
+.module[open] .module-num{background:var(--chalk);color:var(--ink)}
+.module-name{display:block;font-size:.9375rem;font-weight:500}
+.module-sub{display:block;font-size:.75rem;color:var(--muted);margin-top:2px}
+.module-items{padding:2px 4px 14px 44px;display:flex;flex-direction:column;gap:1px}
+.item{
+  display:grid;grid-template-columns:auto 1fr auto auto;gap:12px;align-items:center;
+  padding:10px 10px;border-radius:9px;font-size:.875rem;text-align:left;
+  transition:background .14s ease;
+}
+.item:hover{background:var(--surface-2)}
+.item-ico{color:var(--muted-2);display:grid;place-items:center}
+.item.done .item-ico{color:var(--brand)}
+.item.done .item-title{color:var(--muted)}
+.item-title{min-width:0;line-height:1.35}
+.item-meta{font-size:.75rem;color:var(--muted-2);font-variant-numeric:tabular-nums}
+@media (max-width:620px){ .module-items{padding-left:4px} }
+
+/* ============================================================
+   Assignment screen
+   ============================================================ */
+.doc{max-width:66ch}
+.doc h3{margin:26px 0 10px}
+.doc h3:first-child{margin-top:0}
+.doc p{margin:0 0 14px;line-height:1.65;color:var(--fg)}
+.doc ul{list-style:disc;padding-left:20px;margin:0 0 16px;color:var(--fg);line-height:1.65}
+.doc li{margin-bottom:6px}
+.doc code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85em;
+  background:var(--line-soft);border-radius:5px;padding:1px 5px;
+}
+.callout{
+  border-left:3px solid var(--chalk);background:var(--chalk-soft);
+  border-radius:0 10px 10px 0;padding:13px 16px;margin:0 0 18px;font-size:.875rem;line-height:1.6;
+}
+.callout b{display:block;margin-bottom:3px}
+.rubric{width:100%;border-collapse:collapse;font-size:.875rem}
+.rubric th{
+  text-align:left;font-size:.75rem;font-weight:600;color:var(--muted);
+  padding:0 12px 9px 0;border-bottom:1px solid var(--line);
+}
+.rubric td{padding:11px 12px 11px 0;border-bottom:1px solid var(--line-soft);vertical-align:top;line-height:1.45}
+.rubric td:last-child,.rubric th:last-child{text-align:right;white-space:nowrap;padding-right:0}
+.rubric .pts{font-weight:600;font-variant-numeric:tabular-nums}
+
+.dropzone{
+  border:1.5px dashed var(--line);border-radius:var(--r-panel);
+  padding:22px;text-align:center;color:var(--muted);background:var(--surface-2);
+}
+.dropzone .icon{width:24px;height:24px;color:var(--muted-2);margin-bottom:8px}
+.upload{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line-soft)}
+.upload:last-of-type{border-bottom:0}
+.upload-name{display:block;font-size:.875rem;font-weight:500}
+.upload-meta{display:block;font-size:.75rem;color:var(--muted)}
+
+.scorecard{
+  display:grid;grid-template-columns:auto 1fr;gap:6px 18px;align-items:baseline;
+}
+.score-big{font-size:2.35rem;font-weight:600;line-height:1;letter-spacing:-.032em}
+.score-of{font-size:.8125rem;color:var(--muted)}
+.feedback{border-left:3px solid var(--brand);padding-left:16px;font-size:.875rem;line-height:1.65;color:var(--fg)}
+
+/* ============================================================
+   Tables (grades)
+   ============================================================ */
+.tbl{width:100%;border-collapse:collapse;font-size:.875rem}
+.tbl th{
+  text-align:left;font-size:.75rem;font-weight:600;color:var(--muted);
+  padding:0 14px 10px 0;border-bottom:1px solid var(--line);white-space:nowrap;
+}
+.tbl td{padding:13px 14px 13px 0;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+.tbl th:last-child,.tbl td:last-child{padding-right:0;text-align:right}
+.tbl tbody tr:hover{background:var(--surface-2)}
+.tbl .course-cell b{display:block;font-weight:500}
+.tbl .course-cell span{font-size:.75rem;color:var(--muted)}
+.grade-letter{
+  font-size:1.05rem;font-weight:600;line-height:1;
+  font-variant-numeric:tabular-nums;
+}
+.tbl-wrap{overflow-x:auto}
+
+/* term summary */
+.summary-strip{
+  display:flex;gap:38px;flex-wrap:wrap;align-items:flex-end;
+}
+.summary-item .k{font-size:.75rem;color:var(--muted);margin-bottom:5px}
+.summary-item .v{font-size:1.75rem;font-weight:600;line-height:1;letter-spacing:-.03em}
+.summary-item .s{font-size:.75rem;color:var(--muted-2);margin-top:5px}
+
+/* distribution chart */
+.dist{display:flex;align-items:flex-end;gap:6px;height:76px;margin-top:8px}
+.dist-bar{flex:1;background:var(--line);border-radius:5px 5px 3px 3px;position:relative}
+.dist-bar.mine{background:var(--brand)}
+.dist-axis{display:flex;gap:6px;margin-top:7px}
+.dist-axis span{flex:1;text-align:center;font-size:.6875rem;color:var(--muted-2)}
+
+/* ============================================================
+   Grading queue
+   ============================================================ */
+.chips{display:flex;gap:7px;flex-wrap:wrap}
+.chip{
+  border:1px solid var(--line);background:var(--surface);border-radius:var(--r-pill);
+  padding:5px 13px;font-size:.8125rem;color:var(--muted);
+  transition:background .14s ease,border-color .14s ease,color .14s ease;
+}
+.chip:hover{border-color:var(--muted-2);color:var(--fg)}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.queue{display:flex;flex-direction:column}
+.queue-row{
+  display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;
+  padding:14px 4px;border-bottom:1px solid var(--line-soft);text-align:left;width:100%;
+}
+.queue-row:hover{background:var(--surface-2)}
+.queue-who{display:flex;align-items:center;gap:12px;min-width:0}
+.queue-sub{font-size:.75rem;color:var(--muted);margin-top:2px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+.speedgrade{display:grid;grid-template-columns:1fr 300px;gap:26px;align-items:start}
+@media (max-width:900px){ .speedgrade{grid-template-columns:1fr} }
+.rubric-input{display:grid;grid-template-columns:1fr 74px;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line-soft)}
+.rubric-input .nm{font-size:.8125rem;line-height:1.4}
+.input{
+  width:100%;border:1px solid var(--line);border-radius:var(--r-control);
+  padding:8px 11px;font-size:.875rem;background:var(--surface);text-align:right;
+  font-variant-numeric:tabular-nums;
+}
+.input:focus{outline:2px solid var(--brand);outline-offset:0;border-color:transparent}
+
+/* ============================================================
+   Forms (generic)
+   ============================================================ */
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:.75rem;font-weight:500;color:var(--muted)}
+.control{
+  width:100%;border:1px solid var(--line);border-radius:var(--r-control);
+  padding:9px 12px;font-size:.875rem;background:var(--surface);
+}
+.control:focus{outline:2px solid var(--brand);outline-offset:0;border-color:transparent}
+.check{display:flex;align-items:center;gap:9px;font-size:.875rem}
+.check input{width:16px;height:16px;accent-color:var(--brand)}
+.radio{
+  display:inline-flex;background:var(--line-soft);border-radius:var(--r-control);
+  padding:3px;gap:3px;
+}
+.radio button{padding:6px 13px;border-radius:7px;font-size:.8125rem;color:var(--muted)}
+.radio button[aria-pressed="true"]{background:var(--surface);color:var(--fg);font-weight:500;box-shadow:0 1px 2px rgba(12,13,12,.08)}
+
+/* Empty state */
+.empty{text-align:center;padding:36px 20px;color:var(--muted)}
+.empty .icon{width:30px;height:30px;color:var(--muted-2);margin-bottom:12px}
+.empty .h3{color:var(--fg);margin-bottom:6px}
+.empty .small{max-width:38ch;margin:0 auto 16px}
+
+/* ============================================================
+   Design-system page
+   ============================================================ */
+.ds-grid{display:grid;gap:22px}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.swatch{border:1px solid var(--line-soft);border-radius:var(--r-panel);overflow:hidden;background:var(--surface)}
+.swatch-chip{height:66px}
+.swatch-body{padding:11px 13px}
+.swatch-body b{display:block;font-size:.8125rem;font-weight:600}
+.swatch-body code{font-size:.75rem;color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.swatch-body span{display:block;font-size:.6875rem;color:var(--muted-2);margin-top:5px;line-height:1.35}
+
+.spec{border-top:1px solid var(--line-soft);padding:16px 0;display:grid;grid-template-columns:150px 1fr;gap:20px;align-items:baseline}
+.spec:last-child{border-bottom:1px solid var(--line-soft)}
+.spec .spec-id{font-size:.75rem;color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+@media (max-width:640px){ .spec{grid-template-columns:1fr;gap:8px} }
+
+.ds-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.rule-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media (max-width:720px){ .rule-grid{grid-template-columns:1fr} }
+.rule{display:flex;gap:11px;padding:9px 0;font-size:.875rem;line-height:1.5}
+.rule .mk{font-weight:700;flex:none;line-height:1.5}
+.rule.no .mk{color:var(--alert)}
+.rule.yes .mk{color:var(--brand)}
+.scale{display:flex;flex-direction:column;gap:8px}
+.scale-row{display:grid;grid-template-columns:56px 1fr;gap:14px;align-items:center}
+.scale-bar{height:16px;background:var(--brand-soft);border-radius:4px}
+
+/* ============================================================
+   Calendar grid
+   ============================================================ */
+.cal-wrap{overflow-x:auto}
+.cal{
+  display:grid;
+  grid-template-columns:62px repeat(5,minmax(124px,1fr));
+  gap:1px;background:var(--line-soft);
+  border:1px solid var(--line-soft);border-radius:10px;overflow:hidden;
+}
+.cal-corner{background:var(--surface)}
+.cal-dayhead{background:var(--surface-2);padding:9px 12px;font-size:.75rem;font-weight:600;color:var(--muted)}
+.cal-dayhead.is-today{background:var(--chalk-soft);color:#6B5A00}
+.cal-time{background:var(--surface-2);padding:8px 10px;font-size:.6875rem;color:var(--muted-2);font-variant-numeric:tabular-nums}
+.cal-slot{background:var(--surface);padding:6px;min-height:56px}
+.cal-slot.is-today{background:#FCFBF1}
+.cal-ev{display:block;background:var(--brand-soft);border:1px solid var(--line);border-radius:7px;padding:4px 8px;font-size:.6875rem;line-height:1.35}
+.cal-ev b{display:block;color:var(--brand-hi);font-size:.75rem;font-weight:600}
+.cal-ev span{color:var(--muted)}
+.cal-ev.is-due{background:var(--due-soft)}
+.cal-ev.is-due b{color:#6B4200}
+
+/* ============================================================
+   Role visibility
+   ============================================================ */
+body[data-role="student"] [data-only="teacher"]{display:none !important}
+body[data-role="teacher"] [data-only="student"]{display:none !important}
+
+/* ============================================================
+   Responsive rail
+   ============================================================ */
+@media (max-width:900px){
+  .app{flex-direction:column}
+  .rail{
+    position:fixed;bottom:0;left:0;right:0;top:auto;height:auto;width:100%;
+    flex-direction:row;align-items:center;gap:4px;
+    padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+    overflow-x:auto;z-index:40;
+    border-top:1px solid var(--ink-3);
+  }
+  .brand,.nav-title,.rail-courses,.who-text,.nav-count{display:none}
+  .nav-group{flex-direction:row;gap:2px}
+  .nav-link,.rail-course{flex-direction:column;gap:4px;padding:7px 12px;font-size:.625rem}
+  .nav-link[aria-current="page"]::before{display:none}
+  .rail-foot{margin:0 0 0 auto;padding:0;flex-direction:row}
+  .topbar{padding:12px 16px}
+  .searchbar{display:none}
+  .screen{padding:20px 16px 110px}
+  .role-switch{order:-1}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+}
+</style>
+</head>
+<body data-role="student">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-ribbon" viewBox="0 0 24 24"><path d="M6.5 2.5h11a1 1 0 0 1 1 1v18l-6.5-5.4L5.5 21.5v-18a1 1 0 0 1 1-1Z"/></symbol>
+    <symbol id="i-today" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="17" rx="2.5"/><path d="M16 2.5v4M8 2.5v4M3 10h18"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M6 21V11M12 21V4M18 21v-6"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="2.5" y="4.5" width="19" height="15" rx="2.5"/><path d="m21.5 6.5-9.5 6.6L2.5 6.5"/></symbol>
+    <symbol id="i-archive" viewBox="0 0 24 24"><rect x="2.5" y="3.5" width="19" height="5" rx="1.5"/><path d="M4.5 8.5v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-11M10 12.5h4"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20.5 20.5-4.6-4.6"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8.5a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6.5 9.5 17.5 4 12"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.2 2"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8Z"/><path d="M14 2.5V8h5.5M8.5 13.5h7M8.5 17h4.5"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8.5-5-5-5 5M12 3.5V15"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3.5" y="10.5" width="17" height="11" rx="2.5"/><path d="M7.5 10.5V7a4.5 4.5 0 0 1 9 0v3.5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M6.5 3.8 20 12 6.5 20.2Z"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4.5 12h15M13 5.5 19.5 12 13 18.5"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5M12 16.2h.01"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10.5 5 5 5-5M12 15.5v-12"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M21 12.5V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5.5"/><path d="M3 12.5 5.6 4.9A2 2 0 0 1 7.5 3.5h9a2 2 0 0 1 1.9 1.4L21 12.5h-5l-1.5 2.5h-5L8 12.5Z"/></symbol>
+    <symbol id="i-cap" viewBox="0 0 24 24"><path d="M22 10 12 5.2 2 10l10 4.8Z"/><path d="M6 12.2v5c0 1.8 2.7 3 6 3s6-1.2 6-3v-5"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+
+  <!-- ==================== RAIL ==================== -->
+  <aside class="rail">
+    <a class="brand" href="#today">
+      <svg class="brand-mark" aria-hidden="true"><use href="#i-ribbon" fill="currentColor" stroke="none"/></svg>
+      <span class="brand-text">
+        <span class="brand-name">Lagan</span>
+        <span class="brand-sub">Northgate University</span>
+      </span>
+    </a>
+
+    <div class="role-switch" role="group" aria-label="Viewing as">
+      <button data-role-btn="student" aria-pressed="true">Student</button>
+      <button data-role-btn="teacher" aria-pressed="false">Teaching</button>
+    </div>
+
+    <nav class="nav-group" aria-label="Main">
+      <button class="nav-link" data-goto="today" data-only="student">
+        <svg class="icon"><use href="#i-today"/></svg> Today
+      </button>
+      <button class="nav-link" data-goto="courses">
+        <svg class="icon"><use href="#i-book"/></svg> Courses
+      </button>
+      <button class="nav-link" data-goto="calendar">
+        <svg class="icon"><use href="#i-calendar"/></svg> Calendar
+      </button>
+      <button class="nav-link" data-goto="grades" data-only="student">
+        <svg class="icon"><use href="#i-chart"/></svg> Grades
+      </button>
+      <button class="nav-link" data-goto="grading" data-only="teacher">
+        <svg class="icon"><use href="#i-chart"/></svg> To grade <span class="nav-count">18</span>
+      </button>
+      <button class="nav-link" data-goto="inbox">
+        <svg class="icon"><use href="#i-inbox"/></svg> Inbox <span class="nav-count">3</span>
+      </button>
+      <button class="nav-link" data-goto="library">
+        <svg class="icon"><use href="#i-archive"/></svg> Library
+      </button>
+      <button class="nav-link" data-goto="system">
+        <svg class="icon"><use href="#i-cap"/></svg> Design system
+      </button>
+    </nav>
+
+    <div class="rail-courses">
+      <p class="nav-title">Spring 2026 · week 9</p>
+      <button class="rail-course" data-goto="course"><b>CS 214</b><span>Data Structures</span></button>
+      <button class="rail-course" data-goto="course"><b>HIST 108</b><span>Modern Europe</span></button>
+      <button class="rail-course" data-goto="course"><b>WRIT 210</b><span>Rhetoric</span></button>
+      <button class="rail-course" data-goto="course"><b>BIO 130</b><span>Cell Biology</span></button>
+    </div>
+
+    <div class="rail-foot">
+      <button class="who">
+        <span class="avatar dark">RM</span>
+        <span class="who-text"><b>Rovan Meade</b><span>BSc Computer Science</span></span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ==================== STAGE ==================== -->
+  <div class="stage">
+    <header class="topbar">
+      <div class="crumb">
+        <b id="crumb-title">Today</b>
+        <span class="crumb-sep">/</span>
+        <span class="term">Spring 2026 · week 9 of 15</span>
+      </div>
+      <label class="searchbar">
+        <svg class="icon icon-sm"><use href="#i-search"/></svg>
+        <input type="search" placeholder="Search courses, files, people" aria-label="Search">
+        <kbd>/</kbd>
+      </label>
+      <button class="iconbtn" aria-label="Notifications"><svg class="icon"><use href="#i-bell"/></svg><span class="dot"></span></button>
+      <button class="iconbtn" aria-label="Your account"><svg class="icon"><use href="#i-user"/></svg></button>
+    </header>
+
+    <main class="view">
+      <!-- ==================== TODAY ==================== -->
+      <section class="screen is-active" data-screen="today" aria-labelledby="today-h">
+        <div class="page-head">
+          <p class="kicker">Tuesday, 17 March</p>
+          <h1 class="display" id="today-h">Two things due before Friday.</h1>
+          <p class="lede">Problem set 6 is your next submission. Lab report 4 hasn’t been started, and it takes most people four hours.</p>
+        </div>
+
+        <div class="row">
+          <nav class="spine" aria-label="Term progress, Spring 2026">
+            <div class="spine-head"><p class="label">Spring 2026 · 15 weeks</p></div>
+            <ol class="spine-list">
+              <li class="spine-week is-done" title="Week 1 · 12–18 Jan"><span class="spine-dot"></span><span class="wk">1</span></li>
+              <li class="spine-week is-done" title="Week 2 · 19–25 Jan"><span class="spine-dot"></span><span class="wk">2</span></li>
+              <li class="spine-week is-done" title="Week 3 · 26 Jan–1 Feb"><span class="spine-dot"></span><span class="wk">3</span></li>
+              <li class="spine-week is-done" title="Week 4 · 2–8 Feb"><span class="spine-dot"></span><span class="wk">4</span></li>
+              <li class="spine-week is-done" title="Week 5 · 9–15 Feb · mid-term assessments"><span class="spine-dot"></span><span class="wk">5</span></li>
+              <li class="spine-week is-done" title="Week 6 · 16–22 Feb"><span class="spine-dot"></span><span class="wk">6</span></li>
+              <li class="spine-week is-done" title="Week 7 · 23 Feb–1 Mar"><span class="spine-dot"></span><span class="wk">7</span></li>
+              <li class="spine-week is-done is-break" title="Reading week · 2–8 Mar"><span class="spine-dot"></span><span class="wk">—</span></li>
+              <li class="spine-week is-now" aria-current="step" title="Week 9 · 16–22 Mar"><span class="spine-dot"></span><span class="wk">9</span></li>
+              <li class="spine-week" title="Week 10 · 23–29 Mar"><span class="spine-dot"></span><span class="wk">10</span></li>
+              <li class="spine-week" title="Week 11 · 30 Mar–5 Apr"><span class="spine-dot"></span><span class="wk">11</span></li>
+              <li class="spine-week" title="Week 12 · 6–12 Apr · revision"><span class="spine-dot"></span><span class="wk">12</span></li>
+              <li class="spine-week" title="Week 13 · 13–19 Apr"><span class="spine-dot"></span><span class="wk">13</span></li>
+              <li class="spine-week" title="Week 14 · 20–26 Apr"><span class="spine-dot"></span><span class="wk">14</span></li>
+              <li class="spine-week" title="Week 15 · 27 Apr–3 May · exams"><span class="spine-dot"></span><span class="wk">15</span></li>
+            </ol>
+          </nav>
+
+          <div class="col-main">
+
+            <article class="hero">
+              <span class="hero-tag"><svg class="icon icon-sm"><use href="#i-clock"/></svg> Next up</span>
+              <p class="hero-course">CS 214 · Data Structures &amp; Algorithms</p>
+              <h2>Problem set 6 — graph traversal and shortest paths</h2>
+              <div class="hero-meta">
+                <span><b>35 points</b> of the final grade</span>
+                <span>Set by Prof. Ada Okonjo</span>
+                <span>Draft due <b>Thu 19 Mar, 23:59</b></span>
+              </div>
+              <div class="hero-meta">
+                <span class="countdown">2 days 9 hours</span>
+                <span>Section 3 of 5 written</span>
+              </div>
+              <div class="hero-foot">
+                <button class="btn btn-chalk">Continue problem set
+                  <svg class="icon icon-sm"><use href="#i-arrow"/></svg>
+                </button>
+                <button class="btn btn-on-ink">Read the submission rules</button>
+                <span class="hero-note">Late work loses 5% a day</span>
+              </div>
+            </article>
+
+            <section aria-labelledby="due-h">
+              <div class="section-head">
+                <h2 class="h2" id="due-h">Due this week</h2>
+                <button class="btn btn-ghost btn-sm">Open the calendar <svg class="icon icon-sm"><use href="#i-arrow"/></svg></button>
+              </div>
+
+              <div class="callout" style="border-left-color:var(--alert);background:var(--alert-soft)">
+                <b>Overdue — seminar discussion post</b>
+                HIST 108 · was due Fri 13 March. It is still open but the late penalty has started.
+                <div style="margin-top:10px"><button class="btn btn-danger btn-sm">Post a reply</button></div>
+              </div>
+
+              <div class="panel tight">
+                <div class="ledger" style="padding:0 20px">
+                  <a class="ledger-row urgent row-link" href="#assignment">
+                    <span class="ledger-when"><b>Today</b>Tue 17 Mar</span>
+                    <span>
+                      <span class="ledger-title">Reading response 7 — Habermas, <i>The Public Sphere</i></span>
+                      <span class="ledger-sub">WRIT 210 <span class="pill">Not started</span></span>
+                    </span>
+                    <span class="ledger-right"><span class="ledger-time">11h<small style="display:block">until 23:59</small></span></span>
+                  </a>
+
+                  <a class="ledger-row soon row-link" href="#assignment">
+                    <span class="ledger-when"><b>Thu 19</b>in 2 days</span>
+                    <span>
+                      <span class="ledger-title">Problem set 6 — graph traversal</span>
+                      <span class="ledger-sub">CS 214 <span class="pill pill-chalk">3 of 5 sections</span></span>
+                    </span>
+                    <span class="ledger-right"><span class="ledger-time">35 pts</span></span>
+                  </a>
+
+                  <a class="ledger-row soon row-link" href="#assignment">
+                    <span class="ledger-when"><b>Thu 19</b>in 2 days</span>
+                    <span>
+                      <span class="ledger-title">Lab report 4 — mitosis and the cell cycle</span>
+                      <span class="ledger-sub">BIO 130 <span class="pill">Not started</span> <span class="pill pill-late">Needs lab data</span></span>
+                    </span>
+                    <span class="ledger-right"><span class="ledger-time">20 pts</span></span>
+                  </a>
+
+                  <a class="ledger-row clear row-link" href="#assignment">
+                    <span class="ledger-when"><b>Fri 20</b>in 3 days</span>
+                    <span>
+                      <span class="ledger-title">Essay outline — the Congress of Vienna</span>
+                      <span class="ledger-sub">HIST 108 <span class="pill pill-ok">Submitted 15 Mar</span></span>
+                    </span>
+                    <span class="ledger-right"><span class="ledger-time">ungraded</span></span>
+                  </a>
+
+                  <a class="ledger-row clear row-link" href="#assignment">
+                    <span class="ledger-when"><b>Sun 22</b>in 5 days</span>
+                    <span>
+                      <span class="ledger-title">Peer review — Dara Whitfield’s draft</span>
+                      <span class="ledger-sub">WRIT 210 <span class="pill">Waiting on Dara</span></span>
+                    </span>
+                    <span class="ledger-right"><span class="ledger-time">10 pts</span></span>
+                  </a>
+                </div>
+              </div>
+            </section>
+
+            <section aria-labelledby="notes-h">
+              <div class="section-head">
+                <h2 class="h2" id="notes-h">What changed</h2>
+                <button class="btn btn-ghost btn-sm">All announcements <svg class="icon icon-sm"><use href="#i-arrow"/></svg></button>
+              </div>
+              <div class="panel" style="padding:4px 20px">
+                <div class="notes">
+                  <button class="note">
+                    <span class="note-code">CS 214</span>
+                    <span class="note-body">
+                      <span class="note-title">Problem set 6 deadline moves to Friday 20 March</span>
+                      <span class="note-meta"><span>Ada Okonjo</span><span>·</span><span>4 hours ago</span></span>
+                    </span>
+                  </button>
+                  <button class="note">
+                    <span class="note-code">BIO 130</span>
+                    <span class="note-body">
+                      <span class="note-title">Lab 4 images and the raw counts sheet are now in the module</span>
+                      <span class="note-meta"><span>Helena Strand</span><span>·</span><span>Yesterday</span></span>
+                    </span>
+                  </button>
+                  <button class="note">
+                    <span class="note-code">HIST 108</span>
+                    <span class="note-body">
+                      <span class="note-title">Essay titles for the final paper are published</span>
+                      <span class="note-meta"><span>Mireille Faure</span><span>·</span><span>2 days ago</span></span>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <aside class="col-aside" aria-label="Your week at a glance">
+            <div class="panel">
+              <div class="section-head"><h2 class="h3">Your pace</h2></div>
+              <div class="pace">
+                <div class="pace-item">
+                  <span class="pace-name">HIST 108</span><span class="pace-pct">66% · ahead</span>
+                  <span class="pace-track"><span class="pace-fill" style="width:66%"></span><span class="pace-expected" style="left:60%" title="Term is 60% through"></span></span>
+                </div>
+                <div class="pace-item">
+                  <span class="pace-name">WRIT 210</span><span class="pace-pct">60% · on pace</span>
+                  <span class="pace-track"><span class="pace-fill" style="width:60%"></span><span class="pace-expected" style="left:60%"></span></span>
+                </div>
+                <div class="pace-item watch">
+                  <span class="pace-name">CS 214</span><span class="pace-pct">52% · 8 behind</span>
+                  <span class="pace-track"><span class="pace-fill" style="width:52%"></span><span class="pace-expected" style="left:60%"></span></span>
+                </div>
+                <div class="pace-item behind">
+                  <span class="pace-name">BIO 130</span><span class="pace-pct">38% · 22 behind</span>
+                  <span class="pace-track"><span class="pace-fill" style="width:38%"></span><span class="pace-expected" style="left:60%"></span></span>
+                </div>
+              </div>
+              <p class="pace-legend"><i></i> Where the term should be by the end of week 9</p>
+            </div>
+
+            <div class="panel">
+              <div class="section-head"><h2 class="h3">Your week</h2><button class="btn btn-ghost btn-sm">Calendar</button></div>
+              <div class="week">
+                <div class="week-day">
+                  <span class="week-dow">Mon</span>
+                  <span class="week-events">
+                    <span class="week-event"><b>BIO 130 lecture</b><span>08:00 · Kelvin Hall 2</span></span>
+                    <span class="week-event"><b>HIST 108 seminar</b><span>09:00 · Rowan 114</span></span>
+                  </span>
+                </div>
+                <div class="week-day is-today">
+                  <span class="week-dow">Tue</span>
+                  <span class="week-events">
+                    <span class="week-event"><b>CS 214 lecture</b><span>10:00 · Turing Auditorium</span></span>
+                    <span class="week-event"><b>Reading response 7 due</b><span>23:59</span></span>
+                  </span>
+                </div>
+                <div class="week-day">
+                  <span class="week-dow">Wed</span>
+                  <span class="week-events">
+                    <span class="week-event"><b>WRIT 210 seminar</b><span>15:00 · Rowan 208</span></span>
+                  </span>
+                </div>
+                <div class="week-day">
+                  <span class="week-dow">Thu</span>
+                  <span class="week-events">
+                    <span class="week-event"><b>CS 214 lecture</b><span>10:00 · Turing Auditorium</span></span>
+                    <span class="week-event"><b>BIO 130 lab</b><span>14:00 · Huxley Lab 3</span></span>
+                    <span class="week-event"><b>Two submissions due</b><span>23:59</span></span>
+                  </span>
+                </div>
+                <div class="week-day">
+                  <span class="week-dow">Fri</span>
+                  <span class="week-events">
+                    <span class="week-event"><b>CS 214 lab</b><span>13:00 · Turing 2.14</span></span>
+                  </span>
+                </div>
+                <div class="week-day">
+                  <span class="week-dow">Sat</span><span class="week-idle">Nothing scheduled</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="section-head"><h2 class="h3">Ask for help</h2></div>
+              <div class="notes">
+                <button class="note" style="padding:11px 0">
+                  <span class="note-body"><span class="note-title">Your advisor — Priya Raman</span>
+                  <span class="note-meta">Booked until Thursday</span></span>
+                  <svg class="icon icon-sm" style="color:var(--muted-2)"><use href="#i-chev"/></svg>
+                </button>
+                <button class="note" style="padding:11px 0">
+                  <span class="note-body"><span class="note-title">Writing centre</span>
+                  <span class="note-meta">Drop-in, 4 slots today</span></span>
+                  <svg class="icon icon-sm" style="color:var(--muted-2)"><use href="#i-chev"/></svg>
+                </button>
+                <button class="note" style="padding:11px 0">
+                  <span class="note-body"><span class="note-title">Extension request</span>
+                  <span class="note-meta">Needs evidence for this term</span></span>
+                  <svg class="icon icon-sm" style="color:var(--muted-2)"><use href="#i-chev"/></svg>
+                </button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+      <!-- ==================== COURSE ==================== -->
+      <section class="screen" data-screen="course" aria-labelledby="course-h">
+        <div class="course-head">
+          <div class="course-head-main">
+            <span class="course-code">CS 214 · 4 credits</span>
+            <h1 class="h1" id="course-h">Data Structures &amp; Algorithms</h1>
+            <p class="lede" style="max-width:60ch;margin-top:10px">Trees, heaps, hash tables, graph traversal, and the cost of the choices you make between them. Weekly problem sets, one mid-term, one project.</p>
+            <div class="course-facts">
+              <span class="fact"><b>Lecturer</b>Prof. Ada Okonjo</span>
+              <span class="fact"><b>Lecture</b>Tue &amp; Thu, 10:00</span>
+              <span class="fact"><b>Lab</b>Fri, 13:00 · Turing 2.14</span>
+              <span class="fact"><b>Runs</b>Weeks 1–15</span>
+              <span class="fact"><b>Assessment</b>60% coursework, 40% exam</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:9px;flex-wrap:wrap">
+            <button class="btn btn-outline"><svg class="icon icon-sm"><use href="#i-download"/></svg> Syllabus</button>
+            <button class="btn btn-primary">Continue where you left off</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <nav class="spine" aria-label="Term progress">
+            <div class="spine-head"><p class="label">Course runs weeks 1–15</p></div>
+            <ol class="spine-list">
+              <li class="spine-week is-done" title="Week 1 · arrays and complexity"><span class="spine-dot"></span><span class="wk">1</span></li>
+              <li class="spine-week is-done" title="Week 2 · linked lists"><span class="spine-dot"></span><span class="wk">2</span></li>
+              <li class="spine-week is-done" title="Week 3 · stacks and queues"><span class="spine-dot"></span><span class="wk">3</span></li>
+              <li class="spine-week is-done" title="Week 4 · sorting"><span class="spine-dot"></span><span class="wk">4</span></li>
+              <li class="spine-week is-done" title="Week 5 · mid-term assessment"><span class="spine-dot"></span><span class="wk">5</span></li>
+              <li class="spine-week is-done" title="Week 6 · binary trees"><span class="spine-dot"></span><span class="wk">6</span></li>
+              <li class="spine-week is-done" title="Week 7 · balanced trees"><span class="spine-dot"></span><span class="wk">7</span></li>
+              <li class="spine-week is-done is-break" title="Reading week · no classes"><span class="spine-dot"></span><span class="wk">—</span></li>
+              <li class="spine-week is-now" aria-current="step" title="Week 9 · graphs"><span class="spine-dot"></span><span class="wk">9</span></li>
+              <li class="spine-week" title="Week 10 · shortest paths"><span class="spine-dot"></span><span class="wk">10</span></li>
+              <li class="spine-week" title="Week 11 · hashing"><span class="spine-dot"></span><span class="wk">11</span></li>
+              <li class="spine-week" title="Week 12 · project studio"><span class="spine-dot"></span><span class="wk">12</span></li>
+              <li class="spine-week" title="Week 13 · project studio"><span class="spine-dot"></span><span class="wk">13</span></li>
+              <li class="spine-week" title="Week 14 · revision"><span class="spine-dot"></span><span class="wk">14</span></li>
+              <li class="spine-week" title="Week 15 · exam week"><span class="spine-dot"></span><span class="wk">15</span></li>
+            </ol>
+          </nav>
+
+          <div class="col-main">
+            <div>
+              <div class="tabs" role="tablist" aria-label="Course sections">
+                <button class="tab" id="tab-modules" role="tab" data-tab="modules" aria-selected="true" aria-controls="tp-modules">Modules</button>
+                <button class="tab" id="tab-assess" role="tab" data-tab="assess" aria-selected="false" aria-controls="tp-assess">Assessments</button>
+                <button class="tab" id="tab-grades" role="tab" data-tab="grades" aria-selected="false" aria-controls="tp-grades">Grades</button>
+                <button class="tab" id="tab-people" role="tab" data-tab="people" aria-selected="false" aria-controls="tp-people">People</button>
+              </div>
+
+              <div class="tabpanel" id="tp-modules" role="tabpanel" aria-labelledby="tab-modules">
+                <div class="panel tight" style="padding:4px 20px">
+                  <details class="module" open>
+                    <summary>
+                      <span class="module-num">7</span>
+                      <span>
+                        <span class="module-name">Graphs: representation and traversal</span>
+                        <span class="module-sub">This week · 4 items · about 5 hours</span>
+                      </span>
+                      <svg class="icon module-chev"><use href="#i-chev"/></svg>
+                    </summary>
+                    <div class="module-items">
+                      <button class="item done">
+                        <span class="item-ico"><svg class="icon icon-sm"><use href="#i-check"/></svg></span>
+                        <span class="item-title">Lecture 13 — adjacency lists and matrices</span>
+                        <span class="item-meta">38 min</span><span></span>
+                      </button>
+                      <button class="item done">
+                        <span class="item-ico"><svg class="icon icon-sm"><use href="#i-check"/></svg></span>
+                        <span class="item-title">Reading — Sedgewick, section 4.1</span>
+                        <span class="item-meta">24 pages</span><span></span>
+                      </button>
+                      <button class="item">
+                        <span class="item-ico"><svg class="icon icon-sm"><use href="#i-play"/></svg></span>
+                        <span class="item-title">Lecture 14 — breadth-first search</span>
+                        <span class="item-meta">41 min</span><span class="pill pill-chalk">Started</span>
+                      </button>
+                      <button class="item" data-goto="assignment">
+                        <span class="item-ico"><svg class="icon icon-sm"><use href="#i-file"/></svg></span>
+                        <span class="item-title">Problem set 6 — graph traversal</span>
+                        <span class="item-meta">Due Thu 23:59</span><span class="pill pill-due">In progress</span>
+                      </button>
+                    </div>
+                  </details>
+
+                  <details class="module">
+                    <summary>
+                      <span class="module-num">8</span>
+                      <span>
+                        <span class="module-name">Shortest paths</span>
+                        <span class="module-sub">Opens Monday 23 March · 3 items</span>
+                      </span>
+                      <svg class="icon module-chev"><use href="#i-chev"/></svg>
+                    </summary>
+                    <div class="module-items">
+                      <button class="item" disabled style="opacity:.55">
+                        <span class="item-ico"><svg class="icon icon-sm"><use href="#i-lock"/></svg></span>
+                        <span class="item-title">Lecture 15 — Dijkstra’s algorithm</span>
+                        <span class="item-meta">Opens Mon</span><span></span>
+                      </button>
+                      <button class="item" disabled style="opacity:.55">
+                        <span class="item-ico"><svg class="icon icon-sm"><use href="#i-lock"/></svg></span>
+                        <span class="item-title">Problem set 7 — weighted graphs</span>
+                        <span class="item-meta">Opens Mon</span><span></span>
+                      </button>
+                    </div>
+                  </details>
+
+                  <details class="module">
+                    <summary>
+                      <span class="module-num">6</span>
+                      <span>
+                        <span class="module-name">Balanced trees</span>
+                        <span class="module-sub">Week 7 · 5 items · all complete</span>
+                      </span>
+                      <svg class="icon module-chev"><use href="#i-chev"/></svg>
+                    </summary>
+                    <div class="module-items">
+                      <button class="item done">
+                        <span class="item-ico"><svg class="icon icon-sm"><use href="#i-check"/></svg></span>
+                        <span class="item-title">Problem set 5 — red–black trees</span>
+                        <span class="item-meta">31 / 35</span><span class="pill pill-ok">Graded</span>
+                      </button>
+                      <button class="item done">
+                        <span class="item-ico"><svg class="icon icon-sm"><use href="#i-check"/></svg></span>
+                        <span class="item-title">Lecture 12 — rotations and rebalancing</span>
+                        <span class="item-meta">44 min</span><span></span>
+                      </button>
+                    </div>
+                  </details>
+
+                  <details class="module">
+                    <summary>
+                      <span class="module-num">5</span>
+                      <span>
+                        <span class="module-name">Hash tables</span>
+                        <span class="module-sub">Week 6 · 4 items · all complete</span>
+                      </span>
+                      <svg class="icon module-chev"><use href="#i-chev"/></svg>
+                    </summary>
+                    <div class="module-items">
+                      <button class="item done">
+                        <span class="item-ico"><svg class="icon icon-sm"><use href="#i-check"/></svg></span>
+                        <span class="item-title">Problem set 4 — open addressing</span>
+                        <span class="item-meta">28 / 30</span><span class="pill pill-ok">Graded</span>
+                      </button>
+                    </div>
+                  </details>
+                </div>
+              </div>
+
+              <div class="tabpanel" id="tp-assess" role="tabpanel" aria-labelledby="tab-assess" hidden>
+                <div class="panel tight" style="padding:20px">
+                  <div class="tbl-wrap">
+                    <table class="tbl">
+                      <thead><tr><th>Assessment</th><th>Opens</th><th>Due</th><th>Weight</th><th>Status</th></tr></thead>
+                      <tbody>
+                        <tr><td><b>Problem set 6 — graph traversal</b></td><td>12 Mar</td><td>19 Mar, 23:59</td><td>6%</td><td><span class="pill pill-due">In progress</span></td></tr>
+                        <tr><td><b>Problem set 7 — weighted graphs</b></td><td>23 Mar</td><td>2 Apr, 23:59</td><td>6%</td><td><span class="pill">Locked</span></td></tr>
+                        <tr><td><b>Coursework project</b></td><td>6 Apr</td><td>30 Apr, 17:00</td><td>24%</td><td><span class="pill">Not started</span></td></tr>
+                        <tr><td><b>Final examination</b></td><td>—</td><td>Exam week</td><td>40%</td><td><span class="pill">Scheduled</span></td></tr>
+                        <tr><td><b>Problem set 5 — red–black trees</b></td><td>2 Mar</td><td>9 Mar, 23:59</td><td>6%</td><td><span class="pill pill-ok">Graded 31/35</span></td></tr>
+                        <tr><td><b>Problem set 4 — open addressing</b></td><td>23 Feb</td><td>2 Mar, 23:59</td><td>6%</td><td><span class="pill pill-ok">Graded 28/30</span></td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <div class="tabpanel" id="tp-grades" role="tabpanel" aria-labelledby="tab-grades" hidden>
+                <div class="panel">
+                  <div class="summary-strip">
+                    <div class="summary-item"><p class="k">Coursework so far</p><p class="v">88%</p><p class="s">A− if the term ended today</p></div>
+                    <div class="summary-item"><p class="k">Class median</p><p class="v">74%</p><p class="s">You are 14 points ahead</p></div>
+                    <div class="summary-item"><p class="k">Marked</p><p class="v">2 of 6</p><p class="s">Next release: 26 March</p></div>
+                  </div>
+                  <p class="small" style="margin-top:22px">Marks are released two weeks after the deadline for the whole cohort at once.</p>
+                </div>
+              </div>
+
+              <div class="tabpanel" id="tp-people" role="tabpanel" aria-labelledby="tab-people" hidden>
+                <div class="panel">
+                  <div class="notes">
+                    <div class="note">
+                      <span class="avatar lg">AO</span>
+                      <span class="note-body"><span class="note-title">Prof. Ada Okonjo</span>
+                      <span class="note-meta"><span>Lecturer in charge</span><span>·</span><span>Office hours Wed 14:00</span></span></span>
+                    </div>
+                    <div class="note">
+                      <span class="avatar lg">KT</span>
+                      <span class="note-body"><span class="note-title">Kwame Tetteh</span>
+                      <span class="note-meta"><span>Teaching assistant</span><span>·</span><span>Lab demonstrator</span></span></span>
+                    </div>
+                    <div class="note">
+                      <span class="avatar lg">SN</span>
+                      <span class="note-body"><span class="note-title">Sofia Neri</span>
+                      <span class="note-meta"><span>Teaching assistant</span><span>·</span><span>Problem set marking</span></span></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="col-aside">
+            <div class="panel">
+              <div class="section-head"><h2 class="h3">This course</h2></div>
+              <div class="pace">
+                <div class="pace-item watch">
+                  <span class="pace-name">Your progress</span><span class="pace-pct">52%</span>
+                  <span class="pace-track"><span class="pace-fill" style="width:52%"></span><span class="pace-expected" style="left:60%"></span></span>
+                </div>
+              </div>
+              <p class="pace-legend"><i></i> Term is 60% through — you are one module behind</p>
+              <div class="notes" style="margin-top:14px">
+                <div class="note" style="padding:12px 0">
+                  <span class="note-body"><span class="note-title">Next deadline</span>
+                  <span class="note-meta">Problem set 6 · Thu 19 Mar, 23:59</span></span>
+                </div>
+                <div class="note" style="padding:12px 0">
+                  <span class="note-body"><span class="note-title">Class size</span>
+                  <span class="note-meta">26 students · 3 groups</span></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="section-head"><h2 class="h3">Course files</h2></div>
+              <div class="notes">
+                <button class="note" style="padding:11px 0">
+                  <span class="note-body"><span class="note-title">Syllabus and assessment map</span><span class="note-meta">PDF · 240 kB</span></span>
+                  <svg class="icon icon-sm" style="color:var(--muted-2)"><use href="#i-download"/></svg>
+                </button>
+                <button class="note" style="padding:11px 0">
+                  <span class="note-body"><span class="note-title">Lecture slides, all weeks</span><span class="note-meta">14 files</span></span>
+                  <svg class="icon icon-sm" style="color:var(--muted-2)"><use href="#i-chev"/></svg>
+                </button>
+                <button class="note" style="padding:11px 0">
+                  <span class="note-body"><span class="note-title">Reading list — library reserves</span><span class="note-meta">6 titles, 2 on loan</span></span>
+                  <svg class="icon icon-sm" style="color:var(--muted-2)"><use href="#i-chev"/></svg>
+                </button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+      <!-- ==================== ASSIGNMENT ==================== -->
+      <section class="screen" data-screen="assignment" aria-labelledby="asg-h">
+        <div class="page-head">
+          <p class="kicker"><a href="#course" data-goto="course">CS 214 · Data Structures &amp; Algorithms</a></p>
+          <h1 class="h1" id="asg-h">Problem set 6 — graph traversal and shortest paths</h1>
+          <div class="course-facts" style="margin-top:16px">
+            <span class="fact"><b>Due</b>Thu 19 Mar, 23:59</span>
+            <span class="fact"><b>Worth</b>35 points · 6% of the course</span>
+            <span class="fact"><b>Late work</b>−5% a day, up to 3 days</span>
+            <span class="fact"><b>Attempts</b>Unlimited until the deadline</span>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-main">
+            <article class="doc">
+              <h3>What to do</h3>
+              <p>Answer all five sections. Sections 1 to 3 are short and worth 4 points each. Sections 4 and 5 carry the rest of the marks and expect a written argument, not just a number.</p>
+              <div class="callout">
+                <b>Where the marks go</b>
+                Half of every section is the answer, half is the justification. An answer with no stated invariant or complexity bound scores at most half, even when it is right.
+              </div>
+              <h3>Sections</h3>
+              <ul>
+                <li><b>1 — Representation.</b> Build an adjacency list for the graph in <code>figures/network.txt</code> and report the memory cost against an adjacency matrix for the same graph.</li>
+                <li><b>2 — Traversal.</b> Give the breadth-first order from node <code>H</code>. Show the queue at each step.</li>
+                <li><b>3 — Depth-first.</b> Give the discovery and finish times, and classify every edge as tree, back, forward, or cross.</li>
+                <li><b>4 — Shortest paths, unweighted.</b> Prove that breadth-first search returns a shortest path, and state the assumption your proof needs.</li>
+                <li><b>5 — Weighted graphs.</b> Dijkstra fails on one graph in <code>figures/negative.txt</code>. Name the edge that breaks it and explain what the algorithm returns instead.</li>
+              </ul>
+              <h3>Format</h3>
+              <p>One PDF, at most six pages, with your student number in the header and no name. Diagrams may be hand-drawn and photographed. Code listings are not required, but if you include them they must run.</p>
+            </article>
+
+            <section aria-labelledby="rub-h">
+              <div class="section-head">
+                <h2 class="h2" id="rub-h">How this is marked</h2>
+                <button class="btn btn-ghost btn-sm">Download as PDF <svg class="icon icon-sm"><use href="#i-download"/></svg></button>
+              </div>
+              <div class="panel">
+                <table class="rubric">
+                  <thead><tr><th>Criterion</th><th>What earns full marks</th><th>Points</th></tr></thead>
+                  <tbody>
+                    <tr><td><b>Sections 1–3</b></td><td>Correct structures and orders, working shown at every step.</td><td class="pts">12</td></tr>
+                    <tr><td><b>Shortest-path proof</b></td><td>A proof that names its assumption about edge weights and survives a counter-example attempt.</td><td class="pts">9</td></tr>
+                    <tr><td><b>Dijkstra failure case</b></td><td>Names the offending edge and traces the algorithm’s actual output.</td><td class="pts">10</td></tr>
+                    <tr><td><b>Presentation</b></td><td>Within the page limit, numbered sections, legible diagrams.</td><td class="pts">4</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
+          <aside class="col-aside">
+            <div class="panel">
+              <div class="section-head"><h2 class="h3">Your submission</h2><span class="pill pill-due">In progress</span></div>
+              <p class="small" style="margin-bottom:14px">You can submit as many times as you like. Only the last file before the deadline is marked.</p>
+
+              <div class="upload">
+                <svg class="icon" style="color:var(--muted-2)"><use href="#i-file"/></svg>
+                <span style="flex:1;min-width:0">
+                  <span class="upload-name">ps6-draft-3.pdf</span>
+                  <span class="upload-meta">1.4 MB · uploaded 21:40</span>
+                </span>
+                <button class="btn btn-ghost btn-sm" aria-label="Remove ps6-draft-3.pdf">Remove</button>
+              </div>
+              <div class="upload">
+                <svg class="icon" style="color:var(--muted-2)"><use href="#i-file"/></svg>
+                <span style="flex:1;min-width:0">
+                  <span class="upload-name">network-diagram.png</span>
+                  <span class="upload-meta">460 kB · uploaded 21:38</span>
+                </span>
+                <button class="btn btn-ghost btn-sm" aria-label="Remove network-diagram.png">Remove</button>
+              </div>
+
+              <div class="dropzone" style="margin-top:16px">
+                <svg class="icon"><use href="#i-upload"/></svg>
+                <p class="small" style="margin:0 0 4px"><b style="color:var(--fg)">Drag a file here</b> or choose one</p>
+                <p class="small" style="margin:0 0 12px">PDF, PNG or JPG, up to 25 MB</p>
+                <button class="btn btn-outline btn-sm">Choose a file</button>
+              </div>
+
+              <button class="btn btn-primary btn-block" style="margin-top:16px">Submit for marking</button>
+              <p class="small" style="margin-top:12px;text-align:center">Submitting replaces your previous file.</p>
+            </div>
+
+            <div class="panel">
+              <div class="section-head"><h2 class="h3">Previous feedback</h2><span class="pill pill-ok">31 / 35</span></div>
+              <p class="small" style="margin-bottom:8px">Problem set 5 · marked 12 March by Kwame Tetteh</p>
+              <div class="feedback">
+                Strong on the rebalancing cases. Section 3 lost three marks because the rotation diagram was missing the parent pointer, which makes the argument hard to follow. Section 5 was one mark under because the bound was stated but never proved.
+              </div>
+              <button class="btn btn-ghost btn-sm" style="margin-top:14px">Open the marked script <svg class="icon icon-sm"><use href="#i-arrow"/></svg></button>
+            </div>
+
+            <div class="panel">
+              <div class="section-head"><h2 class="h3">Class progress</h2></div>
+              <div class="pace">
+                <div class="pace-item">
+                  <span class="pace-name">Submitted</span><span class="pace-pct">18 of 26</span>
+                  <span class="pace-track"><span class="pace-fill" style="width:69%"></span></span>
+                </div>
+              </div>
+              <p class="pace-legend">You may ask a classmate for help with ideas, not with wording.</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+      <!-- ==================== GRADES ==================== -->
+      <section class="screen" data-screen="grades" aria-labelledby="gr-h">
+        <div class="page-head">
+          <p class="kicker">Spring 2026 · week 9 of 15</p>
+          <h1 class="display" id="gr-h">You are 14 points above the class median.</h1>
+          <p class="lede">Two assessments have been marked so far. The next release is 26 March, when problem set 6 is returned for the whole cohort.</p>
+        </div>
+
+        <div class="row">
+          <div class="col-main">
+            <div class="panel">
+              <div class="summary-strip">
+                <div class="summary-item"><p class="k">Term average</p><p class="v">85.5%</p><p class="s">Across 4 courses, 13 credits</p></div>
+                <div class="summary-item"><p class="k">Standing</p><p class="v">Upper second</p><p class="s">2:1 band is 60–69% under the UK scale</p></div>
+                <div class="summary-item"><p class="k">Credits earned</p><p class="v">0 of 120</p><p class="s">Credits post at the end of the year</p></div>
+              </div>
+            </div>
+
+            <section aria-labelledby="cg-h">
+              <div class="section-head"><h2 class="h2" id="cg-h">By course</h2><button class="btn btn-ghost btn-sm">Download transcript</button></div>
+              <div class="panel tight" style="padding:20px">
+                <div class="tbl-wrap">
+                  <table class="tbl">
+                    <thead><tr><th>Course</th><th>Marked</th><th>Current mark</th><th>Class median</th><th>Progress</th><th>Grade</th></tr></thead>
+                    <tbody>
+                      <tr>
+                        <td class="course-cell"><b>HIST 108</b><span>Modern Europe, 1789–1914</span></td>
+                        <td>3 of 5</td><td class="num">91%</td><td class="num">71%</td>
+                        <td><span class="pace-track" style="width:120px;display:block"><span class="pace-fill" style="width:66%"></span><span class="pace-expected" style="left:60%"></span></span></td>
+                        <td><span class="grade-letter">A</span></td>
+                      </tr>
+                      <tr>
+                        <td class="course-cell"><b>CS 214</b><span>Data Structures &amp; Algorithms</span></td>
+                        <td>2 of 6</td><td class="num">88%</td><td class="num">74%</td>
+                        <td><span class="pace-track" style="width:120px;display:block"><span class="pace-fill" style="width:52%;background:#C08A1E"></span><span class="pace-expected" style="left:60%"></span></span></td>
+                        <td><span class="grade-letter">A−</span></td>
+                      </tr>
+                      <tr>
+                        <td class="course-cell"><b>WRIT 210</b><span>Rhetoric &amp; the Public Sphere</span></td>
+                        <td>4 of 6</td><td class="num">84%</td><td class="num">77%</td>
+                        <td><span class="pace-track" style="width:120px;display:block"><span class="pace-fill" style="width:60%"></span><span class="pace-expected" style="left:60%"></span></span></td>
+                        <td><span class="grade-letter">B+</span></td>
+                      </tr>
+                      <tr>
+                        <td class="course-cell"><b>BIO 130</b><span>Cell Biology</span></td>
+                        <td>3 of 7</td><td class="num">79%</td><td class="num">72%</td>
+                        <td><span class="pace-track" style="width:120px;display:block"><span class="pace-fill" style="width:38%;background:var(--alert)"></span><span class="pace-expected" style="left:60%"></span></span></td>
+                        <td><span class="grade-letter">B</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p class="small" style="margin-top:16px">Median is taken over the 26 students who submitted. Marks below 40% are not shown to the cohort.</p>
+              </div>
+            </section>
+
+            <section aria-labelledby="det-h">
+              <div class="section-head"><h2 class="h2" id="det-h">CS 214 in detail</h2><button class="btn btn-ghost btn-sm">Full breakdown</button></div>
+              <div class="panel">
+                <div class="tbl-wrap">
+                  <table class="tbl">
+                    <thead><tr><th>Assessment</th><th>Returned</th><th>Your mark</th><th>Class median</th><th>Feedback</th></tr></thead>
+                    <tbody>
+                      <tr><td><b>Problem set 5 — red–black trees</b></td><td>12 Mar</td><td class="num"><b>31</b> / 35</td><td class="num">26 / 35</td>
+                        <td><button class="btn btn-ghost btn-sm">Read <svg class="icon icon-sm"><use href="#i-arrow"/></svg></button></td></tr>
+                      <tr><td><b>Problem set 4 — open addressing</b></td><td>5 Mar</td><td class="num"><b>28</b> / 30</td><td class="num">22 / 30</td>
+                        <td><button class="btn btn-ghost btn-sm">Read <svg class="icon icon-sm"><use href="#i-arrow"/></svg></button></td></tr>
+                      <tr><td><b>Problem set 3 — sorting</b></td><td>26 Feb</td><td class="num"><b>26</b> / 30</td><td class="num">21 / 30</td>
+                        <td><button class="btn btn-ghost btn-sm">Read <svg class="icon icon-sm"><use href="#i-arrow"/></svg></button></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div style="margin-top:26px;max-width:520px">
+                  <p class="h4">Where your marks sit against the class</p>
+                  <p class="small" style="margin-bottom:4px">Problem set 5, 26 submissions</p>
+                  <div class="dist" role="img" aria-label="Mark distribution for problem set 5: most students scored between 20 and 30 out of 35, with your mark of 31 in the top band.">
+                    <span class="dist-bar" style="height:26%"></span>
+                    <span class="dist-bar" style="height:44%"></span>
+                    <span class="dist-bar" style="height:72%"></span>
+                    <span class="dist-bar" style="height:100%"></span>
+                    <span class="dist-bar" style="height:61%"></span>
+                    <span class="dist-bar mine" style="height:34%"></span>
+                  </div>
+                  <div class="dist-axis"><span>0–10</span><span>11–17</span><span>18–22</span><span>23–27</span><span>28–30</span><span>31–35</span></div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <aside class="col-aside">
+            <div class="panel">
+              <div class="section-head"><h2 class="h3">Marking scale</h2></div>
+              <div class="notes">
+                <div class="note" style="padding:9px 0"><span class="note-body" style="display:flex;justify-content:space-between"><span class="note-title">First (A)</span><span class="small">70% and above</span></span></div>
+                <div class="note" style="padding:9px 0"><span class="note-body" style="display:flex;justify-content:space-between"><span class="note-title">Upper second (B+)</span><span class="small">60–69%</span></span></div>
+                <div class="note" style="padding:9px 0"><span class="note-body" style="display:flex;justify-content:space-between"><span class="note-title">Lower second (C)</span><span class="small">50–59%</span></span></div>
+                <div class="note" style="padding:9px 0"><span class="note-body" style="display:flex;justify-content:space-between"><span class="note-title">Third (D)</span><span class="small">40–49%</span></span></div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="section-head"><h2 class="h3">Appeals</h2></div>
+              <p class="small">You can ask for a remark within 15 working days of a mark being released. Ask your advisor first; most disagreements are settled at that step.</p>
+              <button class="btn btn-outline btn-block" style="margin-top:14px">Request a remark</button>
+            </div>
+          </aside>
+        </div>
+      </section>
+      <!-- ==================== TO GRADE (teaching) ==================== -->
+      <section class="screen" data-screen="grading" aria-labelledby="gr2-h">
+        <div class="page-head">
+          <p class="kicker">Teaching view · CS 214 · two sections</p>
+          <h1 class="display" id="gr2-h">18 submissions waiting. 6 are overdue on your side.</h1>
+          <p class="lede">Oldest first, so nobody waits more than a week. Median marking time in this course is 4 minutes a script.</p>
+        </div>
+
+        <div class="row">
+          <div class="col-main">
+            <div class="chips" role="group" aria-label="Filter the queue">
+              <button class="chip" aria-pressed="true">All 18</button>
+              <button class="chip" aria-pressed="false">Problem set 6 · 14</button>
+              <button class="chip" aria-pressed="false">Project proposals · 4</button>
+              <button class="chip" aria-pressed="false">Resubmissions · 2</button>
+              <button class="chip" aria-pressed="false">Waiting over a week · 6</button>
+            </div>
+
+            <div class="panel tight" style="padding:4px 20px;margin-top:20px">
+              <div class="queue">
+                <button class="queue-row">
+                  <span class="queue-who">
+                    <span class="avatar">JW</span>
+                    <span>
+                      <span class="ledger-title">Jonah Weber</span>
+                      <span class="queue-sub"><span>Problem set 6</span><span>·</span><span>submitted 14 Mar</span><span class="pill pill-late">8 days waiting</span></span>
+                    </span>
+                  </span>
+                  <span class="ledger-right"><span class="ledger-time">read</span><svg class="icon icon-sm"><use href="#i-chev"/></svg></span>
+                </button>
+
+                <button class="queue-row">
+                  <span class="queue-who">
+                    <span class="avatar">SM</span>
+                    <span>
+                      <span class="ledger-title">Sanne Molenaar</span>
+                      <span class="queue-sub"><span>Problem set 6</span><span>·</span><span>submitted 14 Mar</span><span class="pill pill-late">8 days waiting</span></span>
+                    </span>
+                  </span>
+                  <span class="ledger-right"><span class="ledger-time">read</span><svg class="icon icon-sm"><use href="#i-chev"/></svg></span>
+                </button>
+
+                <button class="queue-row">
+                  <span class="queue-who">
+                    <span class="avatar">TN</span>
+                    <span>
+                      <span class="ledger-title">Tobias Nyberg</span>
+                      <span class="queue-sub"><span>Project proposal</span><span>·</span><span>submitted 15 Mar</span><span class="pill">first read</span></span>
+                    </span>
+                  </span>
+                  <span class="ledger-right"><span class="ledger-time">12 pp.</span><svg class="icon icon-sm"><use href="#i-chev"/></svg></span>
+                </button>
+
+                <button class="queue-row">
+                  <span class="queue-who">
+                    <span class="avatar">RA</span>
+                    <span>
+                      <span class="ledger-title">Rania Ahmadi</span>
+                      <span class="queue-sub"><span>Problem set 6</span><span>·</span><span>submitted 16 Mar</span><span class="pill pill-chalk">resubmission</span></span>
+                    </span>
+                  </span>
+                  <span class="ledger-right"><span class="ledger-time">6 pp.</span><svg class="icon icon-sm"><use href="#i-chev"/></svg></span>
+                </button>
+
+                <button class="queue-row">
+                  <span class="queue-who">
+                    <span class="avatar">DO</span>
+                    <span>
+                      <span class="ledger-title">Dara Oyelaran</span>
+                      <span class="queue-sub"><span>Problem set 6</span><span>·</span><span>submitted 17 Mar</span><span class="pill">first read</span></span>
+                    </span>
+                  </span>
+                  <span class="ledger-right"><span class="ledger-time">7 pp.</span><svg class="icon icon-sm"><use href="#i-chev"/></svg></span>
+                </button>
+              </div>
+            </div>
+
+            <section aria-labelledby="sg-h">
+              <div class="section-head" style="margin-top:28px">
+                <h2 class="h2" id="sg-h">Marking Dara Oyelaran</h2>
+                <div class="radio" role="group" aria-label="Show side by side">
+                  <button aria-pressed="true">Submission</button>
+                  <button aria-pressed="false">Rubric only</button>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="speedgrade">
+                  <div>
+                    <p class="h4" style="margin-bottom:10px">Section 3 — discovery and finish times</p>
+                    <div class="doc" style="font-size:.875rem">
+                      <p>Running depth-first search from <code>H</code> visits the nodes in the order H, B, A, D, C, E, G, F. Discovery times are 1 through 8 in that order. Finish times are the reverse of discovery because the graph has no cycles reachable from H, which I confirmed by checking that every edge either moves forward in the discovery order or lands on an already finished node.</p>
+                      <p>Back edges: none. Cross edges: D→F, G→F. Forward edges: H→D.</p>
+                    </div>
+                    <div class="callout" style="margin-top:18px">
+                      <b>Same shape as last time</b>
+                      The classification is right, but the method is asserted rather than derived. Ask for the traversal tree drawing.
+                    </div>
+                  </div>
+
+                  <div>
+                    <p class="label" style="margin-bottom:6px">Marks</p>
+                    <form>
+                      <div class="rubric-input"><span class="nm">Sections 1–3<br><span class="small">of 12</span></span><input class="input" type="text" value="10" aria-label="Sections 1 to 3, out of 12"></div>
+                      <div class="rubric-input"><span class="nm">Shortest-path proof<br><span class="small">of 9</span></span><input class="input" type="text" value="6" aria-label="Shortest path proof, out of 9"></div>
+                      <div class="rubric-input"><span class="nm">Dijkstra failure case<br><span class="small">of 10</span></span><input class="input" type="text" value="8" aria-label="Dijkstra failure case, out of 10"></div>
+                      <div class="rubric-input"><span class="nm">Presentation<br><span class="small">of 4</span></span><input class="input" type="text" value="4" aria-label="Presentation, out of 4"></div>
+                      <div class="rubric-input" style="border-bottom:0;padding-top:16px">
+                        <span class="nm"><b>Total</b><br><span class="small">of 35</span></span>
+                        <span class="score-big num" style="font-size:1.6rem;text-align:right">28</span>
+                      </div>
+
+                      <div class="field" style="margin-top:16px">
+                        <label for="fb">Feedback to the student</label>
+                        <textarea class="control" id="fb" rows="4">Correct classification and a clean order. Your proof of the shortest-path property asserts the invariant instead of deriving it — say why BFS cannot reach a node by a longer route when it is already in the queue. Draw the traversal tree next time; it makes section 3 self-checking.</textarea>
+                      </div>
+                      <div class="ds-row" style="margin-top:14px">
+                        <button class="btn btn-primary" type="button">Save and next</button>
+                        <button class="btn btn-outline" type="button">Save draft</button>
+                        <button class="btn btn-ghost" type="button">Release later</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <aside class="col-aside">
+            <div class="panel">
+              <div class="section-head"><h2 class="h3">This week</h2></div>
+              <div class="summary-strip" style="gap:26px">
+                <div class="summary-item"><p class="k">Marked</p><p class="v">9</p><p class="s">of 27 due</p></div>
+                <div class="summary-item"><p class="k">Median time</p><p class="v">4m</p><p class="s">per script</p></div>
+              </div>
+              <div class="pace" style="margin-top:20px">
+                <div class="pace-item watch">
+                  <span class="pace-name">Queue drained by Friday</span><span class="pace-pct">33%</span>
+                  <span class="pace-track"><span class="pace-fill" style="width:33%"></span><span class="pace-expected" style="left:60%"></span></span>
+                </div>
+              </div>
+              <p class="pace-legend"><i></i> You marked 4 scripts a day this week; the queue needs 6</p>
+            </div>
+
+            <div class="panel">
+              <div class="section-head"><h2 class="h3">Flags to watch</h2></div>
+              <div class="notes">
+                <div class="note" style="padding:11px 0">
+                  <span class="alert" style="color:var(--alert)"><svg class="icon icon-sm"><use href="#i-alert"/></svg></span>
+                  <span class="note-body"><span class="note-title">4 students have not started PS6</span>
+                  <span class="note-meta">Two of them are on the support list</span></span>
+                </div>
+                <div class="note" style="padding:11px 0">
+                  <span style="color:var(--due)"><svg class="icon icon-sm"><use href="#i-clock"/></svg></span>
+                  <span class="note-body"><span class="note-title">Problem set 5 sit was 26/35</span>
+                  <span class="note-meta">Top band is unusually thin this term</span></span>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+      <!-- ==================== COURSES ==================== -->
+      <section class="screen" data-screen="courses" aria-labelledby="cs-h">
+        <div class="page-head">
+          <p class="kicker">Spring 2026 · 4 courses · 13 credits</p>
+          <h1 class="h1" id="cs-h">Your courses</h1>
+        </div>
+
+        <div class="row">
+          <div class="col-main">
+            <div class="panel tight" style="padding:20px">
+              <div class="tbl-wrap">
+                <table class="tbl">
+                  <thead><tr><th>Course</th><th>Meets</th><th>Next deadline</th><th>Pace</th><th></th></tr></thead>
+                  <tbody>
+                    <tr>
+                      <td class="course-cell"><b>CS 214 · Data Structures &amp; Algorithms</b><span>Prof. Ada Okonjo · 4 credits</span></td>
+                      <td class="small">Tue &amp; Thu 10:00<br>Fri 13:00 lab</td>
+                      <td class="small"><b style="color:var(--fg)">Problem set 6</b><br>Thu 19 Mar, 23:59</td>
+                      <td><span class="pace-track" style="width:110px;display:block"><span class="pace-fill" style="width:52%;background:#C08A1E"></span><span class="pace-expected" style="left:60%"></span></span></td>
+                      <td><button class="btn btn-outline btn-sm" data-goto="course">Open</button></td>
+                    </tr>
+                    <tr>
+                      <td class="course-cell"><b>HIST 108 · Modern Europe, 1789–1914</b><span>Dr. Mireille Faure · 3 credits</span></td>
+                      <td class="small">Mon &amp; Wed 09:00</td>
+                      <td class="small"><b style="color:var(--alert)">Overdue</b><br>Discussion post · 13 Mar</td>
+                      <td><span class="pace-track" style="width:110px;display:block"><span class="pace-fill" style="width:66%"></span><span class="pace-expected" style="left:60%"></span></span></td>
+                      <td><button class="btn btn-outline btn-sm" data-goto="course">Open</button></td>
+                    </tr>
+                    <tr>
+                      <td class="course-cell"><b>WRIT 210 · Rhetoric &amp; the Public Sphere</b><span>Dr. Samuel Ibarra · 3 credits</span></td>
+                      <td class="small">Wed 15:00 seminar</td>
+                      <td class="small"><b style="color:var(--due)">Reading response 7</b><br>Today, 23:59</td>
+                      <td><span class="pace-track" style="width:110px;display:block"><span class="pace-fill" style="width:60%"></span><span class="pace-expected" style="left:60%"></span></span></td>
+                      <td><button class="btn btn-outline btn-sm" data-goto="course">Open</button></td>
+                    </tr>
+                    <tr>
+                      <td class="course-cell"><b>BIO 130 · Cell Biology</b><span>Prof. Helena Strand · 4 credits</span></td>
+                      <td class="small">Mon, Wed, Fri 08:00<br>Thu 14:00 lab</td>
+                      <td class="small"><b style="color:var(--fg)">Lab report 4</b><br>Thu 19 Mar, 23:59</td>
+                      <td><span class="pace-track" style="width:110px;display:block"><span class="pace-fill" style="width:38%;background:var(--alert)"></span><span class="pace-expected" style="left:60%"></span></span></td>
+                      <td><button class="btn btn-outline btn-sm" data-goto="course">Open</button></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <aside class="col-aside">
+            <div class="panel">
+              <div class="section-head"><h2 class="h3">Register for next term</h2></div>
+              <p class="small">Enrolment for Autumn 2026 opens on 6 April. Your advisor has to sign off on the plan first.</p>
+              <button class="btn btn-primary btn-block" style="margin-top:14px">Start a plan</button>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ==================== CALENDAR ==================== -->
+      <section class="screen" data-screen="calendar" aria-labelledby="cal-h">
+        <div class="page-head">
+          <p class="kicker">Week 9 of 15</p>
+          <h1 class="h1" id="cal-h">16 – 22 March</h1>
+        </div>
+
+        <div class="panel tight cal-wrap" style="padding:16px 20px 20px">
+          <div class="cal">
+            <div class="cal-corner"></div>
+            <div class="cal-dayhead">Mon 16</div>
+            <div class="cal-dayhead is-today">Tue 17</div>
+            <div class="cal-dayhead">Wed 18</div>
+            <div class="cal-dayhead">Thu 19</div>
+            <div class="cal-dayhead">Fri 20</div>
+
+            <div class="cal-time">08:00</div>
+            <div class="cal-slot"><span class="cal-ev"><b>BIO 130</b><span>Lecture · Kelvin Hall 2</span></span></div>
+            <div class="cal-slot"></div>
+            <div class="cal-slot"><span class="cal-ev"><b>BIO 130</b><span>Lecture · Kelvin Hall 2</span></span></div>
+            <div class="cal-slot"></div>
+            <div class="cal-slot"><span class="cal-ev"><b>BIO 130</b><span>Lecture · Kelvin Hall 2</span></span></div>
+
+            <div class="cal-time">09:00</div>
+            <div class="cal-slot"><span class="cal-ev"><b>HIST 108</b><span>Seminar · Rowan 114</span></span></div>
+            <div class="cal-slot is-today"></div>
+            <div class="cal-slot"><span class="cal-ev"><b>HIST 108</b><span>Seminar · Rowan 114</span></span></div>
+            <div class="cal-slot"></div>
+            <div class="cal-slot"></div>
+
+            <div class="cal-time">10:00</div>
+            <div class="cal-slot"></div>
+            <div class="cal-slot is-today"><span class="cal-ev"><b>CS 214</b><span>Lecture · Turing Auditorium</span></span></div>
+            <div class="cal-slot"></div>
+            <div class="cal-slot"><span class="cal-ev"><b>CS 214</b><span>Lecture · Turing Auditorium</span></span></div>
+            <div class="cal-slot"></div>
+
+            <div class="cal-time">13:00</div>
+            <div class="cal-slot"></div>
+            <div class="cal-slot is-today"></div>
+            <div class="cal-slot"></div>
+            <div class="cal-slot"></div>
+            <div class="cal-slot"><span class="cal-ev"><b>CS 214</b><span>Lab · Turing 2.14</span></span></div>
+
+            <div class="cal-time">14:00</div>
+            <div class="cal-slot"></div>
+            <div class="cal-slot is-today"></div>
+            <div class="cal-slot"></div>
+            <div class="cal-slot"><span class="cal-ev"><b>BIO 130</b><span>Lab · Huxley Lab 3</span></span></div>
+            <div class="cal-slot"></div>
+
+            <div class="cal-time">15:00</div>
+            <div class="cal-slot"></div>
+            <div class="cal-slot is-today"></div>
+            <div class="cal-slot"><span class="cal-ev"><b>WRIT 210</b><span>Seminar · Rowan 208</span></span></div>
+            <div class="cal-slot"></div>
+            <div class="cal-slot"></div>
+
+            <div class="cal-time">23:59</div>
+            <div class="cal-slot"></div>
+            <div class="cal-slot is-today"><span class="cal-ev is-due"><b>Reading response 7</b><span>WRIT 210 due</span></span></div>
+            <div class="cal-slot"></div>
+            <div class="cal-slot"><span class="cal-ev is-due"><b>Two submissions</b><span>CS 214, BIO 130</span></span></div>
+            <div class="cal-slot"></div>
+          </div>
+        </div>
+        <p class="small" style="margin-top:16px">Times are the campus local time. Deadlines are set to 23:59 so that late penalties begin the next working day.</p>
+      </section>
+
+      <!-- ==================== INBOX ==================== -->
+      <section class="screen" data-screen="inbox" aria-labelledby="ib-h">
+        <div class="page-head">
+          <p class="kicker">3 unread</p>
+          <h1 class="h1" id="ib-h">Inbox</h1>
+        </div>
+        <div class="row">
+          <div class="col-main">
+            <div class="panel" style="padding:4px 20px">
+              <div class="notes">
+                <button class="note" style="padding:14px 0">
+                  <span class="avatar">AO</span>
+                  <span class="note-body"><span class="note-title"><b>Ada Okonjo</b> · Problem set 6 deadline moved</span>
+                  <span class="note-meta"><span>To: CS 214 cohort</span><span>·</span><span>4 hours ago</span></span></span>
+                  <span class="pill pill-chalk">Unread</span>
+                </button>
+                <button class="note" style="padding:14px 0">
+                  <span class="avatar">KT</span>
+                  <span class="note-body"><span class="note-title"><b>Kwame Tetteh</b> · Lab groups for week 10</span>
+                  <span class="note-meta"><span>To: CS 214 cohort</span><span>·</span><span>Yesterday</span></span></span>
+                  <span class="pill pill-chalk">Unread</span>
+                </button>
+                <button class="note" style="padding:14px 0">
+                  <span class="avatar">PR</span>
+                  <span class="note-body"><span class="note-title"><b>Priya Raman</b> · Your module choice for Autumn</span>
+                  <span class="note-meta"><span>To: you only</span><span>·</span><span>2 days ago</span></span></span>
+                  <span class="pill pill-chalk">Unread</span>
+                </button>
+                <button class="note" style="padding:14px 0">
+                  <span class="avatar">MF</span>
+                  <span class="note-body"><span class="note-title"><b>Mireille Faure</b> · Essay titles published</span>
+                  <span class="note-meta"><span>To: HIST 108 cohort</span><span>·</span><span>2 days ago</span></span></span>
+                </button>
+                <button class="note" style="padding:14px 0">
+                  <span class="avatar">HS</span>
+                  <span class="note-body"><span class="note-title"><b>Library services</b> · Two reserved titles are now on loan</span>
+                  <span class="note-meta"><span>Reading list update</span><span>·</span><span>4 days ago</span></span></span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <aside class="col-aside">
+            <div class="panel">
+              <div class="section-head"><h2 class="h3">Ada Okonjo</h2><span class="small">4 hours ago</span></div>
+              <div class="doc" style="font-size:.875rem">
+                <p>Problem set 6 moves to <b>Friday 20 March, 23:59</b>. Several people asked after the lecture on Tuesday, and the lab machines were down on Friday so it seemed the fair thing to do.</p>
+                <p>Nothing else changes: same sections, same rubric. If you have already submitted, you can revise and resubmit.</p>
+              </div>
+              <button class="btn btn-outline btn-block" style="margin-top:18px">Reply to the cohort</button>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ==================== LIBRARY ==================== -->
+      <section class="screen" data-screen="library" aria-labelledby="lb-h">
+        <div class="page-head">
+          <p class="kicker">Spring 2026</p>
+          <h1 class="h1" id="lb-h">Reserved reading</h1>
+        </div>
+        <div class="row">
+          <div class="col-main">
+            <div class="panel tight" style="padding:20px">
+              <div class="tbl-wrap">
+                <table class="tbl">
+                  <thead><tr><th>Title</th><th>For</th><th>Copies</th><th>Status</th><th></th></tr></thead>
+                  <tbody>
+                    <tr><td class="course-cell"><b>Sedgewick, <i>Algorithms</i></b><span>4th edition · ch. 4.1–4.4</span></td><td class="small">CS 214</td><td class="num">6</td>
+                      <td><span class="pill pill-ok">Available</span></td><td><button class="btn btn-outline btn-sm">Reserve</button></td></tr>
+                    <tr><td class="course-cell"><b>Cormen et al., <i>Introduction to Algorithms</i></b><span>3rd edition · ch. 22–24</span></td><td class="small">CS 214</td><td class="num">4</td>
+                      <td><span class="pill pill-due">All on loan</span></td><td><button class="btn btn-outline btn-sm">Join queue</button></td></tr>
+                    <tr><td class="course-cell"><b>Habermas, <i>The Structural Transformation of the Public Sphere</i></b><span>Ninth printing</span></td><td class="small">WRIT 210</td><td class="num">3</td>
+                      <td><span class="pill pill-ok">Available</span></td><td><button class="btn btn-outline btn-sm">Reserve</button></td></tr>
+                    <tr><td class="course-cell"><b>Hobsbawm, <i>The Age of Empire</i></b><span>Abacus edition</span></td><td class="small">HIST 108</td><td class="num">2</td>
+                      <td><span class="pill pill-late">You have it</span></td><td><button class="btn btn-outline btn-sm">Return by 24 Mar</button></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <aside class="col-aside">
+            <div class="panel">
+              <div class="section-head"><h2 class="h3">Scanning service</h2></div>
+              <p class="small">Ask for up to two chapters of any title to be scanned and added to your course module. Requests take three working days.</p>
+              <button class="btn btn-outline btn-block" style="margin-top:14px">Request a scan</button>
+            </div>
+          </aside>
+        </div>
+      </section>
+      <!-- ==================== DESIGN SYSTEM ==================== -->
+      <section class="screen" data-screen="system" aria-labelledby="sys-h">
+        <div class="page-head">
+          <p class="kicker">Reference</p>
+          <h1 class="display" id="sys-h">The Lagan system</h1>
+          <p class="lede">One palette, one typeface, three shapes, and two devices that carry meaning instead of decoration. Everything on the other screens is built from what is on this page.</p>
+        </div>
+
+        <div class="ds-grid">
+
+          <section class="panel" aria-labelledby="pal-h">
+            <div class="section-head"><h2 class="h2" id="pal-h">Palette</h2><span class="small">Ink is the institution. Chalk yellow always means “you are here”.</span></div>
+            <div class="swatches">
+              <div class="swatch"><div class="swatch-chip" style="background:#0C0D0C"></div><div class="swatch-body"><b>Ink</b><code>#0C0D0C</code><span>Rail, headings, the one dark hero. Never used for body text on light.</span></div></div>
+              <div class="swatch"><div class="swatch-chip" style="background:#171817"></div><div class="swatch-body"><b>Ink 2</b><code>#171817</code><span>Hover and active states inside the rail.</span></div></div>
+              <div class="swatch"><div class="swatch-chip" style="background:#F4F4F2;border-bottom:1px solid #E0E1DE"></div><div class="swatch-body"><b>Canvas</b><code>#F4F4F2</code><span>Page background. A working grey, not cream.</span></div></div>
+              <div class="swatch"><div class="swatch-chip" style="background:#FFFFFF;border-bottom:1px solid #E0E1DE"></div><div class="swatch-body"><b>Surface</b><code>#FFFFFF</code><span>Panels, tables, anything that sits above the canvas.</span></div></div>
+              <div class="swatch"><div class="swatch-chip" style="background:#E0E1DE"></div><div class="swatch-body"><b>Line</b><code>#E0E1DE</code><span>Borders and table rules. Quiet enough to disappear while you read.</span></div></div>
+              <div class="swatch"><div class="swatch-chip" style="background:#111311"></div><div class="swatch-body"><b>Brand</b><code>#111311</code><span>Primary actions, links, on-pace progress. Black, not a colour. 18.8:1 on white.</span></div></div>
+              <div class="swatch"><div class="swatch-chip" style="background:#E9EAE7"></div><div class="swatch-body"><b>Brand soft</b><code>#E9EAE7</code><span>Course codes, completed markers, quiet confirmations.</span></div></div>
+              <div class="swatch"><div class="swatch-chip" style="background:#F2E679"></div><div class="swatch-body"><b>Chalk</b><code>#F2E679</code><span>The only loud colour. Marks position: today, the current module, the hero action.</span></div></div>
+              <div class="swatch"><div class="swatch-chip" style="background:#FBEFD6"></div><div class="swatch-body"><b>Due soft</b><code>#FBEFD6</code> / <code>#8A5200</code><span>Something is due soon. Text on the soft fill, never the fill alone.</span></div></div>
+              <div class="swatch"><div class="swatch-chip" style="background:#FAE7E4"></div><div class="swatch-body"><b>Alert soft</b><code>#FAE7E4</code> / <code>#A62B22</code><span>Overdue, missing, or broken. Reserved for time, not for errors in the abstract.</span></div></div>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="ty-h">
+            <div class="section-head"><h2 class="h2" id="ty-h">Type</h2><span class="small">One typeface at four tempos: 600 for names, 500 for controls, 400 for reading, tabular for every figure.</span></div>
+            <div class="spec"><span class="spec-id">display · Archivo 600<br>clamp 31–44px / 1.08</span><span class="display">Two things due before Friday.</span></div>
+            <div class="spec"><span class="spec-id">h1 · Archivo 600<br>28px / 1.14</span><span class="h1">Data Structures &amp; Algorithms</span></div>
+            <div class="spec"><span class="spec-id">h2 · Archivo 600<br>19px / 1.24</span><span class="h2">How this is marked</span></div>
+            <div class="spec"><span class="spec-id">h3 · Archivo 600<br>17px / 1.3</span><span class="h3">Your submission</span></div>
+            <div class="spec"><span class="spec-id">body · Archivo 400<br>15px / 1.6</span><span class="body" style="max-width:58ch">Answer all five sections. Half of every mark is the answer, half is the justification, and an answer with no stated complexity bound scores at most half.</span></div>
+            <div class="spec"><span class="spec-id">small · Archivo 400<br>13px / 1.5</span><span class="small">Marks are released two weeks after the deadline for the whole cohort at once.</span></div>
+            <div class="spec"><span class="spec-id">label · Archivo 500<br>12px, sentence case</span><span class="label">Term is 60% through</span></div>
+            <div class="spec"><span class="spec-id">data · Archivo<br>tabular figures, always</span><span class="num" style="font-size:1.05rem">88% · 31/35 · 23:59</span></div>
+            <div class="spec"><span class="spec-id">headline figures · Archivo 600<br>tabular, tracking −2.2%</span><span class="num-lg" style="font-size:1.9rem">85.5%</span></div>
+          </section>
+
+          <section class="panel" aria-labelledby="sp-h">
+            <div class="section-head"><h2 class="h2" id="sp-h">Space, shape and elevation</h2></div>
+            <div class="rule-grid">
+              <div>
+                <p class="label" style="margin-bottom:10px">Spacing — multiples of 4</p>
+                <div class="scale">
+                  <div class="scale-row"><span class="small">4</span><span class="scale-bar" style="width:4px"></span></div>
+                  <div class="scale-row"><span class="small">8</span><span class="scale-bar" style="width:8px"></span></div>
+                  <div class="scale-row"><span class="small">12</span><span class="scale-bar" style="width:12px"></span></div>
+                  <div class="scale-row"><span class="small">16</span><span class="scale-bar" style="width:16px"></span></div>
+                  <div class="scale-row"><span class="small">24</span><span class="scale-bar" style="width:24px"></span></div>
+                  <div class="scale-row"><span class="small">32</span><span class="scale-bar" style="width:32px"></span></div>
+                  <div class="scale-row"><span class="small">48</span><span class="scale-bar" style="width:48px"></span></div>
+                </div>
+              </div>
+              <div>
+                <p class="label" style="margin-bottom:10px">Radius — three values, chosen by role</p>
+                <div class="ds-row" style="gap:16px">
+                  <div style="text-align:center"><div style="width:74px;height:52px;background:#E9EAE7;border-radius:14px"></div><span class="small">14 · panel</span></div>
+                  <div style="text-align:center"><div style="width:74px;height:52px;background:#E9EAE7;border-radius:10px"></div><span class="small">10 · control</span></div>
+                  <div style="text-align:center"><div style="width:74px;height:52px;background:#E9EAE7;border-radius:7px"></div><span class="small">7 · chip</span></div>
+                  <div style="text-align:center"><div style="width:74px;height:52px;background:#E9EAE7;border-radius:999px"></div><span class="small">pill</span></div>
+                </div>
+                <p class="label" style="margin:22px 0 10px">Elevation</p>
+                <p class="small">Only things that float get a shadow: menus, popovers, toasts. A panel at rest uses a hairline, never a shadow. This is what keeps a dense screen from turning into a stack of identical cards.</p>
+                <div style="display:flex;gap:14px;margin-top:12px">
+                  <div style="width:76px;height:46px;background:#fff;border:1px solid #EDEDEA;border-radius:10px;display:grid;place-items:center" class="small">hairline</div>
+                  <div style="width:76px;height:46px;background:#fff;border-radius:10px;box-shadow:0 1px 2px rgba(12,13,12,.07),0 14px 34px -18px rgba(12,13,12,.34);display:grid;place-items:center" class="small">floating</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="dev-h">
+            <div class="section-head"><h2 class="h2" id="dev-h">The two devices</h2><span class="small">If you keep only two things from this system, keep these.</span></div>
+            <div class="rule-grid">
+              <div>
+                <p class="h3" style="margin-bottom:6px">1 · The term spine</p>
+                <p class="small" style="margin-bottom:14px">Every student question starts with “where am I”. Most systems hide this in a calendar tab. Here it is furniture: fifteen dots down the left of the content, filled behind you, chalk on today, dashed for the reading week. It stays put while the content scrolls.</p>
+                <div style="display:flex;gap:16px;align-items:center;padding:14px;background:var(--surface-2);border-radius:10px">
+                  <ol class="spine-list" style="width:auto">
+                    <li class="spine-week is-done"><span class="spine-dot"></span><span class="wk">7</span></li>
+                    <li class="spine-week is-done is-break"><span class="spine-dot"></span><span class="wk">—</span></li>
+                    <li class="spine-week is-now"><span class="spine-dot"></span><span class="wk">9</span></li>
+                    <li class="spine-week"><span class="spine-dot"></span><span class="wk">10</span></li>
+                  </ol>
+                  <p class="small" style="margin:0">Week numbers only. Hover for the dates. On narrow screens the whole spine turns into a horizontal strip.</p>
+                </div>
+              </div>
+              <div>
+                <p class="h3" style="margin-bottom:6px">2 · The pace bar</p>
+                <p class="small" style="margin-bottom:14px">“52% complete” means nothing on its own. The grey tick shows where the term should have put you; the fill shows where you actually are. The gap is the message, and it decides the colour.</p>
+                <div class="pace">
+                  <div class="pace-item"><span class="pace-name">Ahead</span><span class="pace-pct">66%</span><span class="pace-track"><span class="pace-fill" style="width:66%"></span><span class="pace-expected" style="left:60%"></span></span></div>
+                  <div class="pace-item watch"><span class="pace-name">Watching</span><span class="pace-pct">52%</span><span class="pace-track"><span class="pace-fill" style="width:52%"></span><span class="pace-expected" style="left:60%"></span></span></div>
+                  <div class="pace-item behind"><span class="pace-name">Behind</span><span class="pace-pct">38%</span><span class="pace-track"><span class="pace-fill" style="width:38%"></span><span class="pace-expected" style="left:60%"></span></span></div>
+                </div>
+                <p class="pace-legend"><i></i> Where the term should be at the end of week 9</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="cp-h">
+            <div class="section-head"><h2 class="h2" id="cp-h">Components</h2></div>
+
+            <p class="label" style="margin-bottom:10px">Actions</p>
+            <div class="ds-row">
+              <button class="btn btn-primary">Submit for marking</button>
+              <button class="btn btn-outline">Save draft</button>
+              <button class="btn btn-ghost">Cancel</button>
+              <button class="btn btn-danger">Withdraw</button>
+              <button class="btn btn-primary" disabled style="opacity:.45">Closed</button>
+            </div>
+            <p class="label" style="margin:22px 0 10px">Status</p>
+            <div class="ds-row">
+              <span class="pill pill-ok">Submitted</span>
+              <span class="pill pill-due">Due in 2 days</span>
+              <span class="pill pill-late">Overdue</span>
+              <span class="pill pill-chalk">In progress</span>
+              <span class="pill">Not started</span>
+              <span class="pill pill-dark" style="background:var(--ink)">Dark variant</span>
+            </div>
+            <p class="label" style="margin:22px 0 10px">Input</p>
+            <div class="ds-row" style="align-items:flex-start">
+              <div class="field" style="width:220px"><label for="d1">Points out of 35</label><input class="control num" id="d1" value="28"></div>
+              <div class="field" style="width:220px"><label for="d2">Course</label><select class="control" id="d2"><option>CS 214</option><option>HIST 108</option></select></div>
+              <label class="check" style="padding-top:24px"><input type="checkbox" checked> Notify the cohort</label>
+            </div>
+            <p class="label" style="margin:22px 0 10px">Empty state — an invitation, never a shrug</p>
+            <div class="panel" style="background:var(--surface-2)">
+              <div class="empty">
+                <svg class="icon"><use href="#i-archive"/></svg>
+                <p class="h3">Nothing waiting on you</p>
+                <p class="small">Marks appear here two weeks after each deadline. The next release is 26 March.</p>
+                <button class="btn btn-outline btn-sm">See the assessment map</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="rl-h">
+            <div class="section-head"><h2 class="h2" id="rl-h">Rules</h2><span class="small">The reasons this looks like itself instead of like every other dashboard.</span></div>
+            <div class="rule-grid">
+              <div>
+                <p class="label" style="margin-bottom:6px">Do</p>
+                <div class="rule yes"><span class="mk">+</span><span>Lead a page with the decision or the deadline. “Two things due before Friday” beats “Welcome back, Rovan”.</span></div>
+                <div class="rule yes"><span class="mk">+</span><span>Let the deadline set the colour. Amber means soon, red means late, and nothing else may use those two.</span></div>
+                <div class="rule yes"><span class="mk">+</span><span>Reach for a hairline rule before a card. Containers cost attention; every one has to earn it.</span></div>
+                <div class="rule yes"><span class="mk">+</span><span>Keep one loud element per screen — here it is the dark hero with the chalk button.</span></div>
+                <div class="rule yes"><span class="mk">+</span><span>Write the empty and error states as directions: what happened, what to do, where to go.</span></div>
+              </div>
+              <div>
+                <p class="label" style="margin-bottom:6px">Don’t</p>
+                <div class="rule no"><span class="mk">−</span><span>No grid of identical rounded cards as the home page. Courses are a ledger; they read faster as rows.</span></div>
+                <div class="rule no"><span class="mk">−</span><span>No tracked-out capitals above every heading, and no middot-separated meta strings used as decoration.</span></div>
+                <div class="rule no"><span class="mk">−</span><span>No percentage without its comparison. 52% alone tells the student nothing.</span></div>
+                <div class="rule no"><span class="mk">−</span><span>No second accent colour, and no tint of the brand invented on the spot. If it is not a token, it is not a colour.</span></div>
+                <div class="rule no"><span class="mk">−</span><span>No animation that only decorates. One draw-in on load, and only motion that answers a tap.</span></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="ac-h">
+            <div class="section-head"><h2 class="h2" id="ac-h">Access and motion</h2></div>
+            <div class="rule-grid">
+              <div>
+                <div class="rule yes"><span class="mk">+</span><span>Body text at 15px with a 1.6 line height; nothing below 12px, ever.</span></div>
+                <div class="rule yes"><span class="mk">+</span><span>Every interactive target is at least 32px, 44px on the touch layouts.</span></div>
+                <div class="rule yes"><span class="mk">+</span><span>Status is never colour alone: every pill carries its own words.</span></div>
+              </div>
+              <div>
+                <div class="rule yes"><span class="mk">+</span><span>Focus is a 2px ink ring on every control, drawn with <code style="font-family:ui-monospace,monospace;font-size:.85em">:focus-visible</code> so the mouse never sees it. On the black rail and the hero the ring switches to chalk, because a black ring on black is not a focus indicator.</span></div>
+                <div class="rule yes"><span class="mk">+</span><span>One page-load transition, 340ms. <code style="font-family:ui-monospace,monospace;font-size:.85em">prefers-reduced-motion</code> turns it off completely.</span></div>
+                <div class="rule yes"><span class="mk">+</span><span>The distribution chart and the spine both carry a text alternative.</span></div>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+<script>
+(function () {
+  var screens = Array.prototype.slice.call(document.querySelectorAll('[data-screen]'));
+  var crumb = document.getElementById('crumb-title');
+  var titles = {
+    today: 'Today', courses: 'Courses', course: 'CS 214', assignment: 'Problem set 6',
+    calendar: 'Calendar', grades: 'Grades', grading: 'To grade', inbox: 'Inbox',
+    library: 'Library', system: 'Design system'
+  };
+  var valid = {};
+  screens.forEach(function (s) { valid[s.dataset.screen] = true; });
+
+  function show(id) {
+    if (!valid[id]) id = 'today';
+    screens.forEach(function (s) {
+      s.classList.toggle('is-active', s.dataset.screen === id);
+    });
+    document.querySelectorAll('.nav-link[data-goto]').forEach(function (l) {
+      if (l.dataset.goto === id) l.setAttribute('aria-current', 'page');
+      else l.removeAttribute('aria-current');
+    });
+    if (crumb) crumb.textContent = titles[id] || 'Lagan';
+    document.title = 'Lagan · ' + (titles[id] || 'Lagan');
+    if (window.history && history.replaceState) history.replaceState(null, '', '#' + id);
+    window.scrollTo(0, 0);
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest ? e.target.closest('[data-goto]') : null;
+    if (t) {
+      e.preventDefault();
+      show(t.dataset.goto);
+      return;
+    }
+    var a = e.target.closest ? e.target.closest('a[href^="#"]') : null;
+    if (a) {
+      var id = a.getAttribute('href').slice(1);
+      if (valid[id]) { e.preventDefault(); show(id); }
+    }
+  });
+
+  document.querySelectorAll('[data-role-btn]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var role = b.dataset.roleBtn;
+      document.body.dataset.role = role;
+      document.querySelectorAll('[data-role-btn]').forEach(function (x) {
+        x.setAttribute('aria-pressed', String(x === b));
+      });
+      show(role === 'teacher' ? 'grading' : 'today');
+    });
+  });
+
+  document.querySelectorAll('.tabs').forEach(function (group) {
+    var tabs = Array.prototype.slice.call(group.querySelectorAll('.tab'));
+    function select(tab) {
+      tabs.forEach(function (t) {
+        var on = t === tab;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        var panel = document.getElementById(t.getAttribute('aria-controls'));
+        if (panel) panel.hidden = !on;
+      });
+    }
+    tabs.forEach(function (tab, i) {
+      tab.tabIndex = tab.getAttribute('aria-selected') === 'true' ? 0 : -1;
+      tab.addEventListener('click', function () { select(tab); });
+      tab.addEventListener('keydown', function (e) {
+        var next = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : -1;
+        if (next < 0 || next >= tabs.length) return;
+        e.preventDefault();
+        select(tabs[next]);
+        tabs[next].focus();
+      });
+    });
+  });
+
+  document.querySelectorAll('.chips, .radio').forEach(function (group) {
+    group.addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      group.querySelectorAll('button').forEach(function (x) {
+        x.setAttribute('aria-pressed', String(x === b));
+      });
+    });
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== '/') return;
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
+    var s = document.querySelector('.searchbar input');
+    if (s) { e.preventDefault(); s.focus(); }
+  });
+
+  window.addEventListener('hashchange', function () {
+    var id = location.hash.replace('#', '');
+    if (valid[id]) show(id);
+  });
+
+  var start = location.hash.replace('#', '');
+  show(valid[start] ? start : 'today');
+})();
+</script>
+</body>
+</html>
