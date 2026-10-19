@@ -41,9 +41,7 @@ const THEMES = [
 
 async function seedDatabaseIfPossible(databaseUrl?: string) {
   const url =
-    databaseUrl ||
-    process.env.DATABASE_URL ||
-    "postgres://lagan:lagan@localhost:5433/lagan";
+    databaseUrl || process.env.DATABASE_URL || "postgres://lagan:lagan@localhost:5433/lagan";
 
   try {
     const client = new pg.Client({ connectionString: url });
@@ -130,14 +128,10 @@ async function main() {
     if (dbUrl) {
       env.DATABASE_URL = dbUrl;
     }
-    serverProcess = spawn(
-      "bun",
-      ["--cwd", "apps/web", "dev", "-p", String(targetPort)],
-      {
-        stdio: "inherit",
-        env,
-      },
-    );
+    serverProcess = spawn("bun", ["--cwd", "apps/web", "dev", "-p", String(targetPort)], {
+      stdio: "inherit",
+      env,
+    });
 
     const ready = await waitForServer(baseUrl, 60_000);
     if (!ready) {
