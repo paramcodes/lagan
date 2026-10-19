@@ -38,8 +38,7 @@ export function CodeSandboxPreview() {
               {"\n"}
               {"    "}
               <span className="font-semibold text-[var(--color-accent)]">let</span> lsn =
-              self.wal.append_record(WalRecord::SplitChild {"{"} idx, page_id: child.id{" "}
-              {"}"})?;
+              self.wal.append_record(WalRecord::SplitChild {"{"} idx, page_id: child.id {"}"})?;
               {"\n"}
               {"    "}
               <span className="font-semibold text-[var(--color-accent)]">let mut</span>{" "}
