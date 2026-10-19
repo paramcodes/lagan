@@ -38,6 +38,8 @@ All visual evidence artifacts are captured under standardized test environment c
 | [`teach-analytics-dark.png`](./teach-analytics-dark.png) | `/teach/analytics` | 1440 × 1100 | 2880 × 2200 px | Dark |
 | [`notifications-light.png`](./notifications-light.png) | Topbar popover (`/courses`) | 1440 × 900 | 2880 × 1800 px | Light |
 | [`notifications-dark.png`](./notifications-dark.png) | Topbar popover (`/courses`) | 1440 × 900 | 2880 × 1800 px | Dark |
+| [`author-profile-light.png`](./author-profile-light.png) | `/authors/[id]` | 1440 × 900 | 2880 × 1800 px | Light |
+| [`author-profile-dark.png`](./author-profile-dark.png) | `/authors/[id]` | 1440 × 900 | 2880 × 1800 px | Dark |
 ---
 
 ### Detailed Route Artifacts
@@ -132,6 +134,16 @@ All visual evidence artifacts are captured under standardized test environment c
   - Detailed course performance breakdown table with per-course metrics and selection filters.
   - Full theme token adaptation across light and dark modes with WCAG 2.2 contrast compliance.
 
+#### 8. Public Author Profile (`/authors/[id]`)
+
+- **Light Mode**: `author-profile-light.png` (2880 × 1800 px)
+- **Dark Mode**: `author-profile-dark.png` (2880 × 1800 px)
+- **Verified Features**:
+  - Server Component rendering author profile card with display name, headline badge, bio, avatar, and website/social links.
+  - Author stats metrics for total published courses and enrolled learners across all courses.
+  - Responsive course catalogue grid rendering `@lagan/ui` `CourseCard` items.
+  - Dynamic `<title>` and OpenGraph metadata dynamically populated from author name & bio.
+  - High contrast typography and token consistency across light and dark modes.
 ---
 
 #### 8. Notification Center Popover (`NotificationCenter`)
