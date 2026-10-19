@@ -10,7 +10,7 @@ Mark [x] when merged to main. One worktree per item.
 - [x] P0.5 Vitest + Playwright + CI
 - [x] P0.6 Docker Compose (Postgres, MinIO)
 - [x] P0.7 DTCG tokens + generator
-- [ ] P0.8 Drizzle config + migrations
+- [x] P0.8 Drizzle config + migrations
 
 ## Phase 1 — Auth, roles, profile, shell
 - [x] P1.1 Better Auth setup
@@ -30,7 +30,7 @@ Mark [x] when merged to main. One worktree per item.
 - [x] P2.4 IndexedDB draft store
 - [x] P2.5 @dnd-kit wrappers
 - [x] P2.6 Course CRUD actions
-- [ ] P2.7 Module/lesson CRUD + ordering
+- [x] P2.7 Module/lesson CRUD + ordering
 - [ ] P2.8 Course builder UI (cards/list toggle)
 - [ ] P2.9 Draft autosave
 - [ ] P2.10 Publish + version bump
@@ -56,7 +56,7 @@ Mark [x] when merged to main. One worktree per item.
 - [x] P5.1 course_event schema
 - [ ] P5.2 Aggregation queries
 - [ ] P5.3 Analytics dashboard UI
-- [ ] P5.4 Chart components
+- [x] P5.4 Chart components
 
 ## Phase 6 — Notifications
 - [ ] P6.1 Notification schema
@@ -75,7 +75,7 @@ Mark [x] when merged to main. One worktree per item.
 - [x] D0 Docs skeleton + README + contributing + stack ADR index
 - [x] D1 Architecture + design-system + data-model
 - [x] D2 features/authoring + features/profiles
-- [ ] D3 features/payments + features/discovery
+- [x] D3 features/payments + features/discovery
 - [ ] D4 features/player-progress
 - [ ] D5 features/analytics
 - [ ] D6 features/notifications
@@ -87,11 +87,11 @@ Rule: keep >=3 in flight; refill the moment one finishes.
 
 | In flight | Issue | Worktree | Depends on |
 |---|---|---|---|
-| [ ] | P0.8 Drizzle config + migrations | `/home/param/Work/lagan-wt/p0-8` (`feat/p0-8-migrations`) | P0.6 (merged) |
-| [ ] | P2.7 Module/lesson CRUD + ordering | `/home/param/Work/lagan-wt/p2-7` (`feat/p2-7-module-lesson-crud`) | P2.1, P2.6 (merged) |
 | [ ] | P3.1 Browse + search + category filter | `/home/param/Work/lagan-wt/p3-1` (`feat/p3-1-browse`) | P1.9, P2.1 (merged) |
+| [ ] | P5.2 Aggregation queries | `/home/param/Work/lagan-wt/p5-2` (`feat/p5-2-analytics-queries`) | P5.1 (merged) |
+| [ ] | D4 features/player-progress | `/home/param/Work/lagan-wt/d4` (`docs/d4-player-progress`) | P4.1 (merged) |
 
-Merged so far: P0.1-P0.7, P1.1-P1.7, P1.9, P2.1-P2.6, P3.3, P4.1, P5.1, D0-D2.
+Merged so far: P0.1-P0.8, P1.1-P1.7, P1.9, P2.1-P2.7, P3.3, P4.1, P5.1, P5.4, D0-D3.
 
 ### Ready (independent, safe to run concurrently)
 
@@ -104,8 +104,6 @@ Each item owns a distinct package or file set, so these can all start now.
 - P3.4 Entitlements/enrollment — `packages/db` + server action / route; P3.3 merged
 - P3.5 View toggle component — `packages/ui` only
 - P4.2 lesson_progress schema — new schema file; P2.1 merged
-- P5.2 Aggregation queries — `packages/db`; P5.1 merged
-- P5.4 Chart components — `packages/ui` only
 - P6.1 Notification schema — new schema file
 - P6.4 Email sending — `packages/email` (new), no UI
 - P7.2 axe a11y + SR checklist — test config + static audit
@@ -126,7 +124,6 @@ Each item owns a distinct package or file set, so these can all start now.
 - P7.1 Playwright E2E — after phases 3-6 land
 - P7.3 Rate limiting + validation audit — after P2.6, P3.3, P3.4 stop editing API routes
 - P7.4 Docs final pass — after D1-D6
-- D3 features/payments + features/discovery — after P3.3 (merged) and P3.4
 - D4 features/player-progress — after P4.1 (merged), P4.2 and P4.4
 - D5 features/analytics — after P5.1 (merged) and P5.2
 - D6 features/notifications — after P6.1
