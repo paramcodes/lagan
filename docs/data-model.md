@@ -9,8 +9,9 @@ Source files:
 |---|---|
 | `packages/db/src/schema/profile.ts` | `user` (mirror), `profiles` |
 | `packages/db/src/schema/course.ts` | `courses`, `modules`, `lessons` |
+| `packages/db/src/schema/event.ts` | `course_event` |
 
-Both are re-exported from `packages/db/src/index.ts`, which is what `apps/web` imports as
+All are re-exported from `packages/db/src/index.ts`, which is what `apps/web` imports as
 `@lagan/db`.
 
 ## Entity relationships
@@ -19,13 +20,17 @@ Both are re-exported from `packages/db/src/index.ts`, which is what `apps/web` i
 erDiagram
   user ||--o| profiles : "user_id (unique)"
   user ||--o{ courses : "author_id"
+  user ||--o{ course_event : "user_id"
   courses ||--o{ modules : "course_id"
+  courses ||--o{ course_event : "course_id"
   modules ||--o{ lessons : "module_id"
+  lessons ||--o{ course_event : "lesson_id (nullable)"
 ```
 
 A lesson hangs off a module, never directly off a course, so reaching a course from a lesson
-takes two joins. Deleting any parent removes its children (see
-[Foreign keys](#foreign-keys-and-cascade-behaviour)).
+takes two joins. `course_event` is the one table with three parents: it points at the user,
+the course and (for all but course-level events) the lesson. Deleting any parent removes its
+children (see [Foreign keys](#foreign-keys-and-cascade-behaviour)).
 
 ## Conventions
 
@@ -43,17 +48,18 @@ alongside the plural binding, plus row types:
 | `courses` | `courses`, `course` | `Course`, `NewCourse` |
 | `modules` | `modules`, `module` | `Module`, `NewModule` |
 | `lessons` | `lessons`, `lesson` | `Lesson`, `NewLesson` |
+| `course_event` | `courseEvent`, `courseEvents` | `CourseEvent`, `NewCourseEvent` |
 
 **Timestamps.** `timestamp(name, { withTimezone: true })` → `timestamptz`, with
 `.defaultNow().notNull()` where present. `lessons` has `updated_at` but no `created_at`.
 
 **Tenancy.** `tenant_id` is required on every table that holds institution data, from the
-first migration, per [ADR-0002](adr/index.md). `courses` is the only tenant-scoped table in
-the schema today; `tenantId` is `text().notNull()` with no default and no foreign key,
-because no `tenants` table exists (the tenancy model is open in
-[ADR-0014](adr/index.md), fork F4). Nothing writes a course row yet — course CRUD is
-[P2.6 (#10)](https://github.com/paramcodes/lagan/issues/10) — so no tenant value is produced
-in practice. The column is in place so later work cannot forget it.
+first migration, per [ADR-0002](adr/index.md). `courses` and `course_event` carry it today:
+`tenantId` is `text().notNull()` with no default and no foreign key, because no `tenants`
+table exists (the tenancy model is open in [ADR-0014](adr/index.md), fork F4). The only
+value any code writes is the literal `"default"` in
+`apps/web/app/(app)/teach/courses/actions.ts`, which is a placeholder until tenants are
+real. The column is in place so later work cannot forget it.
 
 **Money.** Stored as integer cents: `courses.price_cents`, integer, not null, default `0`.
 There is no currency column; the app is single-currency. Discounts are
@@ -74,6 +80,7 @@ There is no `CHECK` constraint, so the union is enforced only where the applicat
 | `LessonStatus` | `draft`, `published` | `lessons.status` |
 | `LessonType` | `video`, `text`, `quiz`, `file`, `external` | `lessons.type` |
 | `LessonContent` | `{ type: "doc"; content?: unknown[] }` | `lessons.content_json` |
+| `CourseEventType` | `view`, `progress`, `complete`, `drop` | `course_event.type` |
 
 ## `user` (mirror)
 
@@ -161,6 +168,26 @@ one a lesson uses is a convention: `content_json` for `text`/`quiz`, `mux_playba
 `video`, `external_url` for `external`, `file_key` for `file`. The draft store in
 `packages/ui/src/drafts.ts` mirrors exactly this shape.
 
+## `course_event`
+
+Append-only learner activity, read by author analytics ([P5.1 #47](https://github.com/paramcodes/lagan/issues/47),
+merged as `96ea406` (#49)). Nothing writes a row yet.
+
+| Column | TS property | Type | Null | Default | Notes |
+|---|---|---|---|---|---|
+| `id` | `id` | `text` | no | — | Primary key |
+| `tenant_id` | `tenantId` | `text` | no | — | No FK yet; see [Tenancy](#conventions) |
+| `user_id` | `userId` | `text` | no | — | FK → `user.id`, `ON DELETE CASCADE` |
+| `course_id` | `courseId` | `text` | no | — | FK → `courses.id`, `ON DELETE CASCADE` |
+| `lesson_id` | `lessonId` | `text` | yes | — | FK → `lessons.id`, `ON DELETE CASCADE`. Null is meaningful: a `drop` fires at course level |
+| `type` | `type` | `text` (`CourseEventType`) | no | — | No default; the insert must choose |
+| `position_seconds` | `positionSeconds` | `integer` | no | `0` | Playback position when the event fired |
+| `created_at` | `createdAt` | `timestamptz` | no | `now()` | No `updated_at`: rows are never modified |
+
+Indexes: `course_event_tenant_id_idx`, `course_event_user_id_idx`, `course_event_course_id_idx`,
+`course_event_lesson_id_idx`, and `course_event_course_id_created_at_idx` on
+`(course_id, created_at)`, which is the index a per-course time-series read uses.
+
 ## Foreign keys and cascade behaviour
 
 | Child | Column | Parent | On delete | Effect of deleting the parent |
@@ -169,12 +196,17 @@ one a lesson uses is a convention: `content_json` for `text`/`quiz`, `mux_playba
 | `courses` | `author_id` | `user.id` | `CASCADE` | **Every course by that user is deleted, and its modules and lessons with it** |
 | `modules` | `course_id` | `courses.id` | `CASCADE` | Modules and their lessons are deleted |
 | `lessons` | `module_id` | `modules.id` | `CASCADE` | Lesson rows are deleted |
+| `course_event` | `user_id` | `user.id` | `CASCADE` | That user's activity rows are deleted |
+| `course_event` | `course_id` | `courses.id` | `CASCADE` | Activity for the course is deleted with it |
+| `course_event` | `lesson_id` | `lessons.id` | `CASCADE` | Activity for the lesson is deleted with it |
 
-All four cascades are asserted in `packages/db/src/schema/course.test.ts`, which reads the
-table config rather than a live database. Note the author cascade: deleting an author's
-account removes published courses. If authored content must outlive its author, that
-constraint has to change (for example to `SET NULL` with a nullable `author_id`), and the
-change is a schema migration, not an application concern.
+All seven cascades are asserted in `packages/db/src/schema/course.test.ts` and
+`packages/db/src/schema/event.test.ts`, which read the table config rather than a live
+database. Note the author cascade: deleting an author's account removes published courses.
+If authored content must outlive its author, that constraint has to change (for example to
+`SET NULL` with a nullable `author_id`), and the change is a schema migration, not an
+application concern. The same deletion also removes the analytics history attached to those
+courses: an activity log that must survive is a separate store, not a cascade.
 
 ## Uniqueness and ordering constraints
 
@@ -183,6 +215,9 @@ change is a schema migration, not an application concern.
 | `profiles.user_id` unique | `profiles` | `user_id` | One profile per user |
 | `modules_course_id_position_key` | `modules` | `(course_id, position)` | No two modules in a course share a position |
 | `lessons_module_id_position_key` | `lessons` | `(module_id, position)` | No two lessons in a module share a position |
+
+`course_event` adds no unique constraint: it is an append log, so several rows can share the
+same `(user_id, course_id, type)`.
 
 Consequences for authoring:
 
@@ -201,22 +236,21 @@ Consequences for authoring:
   the database can only be created through `drizzle-kit` run by hand.
 - Better Auth's other tables (`session`, `account`, `verification`) are not declared here;
   they are created from Better Auth's own definition at runtime.
-- `course.test.ts` is the pattern for schema tests: assert column names, nullability,
-  defaults, foreign-key targets and cascades, and index uniqueness through
+- `course.test.ts` and `event.test.ts` are the pattern for schema tests: assert column names,
+  nullability, defaults, foreign-key targets and cascades, and index uniqueness through
   `getTableColumns` / `getTableConfig`.
 
 ## Tables that do not exist yet
 
 These are named deliberately: any feature work that reaches for them must add the table
-first. Only `courses` carries `tenant_id` today, and each new institution table must carry
-it too ([ADR-0002](adr/index.md)).
+first. Only `courses` and `course_event` carry `tenant_id` today, and each new institution
+table must carry it too ([ADR-0002](adr/index.md)).
 
 | Table | Purpose | Issue |
 |---|---|---|
 | `tenants` | The institution row `tenant_id` points at, with RLS policies | Tenancy model open: [ADR-0014](adr/index.md); no issue filed |
 | `enrollments` (entitlements) | Access per `(user_id, course_id)`, granted on purchase or free enrol | [P3.4 (#18)](https://github.com/paramcodes/lagan/issues/18) |
 | `lesson_progress` | Per-learner completion and playback position, unique on `(user_id, lesson_id)` | [P4.2 (#24)](https://github.com/paramcodes/lagan/issues/24) |
-| `course_event` | Append-only learner activity for author analytics: `type` in `view \| progress \| complete \| drop` | [P5.1 (#47)](https://github.com/paramcodes/lagan/issues/47) |
 | `notifications` | Durable notification rows: recipient, type, JSONB payload, `read_at`, `created_at` | [P6.1 (#31)](https://github.com/paramcodes/lagan/issues/31) |
 
 Also absent: any table for submissions or uploaded files ([ADR-0008](adr/index.md) covers the

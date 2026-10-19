@@ -22,7 +22,7 @@ phase-6 real-time work will attach. Decisions behind these choices live in
 |---|---|---|
 | `apps/web` | The only deployable: App Router pages, route handlers, server actions, middleware. | Live |
 | `packages/ui` | Client primitives and authoring widgets: sidebar, TipTap editor, HTML sanitizer, IndexedDB draft store. | Live |
-| `packages/db` | Drizzle schema and types for `profiles`, `courses`, `modules`, `lessons`. | Live |
+| `packages/db` | Drizzle schema and types for `profiles`, `courses`, `modules`, `lessons`, `course_event`. | Live |
 | `packages/types` | Shared domain types. | Placeholder — export list is empty |
 | `packages/config` | Shared env and constants. | Placeholder — export list is empty |
 | `tokens/tokens.json` | DTCG design tokens; source of truth ([ADR-0004](adr/index.md)). | Live |
@@ -122,10 +122,12 @@ The two route groups carry different chrome and no URL segment of their own:
 - **`(auth)`** has no `layout.tsx`; each page is a self-contained full-screen card that pins
   itself with `min-h-screen` and reads the design tokens directly.
 
-`/learn` and `/teach` appear in the middleware matcher but no route directory exists yet.
-`/learn` is the post-sign-in landing path (Phase 3 discovery, `/teach` authoring in
-Phase 2); both land with later phases in [`todos.md`](../todos.md) — they are
-guarded today so the guard cannot be forgotten when the routes arrive.
+`/learn` and `/teach` appear in the middleware matcher but neither serves a page yet.
+`/learn` is the post-sign-in landing path (Phase 3 discovery). `/teach` is the authoring
+surface: `apps/web/app/(app)/teach/courses/` already holds the course CRUD server actions
+(P2.6) and their Zod schemas, with no `page.tsx` in front of them. Pages arrive with later
+phases in [`todos.md`](../todos.md); the paths are guarded today so the guard cannot be
+forgotten when they do.
 
 ## Middleware: guards and the role split
 
