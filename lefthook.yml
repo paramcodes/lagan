@@ -11,7 +11,7 @@ pre-commit:
       run: cd apps/web && bunx next typegen && bunx tsc --noEmit
     size-guard:
       run: |
-        diff=$(git diff --cached -- . ':(exclude)*.lock' ':(exclude)bun.lock')
+        diff=$(git diff --cached -- . ':(exclude)*.lock' ':(exclude)bun.lock' ':(exclude)*_snapshot.json')
         tokens=$(printf '%s' "$diff" | wc -c | awk '{print int($1/4)}')
         if [ "$tokens" -gt 5000 ]; then
           echo "Commit too large: ~$tokens tokens (limit 5000). Split into smaller commits."

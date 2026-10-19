@@ -8,7 +8,9 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      # Postgres 18 stores data under /var/lib/postgresql/<major>/docker and
+      # refuses to boot when a volume is mounted at the old /var/lib/postgresql/data path.
+      - pgdata:/var/lib/postgresql
   minio:
     image: minio/minio:latest
     command: server /data --console-address ":9001"

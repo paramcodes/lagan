@@ -30,6 +30,7 @@ A higher-education LMS (learning management system). Monorepo: one Next.js app p
 bun install
 docker compose up -d           # Postgres 18 + MinIO
 # set DATABASE_URL=postgres://lagan:lagan@localhost:5432/lagan
+bun run db:migrate             # apply schema migrations
 bun run gen:tokens             # regenerate tokens.css
 bun run dev                    # http://localhost:3000
 ```
@@ -44,6 +45,8 @@ bun run dev                    # http://localhost:3000
 | `bun run lint` | Biome lint |
 | `bun run format` | Biome format |
 | `bun run gen:tokens` | Regenerate CSS from tokens |
+| `bun run db:generate` | Generate SQL migrations from schema |
+| `bun run db:migrate` | Apply pending SQL migrations to database |
 | `bun run test` | Vitest |
 | `bun run test:e2e` | Playwright |
 
