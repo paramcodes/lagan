@@ -5,6 +5,10 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "dependencies": {
+    "@tiptap/core": "3.32.0",
+    "@tiptap/pm": "3.32.0",
+    "@tiptap/react": "3.32.0",
+    "@tiptap/starter-kit": "3.32.0",
     "idb-keyval": "6.3.0",
     "isomorphic-dompurify": "4.6.0",
     "lucide-react": "^0.468.0",
