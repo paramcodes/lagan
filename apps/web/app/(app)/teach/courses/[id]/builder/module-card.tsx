@@ -8,7 +8,7 @@ import {
   SortableList,
 } from "@lagan/ui";
 import { ArrowDown, ArrowUp, Check, Pencil, Plus, Trash2, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LessonItem } from "./lesson-item";
 import type { BuilderModule } from "./query";
 
@@ -49,6 +49,14 @@ export interface ModuleCardProps {
   onDeleteLesson: (moduleId: string, lessonId: string) => Promise<void>;
   onReorderLessons: (moduleId: string, orderedIds: string[]) => Promise<void>;
   onMoveLesson: (moduleId: string, lessonId: string, direction: "up" | "down") => void;
+  onDraftTitleChange?: ((id: string, title: string) => void) | undefined;
+  onBlurTitle?: ((id: string, title: string) => void) | undefined;
+  onDraftLesson?:
+    | ((id: string, data: { title: string; type: LessonType; status: LessonStatus }) => void)
+    | undefined;
+  onBlurLesson?:
+    | ((id: string, data: { title: string; type: LessonType; status: LessonStatus }) => void)
+    | undefined;
 }
 
 export function ModuleCard({
@@ -65,9 +73,18 @@ export function ModuleCard({
   onDeleteLesson,
   onReorderLessons,
   onMoveLesson,
+  onDraftTitleChange,
+  onBlurTitle,
+  onDraftLesson,
+  onBlurLesson,
 }: ModuleCardProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editTitle, setEditTitle] = useState(module.title);
+
+  useEffect(() => {
+    setEditTitle(module.title);
+  }, [module.title]);
+
   const [isAddingLesson, setIsAddingLesson] = useState(false);
   const [newLessonTitle, setNewLessonTitle] = useState("");
   const [newLessonType, setNewLessonType] = useState<LessonType>("video");
@@ -141,7 +158,15 @@ export function ModuleCard({
                 type="text"
                 required
                 value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
+                onChange={(e) => {
+                  setEditTitle(e.target.value);
+                  onDraftTitleChange?.(module.id, e.target.value);
+                }}
+                onBlur={() => {
+                  if (editTitle.trim()) {
+                    onBlurTitle?.(module.id, editTitle.trim());
+                  }
+                }}
                 aria-label="Module title"
                 className={[CONTROL_CLASS, "flex-1 max-w-sm"].join(" ")}
               />
@@ -253,6 +278,8 @@ export function ModuleCard({
                   onUpdate={(lessonId, data) => onUpdateLesson(lessonId, data)}
                   onDelete={(lessonId) => onDeleteLesson(module.id, lessonId)}
                   onMove={(lessonId, direction) => onMoveLesson(module.id, lessonId, direction)}
+                  onDraftChange={onDraftLesson}
+                  onBlur={onBlurLesson}
                 />
               )}
             </SortableItem>
