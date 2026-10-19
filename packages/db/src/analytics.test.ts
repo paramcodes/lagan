@@ -166,9 +166,7 @@ describe("analytics query helpers with mocked executor", () => {
             return {
               groupBy: vi
                 .fn()
-                .mockResolvedValue([
-                  { courseId: "c1", starts: 4, completions: 2, dropOffs: 1 },
-                ]),
+                .mockResolvedValue([{ courseId: "c1", starts: 4, completions: 2, dropOffs: 1 }]),
             };
           }),
         })),

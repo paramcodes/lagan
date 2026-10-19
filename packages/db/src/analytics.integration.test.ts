@@ -115,18 +115,8 @@ describe.skipIf(!DATABASE_URL)("analytics queries against real Postgres", () => 
       create index if not exists "course_event_course_id_created_at_idx" on "course_event"("course_id", "created_at");
     `);
 
-    for (const uid of [
-      AUTHOR_A,
-      AUTHOR_B,
-      LEARNER_1,
-      LEARNER_2,
-      LEARNER_3,
-      LEARNER_4,
-    ]) {
-      await pool.query(
-        `insert into "user"("id") values ($1) on conflict ("id") do nothing`,
-        [uid],
-      );
+    for (const uid of [AUTHOR_A, AUTHOR_B, LEARNER_1, LEARNER_2, LEARNER_3, LEARNER_4]) {
+      await pool.query(`insert into "user"("id") values ($1) on conflict ("id") do nothing`, [uid]);
     }
 
     await pool.query(`

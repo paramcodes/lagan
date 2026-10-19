@@ -1,13 +1,4 @@
-import {
-  and,
-  asc,
-  eq,
-  gte,
-  inArray,
-  isNotNull,
-  lte,
-  sql,
-} from "drizzle-orm";
+import { and, asc, eq, gte, inArray, isNotNull, lte, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { courses, lessons, modules } from "./schema/course";
 import { enrollments } from "./schema/enrollment";
@@ -178,12 +169,7 @@ export async function getAuthorCoursesMetrics(
   const authorCourses = await db
     .select({ id: courses.id })
     .from(courses)
-    .where(
-      and(
-        eq(courses.authorId, options.authorId),
-        eq(courses.tenantId, options.tenantId),
-      ),
-    );
+    .where(and(eq(courses.authorId, options.authorId), eq(courses.tenantId, options.tenantId)));
 
   if (authorCourses.length === 0) {
     return [];
@@ -312,10 +298,7 @@ export async function getLessonDropOffMetrics(
     .where(and(...eventConditions))
     .groupBy(courseEvent.lessonId);
 
-  const statsByLesson = new Map<
-    string,
-    { views: number; completions: number; dropOffs: number }
-  >();
+  const statsByLesson = new Map<string, { views: number; completions: number; dropOffs: number }>();
   for (const row of lessonEvents) {
     if (row.lessonId) {
       statsByLesson.set(row.lessonId, {
