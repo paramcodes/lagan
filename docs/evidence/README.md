@@ -40,6 +40,8 @@ All visual evidence artifacts are captured under standardized test environment c
 | [`notifications-dark.png`](./notifications-dark.png) | Topbar popover (`/courses`) | 1440 × 900 | 2880 × 1800 px | Dark |
 | [`author-profile-light.png`](./author-profile-light.png) | `/authors/[id]` | 1440 × 900 | 2880 × 1800 px | Light |
 | [`author-profile-dark.png`](./author-profile-dark.png) | `/authors/[id]` | 1440 × 900 | 2880 × 1800 px | Dark |
+| [`course-detail-light.png`](./course-detail-light.png) | `/courses/:id` | 1440 × 900 | 2880 × 1800 px | Light |
+| [`course-detail-dark.png`](./course-detail-dark.png) | `/courses/:id` | 1440 × 900 | 2880 × 1800 px | Dark |
 ---
 
 ### Detailed Route Artifacts
@@ -167,6 +169,19 @@ All visual evidence artifacts are captured under standardized test environment c
   - Lesson navigation sidebar with module hierarchy and completed lesson checkmarks.
   - Auto-advance countdown banner on completion with direct trigger to next lesson.
   - Throttled progress persistence via `useLessonProgress` client hook.
+
+#### 7. Course Detail Page (`/courses/:id`)
+
+- **Light Mode**: `course-detail-light.png` (2880 × 1800 px)
+- **Dark Mode**: `course-detail-dark.png` (2880 × 1800 px)
+- **Verified Features**:
+  - Two-column responsive layout with sticky pricing and action card.
+  - Course cover, title, description, and author attribution card (`Dr. Evelyn Reed`).
+  - Formatted price with discount indicator and savings percentage via `formatPrice`.
+  - Interactive collapsible curriculum outline (`SyllabusPreview`) with module expansion and "Collapse all / Expand all" controls.
+  - Lesson type indicators, estimated runtimes / durations, and free "Preview" badges.
+  - Dynamic call-to-action buttons ("Buy Now", "Enroll for Free", and "Continue Learning") with signed-out user sign-in prompt.
+  - High-density readability and design token compliance across light and dark color schemes.
 ---
 
 ## Reproduction and Automated Capture
