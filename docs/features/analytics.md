@@ -1,6 +1,6 @@
 # Feature — author analytics
 
-Status: **partly built**. The event telemetry schema (`course_event`, P5.1) is **merged** in commit `96ea406` (PR #49). The token-styled accessible chart components (`packages/ui/src/charts/`, P5.4) are **merged** in commit `920c782` (PR #63). The aggregation queries (`packages/db/src/analytics.ts`, P5.2) are **implemented** in PR #66. The author analytics dashboard UI (`apps/web/app/(app)/teach/courses/[id]/analytics/`, P5.3) is **planned**.
+Status: **partly built**. The event telemetry schema (`course_event`, P5.1) is **merged** in commit `96ea406` (PR #49). The token-styled accessible chart components (`packages/ui/src/charts/`, P5.4) are **merged** in commit `920c782` (PR #63). The aggregation queries (`packages/db/src/analytics.ts`, P5.2) are **merged** in commit `5697254` (PR #65). The author analytics dashboard UI (`apps/web/app/(app)/teach/courses/[id]/analytics/`, P5.3) is **planned** (#29).
 
 Cross-links: [architecture](../architecture.md), [data model](../data-model.md), [course authoring](./authoring.md), [player and progress](./player-progress.md), [payments and enrollments](./payments.md), [discovery](./discovery.md), [learner and author profiles](./profiles.md), [ADR-0002 (Postgres / Tenancy)](../adr/index.md), [ADR-0010 (Accessibility)](../adr/index.md), [ADR-0014 (Tenancy model)](../adr/index.md), [2026 Stack Decisions](../decisions/2026-stack-decisions.md).
 
@@ -11,8 +11,8 @@ Cross-links: [architecture](../architecture.md), [data model](../data-model.md),
 | Item | What | State | Evidence |
 |---|---|---|---|
 | P5.1 | `course_event` schema & index migration | **merged** | `packages/db/src/schema/event.ts`, `event.test.ts` (#49) |
-| P5.2 | Event aggregation & trend queries | **implemented** | `packages/db/src/analytics.ts`, tests in PR #66 |
-| P5.3 | Author analytics dashboard UI | planned | `apps/web/app/(app)/teach/courses/[id]/analytics/` (#52) |
+| P5.2 | Event aggregation & trend queries | **merged** | `packages/db/src/analytics.ts`, `analytics.test.ts` (#65) |
+| P5.3 | Author analytics dashboard UI | planned | `apps/web/app/(app)/teach/courses/[id]/analytics/` (#29) |
 | P5.4 | Token-styled accessible chart primitives | **merged** | `packages/ui/src/charts/`, `chart.test.tsx` (#63) |
 
 ---
