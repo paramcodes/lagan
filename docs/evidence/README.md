@@ -36,6 +36,8 @@ All visual evidence artifacts are captured under standardized test environment c
 | [`learn-ledger-dark.png`](./learn-ledger-dark.png) | `/learn?view=ledger` | 1440 × 900 | 2880 × 1800 px | Dark |
 | [`teach-analytics-light.png`](./teach-analytics-light.png) | `/teach/analytics` | 1440 × 1100 | 2880 × 2200 px | Light |
 | [`teach-analytics-dark.png`](./teach-analytics-dark.png) | `/teach/analytics` | 1440 × 1100 | 2880 × 2200 px | Dark |
+| [`notifications-light.png`](./notifications-light.png) | Topbar popover (`/courses`) | 1440 × 900 | 2880 × 1800 px | Light |
+| [`notifications-dark.png`](./notifications-dark.png) | Topbar popover (`/courses`) | 1440 × 900 | 2880 × 1800 px | Dark |
 ---
 
 ### Detailed Route Artifacts
@@ -130,6 +132,20 @@ All visual evidence artifacts are captured under standardized test environment c
   - Detailed course performance breakdown table with per-course metrics and selection filters.
   - Full theme token adaptation across light and dark modes with WCAG 2.2 contrast compliance.
 
+---
+
+#### 8. Notification Center Popover (`NotificationCenter`)
+
+- **Light Mode**: `notifications-light.png` (2880 × 1800 px)
+- **Dark Mode**: `notifications-dark.png` (2880 × 1800 px)
+- **Verified Features**:
+  - Interactive bell trigger button in topbar with live unread badge counter.
+  - Dropdown popover dialog (`role="dialog"`, accessible keyboard navigation, Escape to close).
+  - Header with live connection status indicator (pulsing green dot for SSE, amber for polling) and "Mark all as read" action.
+  - Notification items categorized with specific type icons (`course_published`, `lesson_published`, `enrollment_confirmed`).
+  - Unread styling with indigo accent border, unread status dot, and per-item "Mark as read" button.
+  - Clean relative timestamp formatting ("5m ago", "45m ago", "3h ago").
+  - Seamless color scheme adaptation across light and dark tokens.
 ---
 
 ## Reproduction and Automated Capture
