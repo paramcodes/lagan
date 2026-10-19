@@ -20,7 +20,7 @@ Mark [x] when merged to main. One worktree per item.
 - [ ] P1.6 Auth pages
 - [x] P1.7 Profile view/edit
 - [ ] P1.8 Public author profile
-- [ ] P1.9 App shell layout (search + category filter)
+- [x] P1.9 App shell layout (search + category filter)
 
 ## Phase 2 — Course authoring
 - [ ] P2.1 Course/module/lesson schema
