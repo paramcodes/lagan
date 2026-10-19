@@ -66,9 +66,9 @@ Mark [x] when merged to main. One worktree per item.
 - [x] P6.5 Notification center UI
 
 ## Phase 7 — Hardening
-- [ ] P7.1 Playwright E2E
+- [x] P7.1 Playwright E2E
 - [x] P7.2 axe a11y + SR checklist
-- [ ] P7.3 Rate limiting + validation audit
+- [x] P7.3 Rate limiting + validation audit
 - [x] P7.4 Docs final pass
 
 ## Docs track (parallel)
@@ -87,15 +87,9 @@ Rule: keep >=3 in flight; refill the moment one finishes.
 
 | In flight | Issue | Worktree | Depends on |
 |---|---|---|---|
-| [ ] | P7.1 Playwright E2E & P7.3 Security Audit | `/home/param/Work/lagan-wt/p7-hardening` | Phases 0-6 complete |
+| [x] | All 49 MVP issues complete & merged | — | — |
 
-Merged so far: P0.1-P0.8, P1.1-P1.9, P2.1-P2.10, P3.1-P3.8, P4.1-P4.5, P5.1-P5.4, P6.1-P6.5, P7.2, P7.4, D0-D7.
-### Ready (independent, safe to run concurrently)
+Merged: P0.1-P0.8, P1.1-P1.9, P2.1-P2.10, P3.1-P3.8, P4.1-P4.5, P5.1-P5.4, P6.1-P6.5, P7.1-P7.4, D0-D7.
 
-Each item owns a distinct package or file set, so these can all start now.
-
-- P7.1 Playwright E2E — final full-flow validation across all completed phases
-- P7.3 Rate limiting + validation audit — security pass
-### Blocked (waiting on a merge)
-
-- (None remaining)
+### Status
+**100% MVP Complete across all phases.** All quality gates, accessibility audits, security audits, and E2E core journeys are passing green on main.
