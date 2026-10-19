@@ -59,8 +59,14 @@ Start here:
 - [`design-system.md`](design-system.md) — DTCG token pipeline, `@theme`, palette, dark mode, sidebar.
 - [`data-model.md`](data-model.md) — every table, column, key, constraint, and what is still missing.
 
-Reference:
+Features:
 
+- [`features/authoring.md`](features/authoring.md) — course authoring pipeline, draft store, TipTap editor, Mux uploads.
+- [`features/profiles.md`](features/profiles.md) — learner and author profile edit surface, schema, upsert writes.
+- [`features/payments.md`](features/payments.md) — Stripe checkout, webhook signature verification, replay idempotency, enrollments schema.
+- [`features/discovery.md`](features/discovery.md) — course catalog, search architecture, category filtering, free vs paid paths.
+
+Reference:
 - [`stack.md`](stack.md) — condensed stack decision log.
 - [`contributing.md`](contributing.md) — how to contribute.
 - [`adr/`](adr/index.md) — architecture decision records (index).
