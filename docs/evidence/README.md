@@ -1,201 +1,98 @@
 # Visual Verification Evidence
 
-Visual evidence screenshots captured to verify core product user flows across light and dark color schemes, ensuring design token fidelity, layout integrity, and visual accessibility.
+Visual evidence captured by driving a running instance of Lagan with Playwright: screenshots of every
+product surface in light and dark color schemes, plus screen recordings of the two core journeys.
+Used to verify design-token fidelity, layout integrity and visual accessibility.
 
 ## Capture Specifications
 
-All visual evidence artifacts are captured under standardized test environment conditions using headless Chromium via Playwright:
+All artifacts are captured under standardised conditions using headless Chromium via Playwright:
 
 | Parameter | Specification | Notes |
 |---|---|---|
 | **Engine** | Chromium (Playwright Headless) | Sandboxed automated browser |
-| **Viewport** | 1440 × 900 px | Standard desktop layout baseline |
-| **Device Scale Factor** | 2.0 (HiDPI / Retina) | Renders high-resolution assets at 2880 × 1800 px |
+| **Viewport** | 1440 × 900 px (screenshots), 1280 × 720 px (recordings) | Desktop layout baseline |
+| **Device Scale Factor** | 2.0 (HiDPI / Retina) | Screenshots render at 2880 × 1800 px |
 | **Color Schemes** | Light & Dark | Explicit `colorScheme` context and `.dark` class toggle |
-| **Font Rendering** | Web font settle synchronization | Waits for `document.fonts.ready` prior to capture |
-| **Capture Scope** | Full page (`fullPage: true`) | Captures entire scrollable route height |
+| **Font Rendering** | Web font settle synchronisation | Waits for `document.fonts.ready` prior to capture |
+| **Stylesheet** | Applied before capture | Waits until the linked stylesheet has parsed rules |
+| **Capture Scope** | Full page (`fullPage: true`) | Captures the entire scrollable route height |
+| **Target** | Production build (`next build` + `next start`) | Avoids dev-compile races and hydration-only differences |
 | **Output Directory** | `docs/evidence/` | Content-addressed visual verification artifacts |
 
-## Screenshot Inventory
+## Artifact Inventory
 
-### Summary Matrix
+### Screenshots
 
-| Screenshot File | Route | Viewport | Output Resolution | Color Scheme |
-|---|---|---|---|---|
-| [`landing-light.png`](./landing-light.png) | `/` | 1440 × 900 | 2880 × 1800 px | Light |
-| [`landing-dark.png`](./landing-dark.png) | `/` | 1440 × 900 | 2880 × 1800 px | Dark |
-| [`sign-in-light.png`](./sign-in-light.png) | `/sign-in` | 1440 × 900 | 2880 × 1800 px | Light |
-| [`sign-in-dark.png`](./sign-in-dark.png) | `/sign-in` | 1440 × 900 | 2880 × 1800 px | Dark |
-| [`courses-cards-light.png`](./courses-cards-light.png) | `/courses?view=cards` | 1440 × 900 | 2880 × 1800 px | Light |
-| [`courses-cards-dark.png`](./courses-cards-dark.png) | `/courses?view=cards` | 1440 × 900 | 2880 × 1800 px | Dark |
-| [`courses-ledger-light.png`](./courses-ledger-light.png) | `/courses?view=ledger` | 1440 × 900 | 2880 × 1800 px | Light |
-| [`courses-ledger-dark.png`](./courses-ledger-dark.png) | `/courses?view=ledger` | 1440 × 900 | 2880 × 1800 px | Dark |
-| [`learn-cards-light.png`](./learn-cards-light.png) | `/learn?view=cards` | 1440 × 900 | 2880 × 1800 px | Light |
-| [`learn-cards-dark.png`](./learn-cards-dark.png) | `/learn?view=cards` | 1440 × 900 | 2880 × 1800 px | Dark |
-| [`learn-ledger-light.png`](./learn-ledger-light.png) | `/learn?view=ledger` | 1440 × 900 | 2880 × 1800 px | Light |
-| [`learn-ledger-dark.png`](./learn-ledger-dark.png) | `/learn?view=ledger` | 1440 × 900 | 2880 × 1800 px | Dark |
-| [`teach-analytics-light.png`](./teach-analytics-light.png) | `/teach/analytics` | 1440 × 1100 | 2880 × 2200 px | Light |
-| [`teach-analytics-dark.png`](./teach-analytics-dark.png) | `/teach/analytics` | 1440 × 1100 | 2880 × 2200 px | Dark |
-| [`notifications-light.png`](./notifications-light.png) | Topbar popover (`/courses`) | 1440 × 900 | 2880 × 1800 px | Light |
-| [`notifications-dark.png`](./notifications-dark.png) | Topbar popover (`/courses`) | 1440 × 900 | 2880 × 1800 px | Dark |
-| [`author-profile-light.png`](./author-profile-light.png) | `/authors/[id]` | 1440 × 900 | 2880 × 1800 px | Light |
-| [`author-profile-dark.png`](./author-profile-dark.png) | `/authors/[id]` | 1440 × 900 | 2880 × 1800 px | Dark |
-| [`course-detail-light.png`](./course-detail-light.png) | `/courses/:id` | 1440 × 900 | 2880 × 1800 px | Light |
-| [`course-detail-dark.png`](./course-detail-dark.png) | `/courses/:id` | 1440 × 900 | 2880 × 1800 px | Dark |
----
+| Screenshot | Route | Session | Color scheme |
+|---|---|---|---|
+| `landing-light.png` / `landing-dark.png` | `/` | public | light / dark |
+| `sign-in-light.png` / `sign-in-dark.png` | `/sign-in` | public | light / dark |
+| `sign-up-light.png` / `sign-up-dark.png` | `/sign-up` | public | light / dark |
+| `courses-cards-light.png` / `courses-cards-dark.png` | `/courses?view=cards` | public | light / dark |
+| `courses-ledger-light.png` / `courses-ledger-dark.png` | `/courses?view=ledger` | public | light / dark |
+| `course-detail-light.png` / `course-detail-dark.png` | `/courses/course_distributed` | public | light / dark |
+| `lesson-player-light.png` / `lesson-player-dark.png` | `/courses/course_distributed/lessons/les_raft` | author | light / dark |
+| `author-profile-light.png` / `author-profile-dark.png` | `/authors/author_evelyn` | public | light / dark |
+| `learn-cards-light.png` / `learn-cards-dark.png` | `/learn?view=cards` | author | light / dark |
+| `learn-ledger-light.png` / `learn-ledger-dark.png` | `/learn?view=ledger` | author | light / dark |
+| `profile-light.png` / `profile-dark.png` | `/profile` | author | light / dark |
+| `teach-analytics-light.png` / `teach-analytics-dark.png` | `/teach/analytics` | author | light / dark |
+| `course-builder-light.png` / `course-builder-dark.png` | `/teach/courses/course_distributed/builder` | author | light / dark |
+| `notifications-light.png` / `notifications-dark.png` | `/courses?view=cards` (bell opened) | author | light / dark |
 
-### Detailed Route Artifacts
+### Recordings
 
-#### 1. Landing Page (`/`)
+| Artifact | Flow | Duration |
+|---|---|---|
+| `learner.mp4` / `learner.gif` | Landing → sign-up → catalogue → search → course detail → free enrolment → My Learning → lesson player → mark complete → auto-advance → notifications | ~22 s |
+| `author.mp4` / `author.gif` | Sign in → course builder → analytics dashboard → My Learning (list) | ~9 s |
 
-- **Light Mode**: `landing-light.png` (2880 × 1800 px)
-- **Dark Mode**: `landing-dark.png` (2880 × 1800 px)
-- **Verified Features**:
-  - High-impact LMS hero header hierarchy: "Master Systems with Depth".
-  - Primary action CTAs: "Explore Courses" (`/courses`) and "Sign In" (`/sign-in`).
-  - Four core feature pillars: Interactive Editor, Video Player, In-depth Curriculum, Author Analytics.
-  - Strict DTCG design tokens (`--color-canvas`, `--color-surface`, `--color-brand`, etc.) supporting light and dark modes.
-  - Semantic HTML landmarks: `<header>`, `<main>`, `<section>`, `<footer>`.
-#### 2. Authentication Surface (`/sign-in`)
+GIFs are 900 px wide, 10 fps, palette-dithered. MP4s are H.264 (`yuv420p`, faststart) for embedding.
 
-- **Light Mode**: `sign-in-light.png` (2880 × 1800 px)
-- **Dark Mode**: `sign-in-dark.png` (2880 × 1800 px)
-- **Verified Features**:
-  - Centered authentication card container and responsive padding.
-  - Input field styling for email and password with explicit border tokens (`--color-line`).
-  - Accessible form labeling, helper text, and submit action buttons.
-  - Clean focus boundary and contrast compliance against canvas background (`--color-canvas`).
-  - High contrast readability across both color themes without bleeding.
+## Verified Surfaces
 
-#### 3. Course Catalogue — Cards Grid (`/courses?view=cards`)
+- **Landing page** — hero hierarchy, primary and secondary CTAs, four feature pillars, semantic
+  landmarks (`header`/`main`/`section`/`footer`), strict DTCG token usage.
+- **Authentication** — centred card layout, labelled inputs, focus boundary, contrast against the
+  canvas token, no theme bleed.
+- **Catalogue (cards)** — responsive card grid, course metadata badges, difficulty, author
+  attribution, price and discount, active state on the view toggle.
+- **Catalogue (ledger)** — compact tabular rows with aligned columns, dividers, hover feedback.
+- **Course detail** — two-column layout with a sticky pricing card, formatted price with discount,
+  collapsible syllabus outline, lesson types and runtimes, contextual CTA (Buy Now / Enroll for
+  Free / Continue Learning).
+- **Lesson player** — embedded video surface, module/lesson navigation sidebar with completion
+  marks, progress persistence, completion and auto-advance banner.
+- **My Learning** — enrolled course cards with progress bars, next-lesson deep links, cards and
+  ledger views.
+- **Profile** — editable bio, website, avatar and social links.
+- **Author profile** — public page with bio, links, published-course count, enrolled-learner count
+  and the author's catalogue.
+- **Course builder** — module and lesson cards, drag handles, per-lesson status, publish/archive
+  actions, cards and list views, draft autosave state.
+- **Analytics** — enrolment/completion overview cards, enrolment trend chart, lesson drop-off
+  chart, per-course performance table, course selector and date-range filter.
+- **Notification centre** — live SSE indicator, unread badge, notification types, relative
+  timestamps, mark-as-read affordances.
 
-- **Light Mode**: `courses-cards-light.png` (2880 × 1800 px)
-- **Dark Mode**: `courses-cards-dark.png` (2880 × 1800 px)
-- **Verified Features**:
-  - Multi-column responsive course card grid layout (`sm:grid-cols-2 lg:grid-cols-3`).
-  - `CourseCard` UI component structure: course titles, metadata badges, difficulty indicators, instructor attribution, and pricing/enrollment tags.
-  - Active toggle indicator on `CourseViewToggle` showing "cards" selection.
-  - Surface elevations and card border delineation (`--color-surface` and `--color-line`).
-  - Dark theme card background contrast and token consistency.
-
-#### 4. Course Catalogue — Ledger View (`/courses?view=ledger`)
-
-- **Light Mode**: `courses-ledger-light.png` (2880 × 1800 px)
-- **Dark Mode**: `courses-ledger-dark.png` (2880 × 1800 px)
-- **Verified Features**:
-  - Compact tabular list presentation utilizing `CourseLedgerRow`.
-  - Column alignment for course title, category badge, difficulty level, and lesson count.
-  - Row divider line tokens and hover interaction feedback.
-  - Active toggle indicator on `CourseViewToggle` showing "ledger" selection.
-#### 5. Author Analytics Dashboard (`/teach/analytics`)
-
-- **Light Mode**: `teach-analytics-light.png` (2880 × 2200 px)
-- **Dark Mode**: `teach-analytics-dark.png` (2880 × 2200 px)
-- **Verified Features**:
-  - Header layout with Instructor Dashboard breadcrumb, course count, course selector, and date range filter segmented control.
-  - 4 key overview metrics cards: Total Enrolments, Course Starts, Completions, and Overall Completion Rate.
-  - Enrollment trend visualization powered by `TrendLineChart` with area gradient and accessible data table toggle.
-  - Curriculum lesson drop-off visualization powered by `LessonDropoffBarChart` with completion and drop metrics.
-  - Detailed course performance breakdown table with per-course metrics and selection filters.
-  - Full theme token adaptation across light and dark modes with WCAG 2.2 contrast compliance.
-
-
-#### 5. My Learning Dashboard — Cards Grid (`/learn?view=cards`)
-
-- **Light Mode**: `learn-cards-light.png` (2880 × 1800 px)
-- **Dark Mode**: `learn-cards-dark.png` (2880 × 1800 px)
-- **Verified Features**:
-  - Enrolled courses rendered in responsive cards grid with surface elevations.
-  - Accessible progress bar with `aria-valuenow`, percent completed, and lesson count summary (`X of Y lessons`).
-  - Direct "Continue Learning" action button deep-linking to the next uncompleted lesson.
-  - Course completion badges (`Completed`, `In Progress`) and next lesson indicator.
-  - Active toggle indicator on `LearnViewToggle` showing "cards" selection.
-  - Consistent DTCG token styling across light and dark color schemes.
-
-#### 6. My Learning Dashboard — Ledger View (`/learn?view=ledger`)
-
-- **Light Mode**: `learn-ledger-light.png` (2880 × 1800 px)
-- **Dark Mode**: `learn-ledger-dark.png` (2880 × 1800 px)
-- **Verified Features**:
-  - Compact tabular list presentation utilizing `LearnerCourseRow`.
-  - Course title, author attribution, inline progress bar, percent, and lesson count.
-  - Direct "Continue Learning" action button deep-linking to next lesson.
-  - Active toggle indicator on `LearnViewToggle` showing "ledger" selection.
-  - High-density readability and token contrast under both light and dark modes.
-
-#### 7. Author Analytics Dashboard (`/teach/analytics`)
-
-- **Light Mode**: `teach-analytics-light.png` (2880 × 2200 px)
-- **Dark Mode**: `teach-analytics-dark.png` (2880 × 2200 px)
-- **Verified Features**:
-  - Header layout with Instructor Dashboard breadcrumb, course count, course selector, and date range filter segmented control.
-  - 4 key overview metrics cards: Total Enrolments, Course Starts, Completions, and Overall Completion Rate.
-  - Enrollment trend visualization powered by `TrendLineChart` with area gradient and accessible data table toggle.
-  - Curriculum lesson drop-off visualization powered by `LessonDropoffBarChart` with completion and drop metrics.
-  - Detailed course performance breakdown table with per-course metrics and selection filters.
-  - Full theme token adaptation across light and dark modes with WCAG 2.2 contrast compliance.
-
-#### 8. Public Author Profile (`/authors/[id]`)
-
-- **Light Mode**: `author-profile-light.png` (2880 × 1800 px)
-- **Dark Mode**: `author-profile-dark.png` (2880 × 1800 px)
-- **Verified Features**:
-  - Server Component rendering author profile card with display name, headline badge, bio, avatar, and website/social links.
-  - Author stats metrics for total published courses and enrolled learners across all courses.
-  - Responsive course catalogue grid rendering `@lagan/ui` `CourseCard` items.
-  - Dynamic `<title>` and OpenGraph metadata dynamically populated from author name & bio.
-  - High contrast typography and token consistency across light and dark modes.
----
-
-#### 8. Notification Center Popover (`NotificationCenter`)
-
-- **Light Mode**: `notifications-light.png` (2880 × 1800 px)
-- **Dark Mode**: `notifications-dark.png` (2880 × 1800 px)
-- **Verified Features**:
-  - Interactive bell trigger button in topbar with live unread badge counter.
-  - Dropdown popover dialog (`role="dialog"`, accessible keyboard navigation, Escape to close).
-  - Header with live connection status indicator (pulsing green dot for SSE, amber for polling) and "Mark all as read" action.
-  - Notification items categorized with specific type icons (`course_published`, `lesson_published`, `enrollment_confirmed`).
-  - Unread styling with indigo accent border, unread status dot, and per-item "Mark as read" button.
-  - Clean relative timestamp formatting ("5m ago", "45m ago", "3h ago").
-  - Seamless color scheme adaptation across light and dark tokens.
-
-#### 7. Lesson Player View (`/courses/[courseId]/lessons/[lessonId]`)
-
-- **Light Mode**: `lesson-player-light.png` (2880 × 1800 px)
-- **Dark Mode**: `lesson-player-dark.png` (2880 × 1800 px)
-- **Verified Features**:
-  - Embedded `LessonPlayer` video surface with token styling and playback controls.
-  - Lesson navigation sidebar with module hierarchy and completed lesson checkmarks.
-  - Auto-advance countdown banner on completion with direct trigger to next lesson.
-  - Throttled progress persistence via `useLessonProgress` client hook.
-
-#### 7. Course Detail Page (`/courses/:id`)
-
-- **Light Mode**: `course-detail-light.png` (2880 × 1800 px)
-- **Dark Mode**: `course-detail-dark.png` (2880 × 1800 px)
-- **Verified Features**:
-  - Two-column responsive layout with sticky pricing and action card.
-  - Course cover, title, description, and author attribution card (`Dr. Evelyn Reed`).
-  - Formatted price with discount indicator and savings percentage via `formatPrice`.
-  - Interactive collapsible curriculum outline (`SyllabusPreview`) with module expansion and "Collapse all / Expand all" controls.
-  - Lesson type indicators, estimated runtimes / durations, and free "Preview" badges.
-  - Dynamic call-to-action buttons ("Buy Now", "Enroll for Free", and "Continue Learning") with signed-out user sign-in prompt.
-  - High-density readability and design token compliance across light and dark color schemes.
----
-
-## Reproduction and Automated Capture
-
-The screenshots are generated using the automated capture script at `scripts/capture-visual-evidence.ts`:
+## Reproduction
 
 ```bash
-# Ensure local database and dev server or test environment is running
-bun scripts/capture-visual-evidence.ts
+export DATABASE_URL=postgres://lagan:lagan@localhost:5433/lagan
+bun run db:migrate
+bun run build
+bun --cwd apps/web start -p 3000 &
+
+bun scripts/capture-visual-evidence.ts        # screenshots (light + dark)
+bun scripts/capture-journey-video.ts learner  # learner journey recording
+bun scripts/capture-journey-video.ts author   # author journey recording
+bash scripts/build-evidence-media.sh          # webm -> mp4 + gif
 ```
 
-The script manages:
-1. Database seeding verification for course catalogue content.
-2. Next.js dev server lifecycle handling (if not already running).
-3. Route pre-warming to compile Turbopack assets before browser navigation.
-4. Headless browser orchestration, theme context toggling, and font synchronization.
-5. High-resolution artifact generation directly into `docs/evidence/`.
+The capture script owns a deterministic demo dataset: the author `Dr. Evelyn Reed`, three published
+courses, four modules, seven lessons, two enrolments, lesson progress, 25 days of course events
+and three notifications. It authenticates against the real Better Auth endpoint and rebinds the
+session to the seeded author, so authenticated screens render real data rather than a mocked
+header. Public routes are captured in a separate signed-out context, because the middleware
+redirects `/sign-in` and `/sign-up` to `/learn` for authenticated sessions.
