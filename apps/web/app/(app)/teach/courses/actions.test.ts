@@ -1,5 +1,6 @@
 import { courses } from "@lagan/db";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { resetRateLimit } from "../../../../lib/rate-limit";
 
 vi.mock("drizzle-orm", async (importOriginal) => {
   const actual = await importOriginal<typeof import("drizzle-orm")>();
@@ -58,6 +59,7 @@ const COURSE_ID = "course_1";
 describe("course server actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetRateLimit();
     getSession.mockResolvedValue({ user: { id: USER_ID } });
   });
 
@@ -199,5 +201,29 @@ describe("course server actions", () => {
     dbMock.updateReturning.mockResolvedValue([]);
 
     await expect(publishCourse({ id: COURSE_ID })).rejects.toThrow("Course not found");
+  });
+
+  it("rejects unknown fields via strict schema validation", async () => {
+    await expect(
+      // @ts-expect-error Testing unknown field rejection
+      createCourse({ title: "Valid Title", unknownParam: "injected" }),
+    ).rejects.toThrow();
+
+    await expect(
+      // @ts-expect-error Testing unknown field rejection
+      publishCourse({ id: COURSE_ID, extraField: "hack" }),
+    ).rejects.toThrow();
+  });
+
+  it("rate limits rapid course publish requests to 20 req/min per author", async () => {
+    dbMock.updateReturning.mockResolvedValue([{ id: COURSE_ID, status: "published" }]);
+
+    for (let i = 0; i < 20; i++) {
+      const res = await publishCourse({ id: COURSE_ID });
+      expect(res).toEqual({ id: COURSE_ID, status: "published" });
+    }
+
+    // 21st request triggers rate limit
+    await expect(publishCourse({ id: COURSE_ID })).rejects.toThrow("Too many requests");
   });
 });
