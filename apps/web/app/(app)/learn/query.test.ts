@@ -259,9 +259,9 @@ describe("listEnrolledCourses integration logic with mock database", () => {
             from: vi.fn(() => ({
               innerJoin: vi.fn(() => ({
                 where: vi.fn(() => ({
-                  groupBy: vi.fn().mockResolvedValue([
-                    { courseId: "course_distributed", total: 2 },
-                  ]),
+                  groupBy: vi
+                    .fn()
+                    .mockResolvedValue([{ courseId: "course_distributed", total: 2 }]),
                 })),
               })),
             })),
@@ -273,9 +273,9 @@ describe("listEnrolledCourses integration logic with mock database", () => {
             from: vi.fn(() => ({
               innerJoin: vi.fn(() => ({
                 where: vi.fn(() => ({
-                  groupBy: vi.fn().mockResolvedValue([
-                    { courseId: "course_distributed", completed: 1 },
-                  ]),
+                  groupBy: vi
+                    .fn()
+                    .mockResolvedValue([{ courseId: "course_distributed", completed: 1 }]),
                 })),
               })),
             })),

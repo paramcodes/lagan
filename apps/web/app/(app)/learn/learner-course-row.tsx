@@ -36,10 +36,10 @@ export function LearnerCourseRow({ course }: { course: EnrolledCourseItem }) {
         {/* Center: Progress Bar & Lesson Count */}
         <div className="w-full sm:w-56 shrink-0 space-y-1.5">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-medium text-[var(--color-ink)] tabular-nums">
-              {percent}%
+            <span className="font-medium text-[var(--color-ink)] tabular-nums">{percent}%</span>
+            <span className="text-[var(--color-edge)] tabular-nums">
+              {course.progress.formatted}
             </span>
-            <span className="text-[var(--color-edge)] tabular-nums">{course.progress.formatted}</span>
           </div>
           <div
             role="progressbar"

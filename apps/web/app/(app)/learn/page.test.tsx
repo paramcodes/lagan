@@ -105,9 +105,7 @@ describe("LearnDashboardPage", () => {
     render(page);
 
     expect(screen.getByText("No enrolled courses yet")).toBeTruthy();
-    expect(
-      screen.getByText(/You haven't enrolled in any courses yet/i),
-    ).toBeTruthy();
+    expect(screen.getByText(/You haven't enrolled in any courses yet/i)).toBeTruthy();
 
     const browseLink = screen.getByRole("link", { name: "Browse Courses" });
     expect(browseLink).toBeTruthy();
@@ -141,9 +139,7 @@ describe("LearnDashboardPage", () => {
     expect(progressbars[0]?.getAttribute("aria-valuemax")).toBe("100");
 
     // Verify course 2 (completed)
-    expect(
-      screen.getByText("Type-Driven Architecture with TypeScript"),
-    ).toBeTruthy();
+    expect(screen.getByText("Type-Driven Architecture with TypeScript")).toBeTruthy();
     expect(screen.getByText("100% completed")).toBeTruthy();
     expect(screen.getByText("5 of 5 lessons")).toBeTruthy();
     expect(screen.getByText("Completed")).toBeTruthy();
@@ -161,9 +157,7 @@ describe("LearnDashboardPage", () => {
     );
 
     // ViewToggle is present with Cards active
-    expect(
-      screen.getByRole("button", { name: "Cards" }).getAttribute("aria-pressed"),
-    ).toBe("true");
+    expect(screen.getByRole("button", { name: "Cards" }).getAttribute("aria-pressed")).toBe("true");
   });
 
   it("renders enrolled courses in ledger list view when view=ledger", async () => {
@@ -176,14 +170,10 @@ describe("LearnDashboardPage", () => {
     render(page);
 
     expect(screen.getByText("Distributed Systems in Practice")).toBeTruthy();
-    expect(
-      screen.getByText("Type-Driven Architecture with TypeScript"),
-    ).toBeTruthy();
+    expect(screen.getByText("Type-Driven Architecture with TypeScript")).toBeTruthy();
 
     // Verify view toggle indicates List is pressed
-    expect(
-      screen.getByRole("button", { name: "List" }).getAttribute("aria-pressed"),
-    ).toBe("true");
+    expect(screen.getByRole("button", { name: "List" }).getAttribute("aria-pressed")).toBe("true");
 
     const progressbars = screen.getAllByRole("progressbar");
     expect(progressbars).toHaveLength(2);

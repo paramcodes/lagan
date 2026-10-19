@@ -11,7 +11,10 @@ export function LearnerCourseCard({ course }: { course: EnrolledCourseItem }) {
       <div>
         {/* Cover / Header Area */}
         <div className="relative flex h-32 w-full items-center justify-center border-b border-[var(--color-line)] bg-[var(--color-canvas)] text-[var(--color-edge)]">
-          <BookOpen className="h-8 w-8 transition-transform group-hover:scale-105" aria-hidden="true" />
+          <BookOpen
+            className="h-8 w-8 transition-transform group-hover:scale-105"
+            aria-hidden="true"
+          />
           {isCompleted ? (
             <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-[var(--radius-chip)] bg-[var(--color-brand)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-surface)]">
               <CheckCircle2 className="h-3 w-3" aria-hidden="true" />

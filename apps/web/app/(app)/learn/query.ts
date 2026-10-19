@@ -198,23 +198,10 @@ export async function listEnrolledCourses(
     .innerJoin(modules, eq(modules.id, lessons.moduleId))
     .leftJoin(
       lessonProgress,
-      and(
-        eq(lessonProgress.lessonId, lessons.id),
-        eq(lessonProgress.userId, userId),
-      ),
+      and(eq(lessonProgress.lessonId, lessons.id), eq(lessonProgress.userId, userId)),
     )
-    .where(
-      and(
-        inArray(modules.courseId, targetCourseIds),
-        eq(lessons.status, "published"),
-      ),
-    )
-    .orderBy(
-      asc(modules.courseId),
-      asc(modules.position),
-      asc(lessons.position),
-      asc(lessons.id),
-    );
+    .where(and(inArray(modules.courseId, targetCourseIds), eq(lessons.status, "published")))
+    .orderBy(asc(modules.courseId), asc(modules.position), asc(lessons.position), asc(lessons.id));
 
   const lessonsByCourse = new Map<string, LessonProgressRow[]>();
   for (const row of lessonRows) {
