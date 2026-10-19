@@ -8,6 +8,13 @@
       "when": 1792393791276,
       "tag": "0000_fresh_shooting_star",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792397686222,
+      "tag": "0001_bitter_hedge_knight",
+      "breakpoints": true
     }
   ]
 }
