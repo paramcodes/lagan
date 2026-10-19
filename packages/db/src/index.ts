@@ -6,6 +6,7 @@ export * from "./schema/profile";
 export * from "./schema/enrollment";
 export * from "./schema/progress";
 export * from "./schema/notification";
+export * from "./schema/auth";
 export * from "./progress";
 export * from "./access";
 export * from "./notifications";
