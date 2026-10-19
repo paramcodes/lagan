@@ -11,7 +11,9 @@
   "dependencies": {
     "next": "16.4.2",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "@lagan/ui": "workspace:*",
+    "lucide-react": "^0.468.0"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
