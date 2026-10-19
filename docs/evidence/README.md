@@ -34,6 +34,8 @@ All visual evidence artifacts are captured under standardized test environment c
 | [`learn-cards-dark.png`](./learn-cards-dark.png) | `/learn?view=cards` | 1440 × 900 | 2880 × 1800 px | Dark |
 | [`learn-ledger-light.png`](./learn-ledger-light.png) | `/learn?view=ledger` | 1440 × 900 | 2880 × 1800 px | Light |
 | [`learn-ledger-dark.png`](./learn-ledger-dark.png) | `/learn?view=ledger` | 1440 × 900 | 2880 × 1800 px | Dark |
+| [`teach-analytics-light.png`](./teach-analytics-light.png) | `/teach/analytics` | 1440 × 1100 | 2880 × 2200 px | Light |
+| [`teach-analytics-dark.png`](./teach-analytics-dark.png) | `/teach/analytics` | 1440 × 1100 | 2880 × 2200 px | Dark |
 ---
 
 ### Detailed Route Artifacts
@@ -80,7 +82,18 @@ All visual evidence artifacts are captured under standardized test environment c
   - Column alignment for course title, category badge, difficulty level, and lesson count.
   - Row divider line tokens and hover interaction feedback.
   - Active toggle indicator on `CourseViewToggle` showing "ledger" selection.
-  - High-density readability and text contrast under both light and dark modes.
+#### 5. Author Analytics Dashboard (`/teach/analytics`)
+
+- **Light Mode**: `teach-analytics-light.png` (2880 × 2200 px)
+- **Dark Mode**: `teach-analytics-dark.png` (2880 × 2200 px)
+- **Verified Features**:
+  - Header layout with Instructor Dashboard breadcrumb, course count, course selector, and date range filter segmented control.
+  - 4 key overview metrics cards: Total Enrolments, Course Starts, Completions, and Overall Completion Rate.
+  - Enrollment trend visualization powered by `TrendLineChart` with area gradient and accessible data table toggle.
+  - Curriculum lesson drop-off visualization powered by `LessonDropoffBarChart` with completion and drop metrics.
+  - Detailed course performance breakdown table with per-course metrics and selection filters.
+  - Full theme token adaptation across light and dark modes with WCAG 2.2 contrast compliance.
+
 
 #### 5. My Learning Dashboard — Cards Grid (`/learn?view=cards`)
 
@@ -104,6 +117,18 @@ All visual evidence artifacts are captured under standardized test environment c
   - Direct "Continue Learning" action button deep-linking to next lesson.
   - Active toggle indicator on `LearnViewToggle` showing "ledger" selection.
   - High-density readability and token contrast under both light and dark modes.
+
+#### 7. Author Analytics Dashboard (`/teach/analytics`)
+
+- **Light Mode**: `teach-analytics-light.png` (2880 × 2200 px)
+- **Dark Mode**: `teach-analytics-dark.png` (2880 × 2200 px)
+- **Verified Features**:
+  - Header layout with Instructor Dashboard breadcrumb, course count, course selector, and date range filter segmented control.
+  - 4 key overview metrics cards: Total Enrolments, Course Starts, Completions, and Overall Completion Rate.
+  - Enrollment trend visualization powered by `TrendLineChart` with area gradient and accessible data table toggle.
+  - Curriculum lesson drop-off visualization powered by `LessonDropoffBarChart` with completion and drop metrics.
+  - Detailed course performance breakdown table with per-course metrics and selection filters.
+  - Full theme token adaptation across light and dark modes with WCAG 2.2 contrast compliance.
 
 ---
 
