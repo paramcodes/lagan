@@ -15,6 +15,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { auth } from "../../../../../lib/auth";
 import { db } from "../../../../../lib/db";
+import { RateLimitError, checkRateLimit } from "../../../../../lib/rate-limit";
 import {
   createLessonSchema,
   createModuleSchema,
@@ -40,6 +41,10 @@ async function requireUserId(): Promise<string> {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
+  }
+  const rl = checkRateLimit(`builder:${session.user.id}`, 120, 60);
+  if (!rl.allowed) {
+    throw new RateLimitError(rl.resetSeconds);
   }
   return session.user.id;
 }

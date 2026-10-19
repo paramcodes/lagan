@@ -11,9 +11,10 @@ import {
 } from "@lagan/db";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { headers } from "next/headers";
+import { z } from "zod";
 import { auth } from "../../../../../../lib/auth";
 import { db } from "../../../../../../lib/db";
-
+import { RateLimitError, checkRateLimit } from "../../../../../../lib/rate-limit";
 export interface PublishPreflightResult {
   valid: boolean;
   errors: string[];
@@ -57,16 +58,14 @@ async function assertCourseOwned(courseId: string, authorId: string): Promise<Co
   return course;
 }
 
+const courseIdInputSchema = z.union([
+  z.string().trim().min(1, "Course ID is required"),
+  z.object({ id: z.string().trim().min(1, "Course ID is required") }).strict(),
+]);
+
 function resolveCourseId(input: string | { id: string }): string {
-  if (typeof input === "string") {
-    const trimmed = input.trim();
-    if (!trimmed) throw new Error("Course ID is required");
-    return trimmed;
-  }
-  if (!input?.id || typeof input.id !== "string" || !input.id.trim()) {
-    throw new Error("Course ID is required");
-  }
-  return input.id.trim();
+  const parsed = courseIdInputSchema.parse(input);
+  return typeof parsed === "string" ? parsed : parsed.id;
 }
 
 /**
@@ -186,6 +185,10 @@ export async function publishCourse(
   courseInput: string | { id: string },
 ): Promise<PublishCourseResult> {
   const authorId = await requireUserId();
+  const rl = checkRateLimit(`publish:${authorId}`, 15, 60);
+  if (!rl.allowed) {
+    throw new RateLimitError(rl.resetSeconds);
+  }
   const courseId = resolveCourseId(courseInput);
   const course = await assertCourseOwned(courseId, authorId);
 
@@ -247,6 +250,10 @@ export async function archiveCourse(
   courseInput: string | { id: string },
 ): Promise<CourseMutationResult> {
   const authorId = await requireUserId();
+  const rl = checkRateLimit(`archive:${authorId}`, 15, 60);
+  if (!rl.allowed) {
+    throw new RateLimitError(rl.resetSeconds);
+  }
   const courseId = resolveCourseId(courseInput);
   const course = await assertCourseOwned(courseId, authorId);
 
@@ -294,6 +301,10 @@ export async function unarchiveCourse(
   targetStatus?: "draft" | "published",
 ): Promise<CourseMutationResult> {
   const authorId = await requireUserId();
+  const rl = checkRateLimit(`unarchive:${authorId}`, 15, 60);
+  if (!rl.allowed) {
+    throw new RateLimitError(rl.resetSeconds);
+  }
   const courseId = resolveCourseId(courseInput);
   const course = await assertCourseOwned(courseId, authorId);
 

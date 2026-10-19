@@ -1,5 +1,6 @@
 import type * as DrizzleOrm from "drizzle-orm";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { resetRateLimit } from "../../../../../../lib/rate-limit";
 
 vi.mock("drizzle-orm", async (importOriginal) => {
   const actual =
@@ -120,6 +121,7 @@ const COURSE_ID = "course_1";
 describe("publish and version management actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetRateLimit();
     dbMock.selectQueue.length = 0;
     dbMock.insertCalls.length = 0;
     dbMock.updateCalls.length = 0;
@@ -554,6 +556,51 @@ describe("publish and version management actions", () => {
         status: "draft",
         updatedAt: expect.any(Date),
       });
+    });
+  });
+
+  describe("rate limiting and input validation", () => {
+    it("rejects unknown fields in courseInput object", async () => {
+      await expect(
+        // @ts-expect-error Testing unknown field rejection
+        publishCourse({ id: COURSE_ID, extraField: "invalid" }),
+      ).rejects.toThrow();
+    });
+
+    it("rate limits burst calls to 15 req/min per author", async () => {
+      const sampleCourse = {
+        id: COURSE_ID,
+        tenantId: "default",
+        authorId: USER_ID,
+        title: "Test Course",
+        status: "draft" as const,
+        version: 1,
+        publishedAt: null,
+      };
+
+      for (let i = 0; i < 15; i++) {
+        dbMock.selectQueue.push([sampleCourse]);
+        dbMock.selectQueue.push([
+          { id: "mod_1", courseId: COURSE_ID, title: "Module 1", position: 0 },
+        ]);
+        dbMock.selectQueue.push([
+          {
+            id: "les_1",
+            moduleId: "mod_1",
+            type: "text",
+            title: "Intro",
+            position: 0,
+            status: "published",
+            contentJson: { type: "doc", content: [] },
+          },
+        ]);
+        dbMock.updateReturning.mockResolvedValueOnce([{ ...sampleCourse, status: "published" }]);
+        const res = await publishCourse(COURSE_ID);
+        expect(res.success).toBe(true);
+      }
+
+      // 16th call triggers rate limit error
+      await expect(publishCourse(COURSE_ID)).rejects.toThrow("Too many requests");
     });
   });
 });
