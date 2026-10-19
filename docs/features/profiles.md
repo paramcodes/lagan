@@ -89,9 +89,8 @@ dynamic and never serves a cached shell.
   `apps/web/app/(app)/teach/courses/actions`; the only E2E spec is `apps/web/e2e/smoke.spec.ts`.
 - **No length limit on `websiteUrl`, `avatarUrl`, or individual social links**, and no cap on
   `socialLinks` length. Only `bio` is bounded.
-- **No migration in the repo.** `drizzle-kit` is a devDependency, but there is no
-  `drizzle.config.ts`, no `db:generate`/`db:migrate` script, and no SQL migration file. The
-  `profiles` table cannot be applied to a database from this repository as it stands.
+- **Initial migration landed.** `drizzle.config.ts`, `db:generate`/`db:migrate` scripts, and
+  initial SQL migration in `packages/db/drizzle/` provide the `profiles` table schema.
 - The same form serves learners and authors. There is no role-dependent field set; the `Role`
   union in `apps/web/lib/roles.ts` (`student | instructor | ta | admin`) is not consulted by
   anything under `profile/`.

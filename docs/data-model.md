@@ -230,10 +230,9 @@ Consequences for authoring:
 
 ## Schema state and migrations
 
-- Schema files exist; **no SQL migration is committed** and there is no `drizzle.config.ts`.
-  `drizzle-kit` 0.31.11 is a devDependency, and ADR-0002 sets generated-then-reviewed SQL as
-  the process. Until a migration lands, `packages/db` is the operative source of truth and
-  the database can only be created through `drizzle-kit` run by hand.
+- Migrations live in `packages/db/drizzle/` and are configured via root `drizzle.config.ts`.
+  Generate migrations with `bun run db:generate` and apply them with `bun run db:migrate`
+  per [ADR-0002](adr/index.md).
 - Better Auth's other tables (`session`, `account`, `verification`) are not declared here;
   they are created from Better Auth's own definition at runtime.
 - `course.test.ts` and `event.test.ts` are the pattern for schema tests: assert column names,

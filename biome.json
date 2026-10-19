@@ -35,7 +35,8 @@
       "!prototype",
       "!docs",
       "!docs/decisions",
-      "!docs/research"
+      "!docs/research",
+      "!packages/db/drizzle/meta"
     ]
   }
 }

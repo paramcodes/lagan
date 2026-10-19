@@ -12,6 +12,8 @@
     "lint": "biome lint .",
     "format": "biome format --write .",
     "gen:tokens": "bun scripts/gen-tokens.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
     "test": "vitest run",
     "test:e2e": "playwright test"
   },

@@ -23,7 +23,18 @@
 
 ## Database
 
-- Schema lives in `packages/db` (Drizzle). Migrations are generated then reviewed SQL.
+- Schema lives in `packages/db/src/schema` (Drizzle). `drizzle.config.ts` at the repo root
+  points at `./packages/db/src/schema` and writes SQL to `packages/db/drizzle/`.
+- Generate a migration after every schema change, then review the SQL before committing:
+  `bun run db:generate`. Commit both the new `packages/db/drizzle/*.sql` file and `packages/db/drizzle/meta/`.
+- Apply pending migrations with `bun run db:migrate`. It reads `DATABASE_URL`; if unset it
+  falls back to the docker-compose Postgres:
+  `postgres://lagan:lagan@localhost:5432/lagan`.
+- Connection: `docker compose up -d postgres` starts Postgres 18 with user/password/db all
+  `lagan` on `localhost:5432` (see `docker-compose.yml`). Wait until it accepts connections
+  (`docker compose exec postgres pg_isready -U lagan`) before migrating.
+- `db:push` is intentionally not wired up: it skips the migration files that CI and deploys
+  replay, so schema changes would drift. Use `db:generate` + `db:migrate` instead.
 - Every table holding institution data carries `tenant_id` from migration one.
 
 ## Tokens
