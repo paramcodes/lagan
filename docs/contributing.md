@@ -46,7 +46,7 @@
 
 - Unit: Vitest (`packages/**/*.test.ts`, `apps/**/*.test.tsx`).
 - E2E: Playwright in `apps/web/e2e`.
-- Accessibility: axe in Playwright + manual screen-reader pass per release.
+- Accessibility: axe in Playwright (`bun run test:e2e` enforcing WCAG 2.2 AA) + token contrast check (`bun run check:contrast`) + manual screen-reader checklist per release ([`docs/testing/screen-reader-checklist.md`](testing/screen-reader-checklist.md)).
 
 ## Commits
 
