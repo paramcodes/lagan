@@ -56,11 +56,7 @@ export function getNotificationContent(notification: NotificationItem): {
   const rawTitle = typeof p.title === "string" ? p.title : "";
   const courseTitle = typeof p.courseTitle === "string" ? p.courseTitle : "";
   const summary =
-    typeof p.summary === "string"
-      ? p.summary
-      : typeof p.message === "string"
-        ? p.message
-        : "";
+    typeof p.summary === "string" ? p.summary : typeof p.message === "string" ? p.message : "";
 
   switch (notification.type) {
     case "course_published":
@@ -74,7 +70,8 @@ export function getNotificationContent(notification: NotificationItem): {
       return {
         title: rawTitle || "Lesson published",
         description:
-          summary || (courseTitle ? `New lesson added to ${courseTitle}` : "A new lesson is ready."),
+          summary ||
+          (courseTitle ? `New lesson added to ${courseTitle}` : "A new lesson is ready."),
       };
     case "enrollment_confirmed":
       return {
