@@ -1,0 +1,275 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Email Template Snapshots > matches snapshot for course enrollment email > course-enrollment-html 1`] = `
+"<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>You are enrolled in Introduction to Radioactivity</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #111827; -webkit-font-smoothing: antialiased;">
+  <div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">You are enrolled in Introduction to Radioactivity. Start learning now!</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 32px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 580px; background-color: #ffffff; border-radius: 8px; border: 1px solid #e5e7eb; overflow: hidden; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);">
+          <!-- Header -->
+          <tr>
+            <td style="padding: 24px 32px; border-bottom: 1px solid #f3f4f6;">
+              <a href="https://lagan.dev" style="font-size: 20px; font-weight: 700; color: #111827; text-decoration: none; letter-spacing: -0.02em;">
+                Lagan
+              </a>
+            </td>
+          </tr>
+          <!-- Body Content -->
+          <tr>
+            <td style="padding: 32px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+        <td style="padding: 0 0 12px 0;">
+          <span style="display: inline-block; padding: 4px 10px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #2563eb; background-color: #eff6ff; border-radius: 9999px;">
+            Course Enrollment
+          </span>
+        </td>
+      </tr>
+                <tr>
+                  <td>
+                    
+    <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 700; color: #111827; line-height: 1.3;">
+      Enrollment Confirmed
+    </h1>
+    <p style="margin: 0 0 20px 0; font-size: 15px; line-height: 1.6; color: #374151;">
+      Hi Marie Curie, you have successfully been enrolled in <strong>Introduction to Radioactivity</strong>.
+    </p>
+
+    <div style="margin: 20px 0; padding: 20px; background-color: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb;">
+      <h2 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 600; color: #111827;">
+        Introduction to Radioactivity
+      </h2>
+      <p style="margin: 4px 0 0 0; font-size: 14px; color: #4b5563;">
+        Instructor: <strong style="color: #111827;">Henri Becquerel</strong>
+      </p>
+      <p style="margin: 4px 0 0 0; font-size: 14px; color: #4b5563;">
+        Starts: <strong style="color: #111827;">November 1, 2026</strong>
+      </p>
+      <p style="margin: 12px 0 0 0; font-size: 14px; color: #4b5563; line-height: 1.5;">
+        Comprehensive study of spontaneous radiation and atomic decay.
+      </p>
+    </div>
+
+    <div style="margin: 28px 0 16px 0;">
+      <a href="https://lagan.dev/courses/rad-101" style="display: inline-block; background-color: #2563eb; color: #ffffff; font-size: 15px; font-weight: 600; text-decoration: none; padding: 12px 28px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);">
+        Go to Course &rarr;
+      </a>
+    </div>
+    <p style="margin: 0; font-size: 13px; color: #6b7280;">
+      You can access the course materials anytime from your dashboard.
+    </p>
+  
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 24px 32px; background-color: #f9fafb; border-top: 1px solid #f3f4f6; font-size: 12px; color: #6b7280; line-height: 1.5;">
+              <p style="margin: 0;">
+                Sent by <strong>Lagan</strong>. You are receiving this because of your account activity on <a href="https://lagan.dev" style="color: #6b7280; text-decoration: underline;">https://lagan.dev</a>.
+              </p>
+              <p style="margin: 8px 0 0 0; font-size: 12px; color: #6b7280;">
+        Questions or need help? Contact <a href="mailto:support@lagan.dev" style="color: #2563eb; text-decoration: underline;">support@lagan.dev</a>.
+      </p>
+              <p style="margin: 8px 0 0 0; font-size: 12px; color: #6b7280;">
+        If you no longer wish to receive these notifications, you can <a href="https://lagan.dev/unsubscribe?token=sample" style="color: #2563eb; text-decoration: underline;">unsubscribe here</a>.
+      </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"
+`;
+
+exports[`Email Template Snapshots > matches snapshot for course enrollment email > course-enrollment-subject 1`] = `"You are enrolled in Introduction to Radioactivity"`;
+
+exports[`Email Template Snapshots > matches snapshot for course enrollment email > course-enrollment-text 1`] = `
+"=== LAGAN ===
+
+Hi Marie Curie,
+
+You have successfully been enrolled in Introduction to Radioactivity.
+
+--- Course Details ---
+Course: Introduction to Radioactivity
+Instructor: Henri Becquerel
+Starts: November 1, 2026
+
+Comprehensive study of spontaneous radiation and atomic decay.
+
+Go to Course:
+https://lagan.dev/courses/rad-101
+
+You can access the course materials anytime from your dashboard.
+
+---
+Sent by Lagan (https://lagan.dev)
+Support: support@lagan.dev
+Unsubscribe: https://lagan.dev/unsubscribe?token=sample"
+`;
+
+exports[`Email Template Snapshots > matches snapshot for lesson complete email > lesson-complete-subject 1`] = `"Lesson complete: Isolation of Polonium and Radium (Introduction to Radioactivity)"`;
+
+exports[`Email Template Snapshots > matches snapshot for lesson complete email > lesson-complete-text 1`] = `
+"=== LAGAN ===
+
+Great job, Marie Curie!
+
+You have finished the lesson "Isolation of Polonium and Radium" in Introduction to Radioactivity.
+
+--- Details ---
+Course: Introduction to Radioactivity
+Completed Lesson: Isolation of Polonium and Radium
+Course Progress: 80%
+Completed: 2026-10-19
+
+Up Next: Therapeutic Uses of Radium
+Continue: https://lagan.dev/courses/rad-101/lessons/therapeutic-uses
+
+---
+Sent by Lagan (https://lagan.dev)
+Support: support@lagan.dev
+Unsubscribe: https://lagan.dev/unsubscribe?token=sample"
+`;
+
+exports[`Email Template Snapshots > matches snapshot for new content published email > new-content-subject 1`] = `"New lesson in Introduction to Radioactivity: Isolation of Polonium and Radium"`;
+
+exports[`Email Template Snapshots > matches snapshot for new content published email > new-content-text 1`] = `
+"=== LAGAN ===
+
+Hi Marie Curie,
+
+A new lesson has just been published in Introduction to Radioactivity.
+
+--- Details ---
+Course: Introduction to Radioactivity
+Type: Lesson
+Title: Isolation of Polonium and Radium
+Posted by: Pierre Curie
+
+Summary:
+Detailed chemical separation notes and pitchblende analysis.
+
+View content:
+https://lagan.dev/courses/rad-101/lessons/polonium
+
+---
+Sent by Lagan (https://lagan.dev)
+Support: support@lagan.dev
+Unsubscribe: https://lagan.dev/unsubscribe?token=sample"
+`;
+
+exports[`Email Template Snapshots > matches snapshot for welcome email > welcome-html 1`] = `
+"<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to Lagan! Get started with your account</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #111827; -webkit-font-smoothing: antialiased;">
+  <div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Welcome to Lagan! Sign in to get started with your courses.</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 32px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 580px; background-color: #ffffff; border-radius: 8px; border: 1px solid #e5e7eb; overflow: hidden; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);">
+          <!-- Header -->
+          <tr>
+            <td style="padding: 24px 32px; border-bottom: 1px solid #f3f4f6;">
+              <a href="https://lagan.dev" style="font-size: 20px; font-weight: 700; color: #111827; text-decoration: none; letter-spacing: -0.02em;">
+                Lagan
+              </a>
+            </td>
+          </tr>
+          <!-- Body Content -->
+          <tr>
+            <td style="padding: 32px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+        <td style="padding: 0 0 12px 0;">
+          <span style="display: inline-block; padding: 4px 10px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #2563eb; background-color: #eff6ff; border-radius: 9999px;">
+            Welcome
+          </span>
+        </td>
+      </tr>
+                <tr>
+                  <td>
+                    
+    <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 700; color: #111827; line-height: 1.3;">
+      Welcome to Lagan, Marie Curie!
+    </h1>
+    <p style="margin: 0 0 16px 0; font-size: 15px; line-height: 1.6; color: #374151;">
+      We&#39;re thrilled to have you here. Your account is active and ready to use. Explore available courses, track your learning progress, and interact with fellow learners.
+    </p>
+    <div style="margin: 24px 0;">
+      <a href="https://lagan.dev/sign-in" style="display: inline-block; background-color: #2563eb; color: #ffffff; font-size: 15px; font-weight: 600; text-decoration: none; padding: 12px 28px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);">
+        Sign in to your account &rarr;
+      </a>
+    </div>
+    <div style="margin: 24px 0 0 0; padding: 16px; background-color: #f9fafb; border-radius: 6px; border-left: 3px solid #2563eb;">
+      <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #111827;">Quick tip to get started:</p>
+      <p style="margin: 0; font-size: 14px; color: #4b5563; line-height: 1.5;">
+        Complete your learner profile and browse the course catalog to enroll in your first course.
+      </p>
+    </div>
+  
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 24px 32px; background-color: #f9fafb; border-top: 1px solid #f3f4f6; font-size: 12px; color: #6b7280; line-height: 1.5;">
+              <p style="margin: 0;">
+                Sent by <strong>Lagan</strong>. You are receiving this because of your account activity on <a href="https://lagan.dev" style="color: #6b7280; text-decoration: underline;">https://lagan.dev</a>.
+              </p>
+              <p style="margin: 8px 0 0 0; font-size: 12px; color: #6b7280;">
+        Questions or need help? Contact <a href="mailto:support@lagan.dev" style="color: #2563eb; text-decoration: underline;">support@lagan.dev</a>.
+      </p>
+              <p style="margin: 8px 0 0 0; font-size: 12px; color: #6b7280;">
+        If you no longer wish to receive these notifications, you can <a href="https://lagan.dev/unsubscribe?token=sample" style="color: #2563eb; text-decoration: underline;">unsubscribe here</a>.
+      </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"
+`;
+
+exports[`Email Template Snapshots > matches snapshot for welcome email > welcome-subject 1`] = `"Welcome to Lagan! Get started with your account"`;
+
+exports[`Email Template Snapshots > matches snapshot for welcome email > welcome-text 1`] = `
+"=== LAGAN ===
+
+Welcome to Lagan, Marie Curie!
+
+We're thrilled to have you here. Your account is active and ready to use. Explore available courses, track your learning progress, and interact with fellow learners.
+
+Sign in to your account:
+https://lagan.dev/sign-in
+
+Quick tip to get started:
+Complete your learner profile and browse the course catalog to enroll in your first course.
+
+---
+Sent by Lagan (https://lagan.dev)
+Support: support@lagan.dev
+Unsubscribe: https://lagan.dev/unsubscribe?token=sample"
+`;
