@@ -5,3 +5,4 @@ export * from "./schema/event";
 export * from "./schema/profile";
 export * from "./schema/enrollment";
 export * from "./schema/progress";
+export * from "./schema/notification";
