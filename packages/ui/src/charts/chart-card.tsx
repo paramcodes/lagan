@@ -33,9 +33,7 @@ export function ChartCard({
     >
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-sm font-semibold text-[var(--color-ink)]">
-            {title}
-          </h2>
+          <h2 className="text-sm font-semibold text-[var(--color-ink)]">{title}</h2>
           {description && (
             <p className="mt-0.5 text-xs text-[var(--color-muted,var(--color-edge))]">
               {description}

@@ -34,22 +34,19 @@ export function BarChart({
 
   const svgWidth = 600;
   const isHorizontal = orientation === "horizontal";
-  const defaultHeight = isHorizontal
-    ? Math.max(180, data.length * 40 + 30)
-    : 240;
+  const defaultHeight = isHorizontal ? Math.max(180, data.length * 40 + 30) : 240;
   const computedHeight = height ?? defaultHeight;
 
-  const highestItem = hasData
-    ? [...data].sort((a, b) => b.value - a.value)[0]
-    : null;
+  const highestItem = hasData ? [...data].sort((a, b) => b.value - a.value)[0] : null;
 
   const total = hasData ? values.reduce((sum, v) => sum + v, 0) : 0;
 
-  const generatedSummary = hasData && highestItem
-    ? `Bar chart with ${data.length} categories. Total: ${valueFormatter(
-        total
-      )}. Highest is ${highestItem.label} with ${valueFormatter(highestItem.value)}.`
-    : emptyMessage;
+  const generatedSummary =
+    hasData && highestItem
+      ? `Bar chart with ${data.length} categories. Total: ${valueFormatter(
+          total,
+        )}. Highest is ${highestItem.label} with ${valueFormatter(highestItem.value)}.`
+      : emptyMessage;
 
   const columns: AccessibleTableColumn<BarPoint>[] = [
     {

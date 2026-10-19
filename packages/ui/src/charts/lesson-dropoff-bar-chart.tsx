@@ -43,13 +43,9 @@ export function LessonDropoffBarChart({
     ? data.map((pt) => {
         const completed = pt.completedCount;
         const started =
-          pt.startedCount !== undefined
-            ? pt.startedCount
-            : completed + (pt.droppedCount ?? 0);
+          pt.startedCount !== undefined ? pt.startedCount : completed + (pt.droppedCount ?? 0);
         const dropped =
-          pt.droppedCount !== undefined
-            ? pt.droppedCount
-            : Math.max(0, started - completed);
+          pt.droppedCount !== undefined ? pt.droppedCount : Math.max(0, started - completed);
 
         let rate = 0;
         if (pt.dropoffRate !== undefined) {
@@ -68,21 +64,18 @@ export function LessonDropoffBarChart({
       })
     : [];
 
-  const maxStarted = hasData
-    ? Math.max(...resolvedPoints.map((p) => p.started), 1)
-    : 1;
+  const maxStarted = hasData ? Math.max(...resolvedPoints.map((p) => p.started), 1) : 1;
 
-  const highestDropLesson = hasData
-    ? [...resolvedPoints].sort((a, b) => b.rate - a.rate)[0]
-    : null;
+  const highestDropLesson = hasData ? [...resolvedPoints].sort((a, b) => b.rate - a.rate)[0] : null;
 
-  const generatedSummary = hasData && highestDropLesson
-    ? `Per-lesson drop-off chart covering ${
-        data.length
-      } lessons. Highest drop-off is at ${highestDropLesson.lessonTitle} (${rateFormatter(
-        highestDropLesson.rate
-      )} drop-off, ${valueFormatter(highestDropLesson.dropped)} dropped).`
-    : emptyMessage;
+  const generatedSummary =
+    hasData && highestDropLesson
+      ? `Per-lesson drop-off chart covering ${
+          data.length
+        } lessons. Highest drop-off is at ${highestDropLesson.lessonTitle} (${rateFormatter(
+          highestDropLesson.rate,
+        )} drop-off, ${valueFormatter(highestDropLesson.dropped)} dropped).`
+      : emptyMessage;
 
   const columns: AccessibleTableColumn<ResolvedLessonPoint>[] = [
     {
@@ -113,9 +106,7 @@ export function LessonDropoffBarChart({
 
   const svgWidth = 600;
   const isHorizontal = orientation === "horizontal";
-  const defaultHeight = isHorizontal
-    ? Math.max(200, resolvedPoints.length * 44 + 30)
-    : 240;
+  const defaultHeight = isHorizontal ? Math.max(200, resolvedPoints.length * 44 + 30) : 240;
   const computedHeight = height ?? defaultHeight;
 
   return (
@@ -166,9 +157,7 @@ export function LessonDropoffBarChart({
                   fontFamily="var(--font-sans)"
                 >
                   <title>{pt.lessonTitle}</title>
-                  {pt.lessonTitle.length > 20
-                    ? `${pt.lessonTitle.slice(0, 18)}…`
-                    : pt.lessonTitle}
+                  {pt.lessonTitle.length > 20 ? `${pt.lessonTitle.slice(0, 18)}…` : pt.lessonTitle}
                 </text>
 
                 {/* Track for total started */}
@@ -191,9 +180,7 @@ export function LessonDropoffBarChart({
                     rx={4}
                     fill={completionColor}
                   >
-                    <title>{`${pt.lessonTitle}: ${valueFormatter(
-                      pt.completed
-                    )} completed`}</title>
+                    <title>{`${pt.lessonTitle}: ${valueFormatter(pt.completed)} completed`}</title>
                   </rect>
                 )}
 
@@ -203,7 +190,9 @@ export function LessonDropoffBarChart({
                   y={rowY + 13}
                   fontSize={11}
                   fontWeight={500}
-                  fill={pt.rate > 30 ? dropoffColor : "var(--color-muted, var(--color-edge, #7C7E77))"}
+                  fill={
+                    pt.rate > 30 ? dropoffColor : "var(--color-muted, var(--color-edge, #7C7E77))"
+                  }
                   fontFamily="var(--font-sans)"
                 >
                   {rateFormatter(pt.rate)}
@@ -250,16 +239,9 @@ export function LessonDropoffBarChart({
 
                   return (
                     <g key={pt.lessonId || pt.lessonTitle}>
-                      <rect
-                        x={x}
-                        y={y}
-                        width={barW}
-                        height={barH}
-                        rx={3}
-                        fill={completionColor}
-                      >
+                      <rect x={x} y={y} width={barW} height={barH} rx={3} fill={completionColor}>
                         <title>{`${pt.lessonTitle}: ${valueFormatter(
-                          pt.completed
+                          pt.completed,
                         )} completed (${rateFormatter(pt.rate)} drop)`}</title>
                       </rect>
                       <text

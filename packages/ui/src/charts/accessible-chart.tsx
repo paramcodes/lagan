@@ -78,16 +78,11 @@ export function AccessibleChartContainer<T>({
       {title && (
         <div className="flex items-center justify-between gap-2">
           <div>
-            <h3
-              id={titleId}
-              className="text-sm font-medium text-[var(--color-ink)]"
-            >
+            <h3 id={titleId} className="text-sm font-medium text-[var(--color-ink)]">
               {title}
             </h3>
             {description && (
-              <p className="text-xs text-[var(--color-muted,var(--color-edge))]">
-                {description}
-              </p>
+              <p className="text-xs text-[var(--color-muted,var(--color-edge))]">{description}</p>
             )}
           </div>
           {showTableToggle && (
@@ -145,7 +140,11 @@ export function AccessibleChartContainer<T>({
                   key={col.header}
                   scope="col"
                   className={`px-3 py-2 font-semibold text-[var(--color-ink)] ${
-                    col.align === "right" ? "text-right" : col.align === "center" ? "text-center" : "text-left"
+                    col.align === "right"
+                      ? "text-right"
+                      : col.align === "center"
+                        ? "text-center"
+                        : "text-left"
                   }`}
                 >
                   {col.header}
@@ -175,7 +174,11 @@ export function AccessibleChartContainer<T>({
                       <td
                         key={col.header}
                         className={`px-3 py-2 ${
-                          col.align === "right" ? "text-right" : col.align === "center" ? "text-center" : "text-left"
+                          col.align === "right"
+                            ? "text-right"
+                            : col.align === "center"
+                              ? "text-center"
+                              : "text-left"
                         }`}
                       >
                         {col.accessor(item, rowIdx)}

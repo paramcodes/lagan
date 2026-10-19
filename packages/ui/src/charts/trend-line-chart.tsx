@@ -56,10 +56,7 @@ export function TrendLineChart({
         const x =
           padding.left +
           (data.length > 1 ? (idx / (data.length - 1)) * chartWidth : chartWidth / 2);
-        const y =
-          padding.top +
-          chartHeight -
-          ((pt.value - minVal) / valRange) * chartHeight;
+        const y = padding.top + chartHeight - ((pt.value - minVal) / valRange) * chartHeight;
         return { ...pt, x, y };
       })
     : [];
@@ -114,9 +111,9 @@ export function TrendLineChart({
   const generatedSummary =
     hasData && lastDataPoint
       ? `Trend chart with ${data.length} data points. Values range from ${valueFormatter(
-          minVal
+          minVal,
         )} to ${valueFormatter(maxVal)}. Latest value is ${valueFormatter(
-          lastDataPoint.value
+          lastDataPoint.value,
         )} at ${lastDataPoint.label}.`
       : emptyMessage;
 
@@ -177,9 +174,7 @@ export function TrendLineChart({
             </g>
           ))}
 
-        {showArea && areaPath && (
-          <path d={areaPath} fill={`url(#${gradientId})`} />
-        )}
+        {showArea && areaPath && <path d={areaPath} fill={`url(#${gradientId})`} />}
 
         {linePath && (
           <path
@@ -209,8 +204,7 @@ export function TrendLineChart({
 
         {points.map((pt, idx) => {
           const step = Math.ceil(points.length / 7);
-          const isKeyPoint =
-            idx === 0 || idx === points.length - 1 || idx % step === 0;
+          const isKeyPoint = idx === 0 || idx === points.length - 1 || idx % step === 0;
           if (!isKeyPoint) return null;
 
           return (

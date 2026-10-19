@@ -1,11 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import {
-  BarChart,
-  ChartCard,
-  LessonDropoffBarChart,
-  TrendLineChart,
-} from "./charts";
+import { BarChart, ChartCard, LessonDropoffBarChart, TrendLineChart } from "./charts";
 
 describe("TrendLineChart", () => {
   const sampleData = [
@@ -21,7 +16,7 @@ describe("TrendLineChart", () => {
         title="Weekly Enrollments"
         description="Daily new student enrollments"
         data={sampleData}
-      />
+      />,
     );
 
     const svg = container.querySelector("svg");
@@ -46,7 +41,7 @@ describe("TrendLineChart", () => {
         title="Completion Trend"
         data={sampleData}
         tableCaption="Table of completions over time"
-      />
+      />,
     );
 
     const table = screen.getByRole("table");
@@ -67,21 +62,15 @@ describe("TrendLineChart", () => {
         title="Student Activity"
         data={sampleData}
         summary="Custom summary: Enrollments peaked on Thursday."
-      />
+      />,
     );
 
-    expect(
-      screen.getByText("Custom summary: Enrollments peaked on Thursday.")
-    ).toBeInTheDocument();
+    expect(screen.getByText("Custom summary: Enrollments peaked on Thursday.")).toBeInTheDocument();
   });
 
   it("handles empty data gracefully with accessible fallback", () => {
     render(
-      <TrendLineChart
-        title="Empty Metrics"
-        data={[]}
-        emptyMessage="No activity recorded yet"
-      />
+      <TrendLineChart title="Empty Metrics" data={[]} emptyMessage="No activity recorded yet" />,
     );
 
     expect(screen.getAllByText("No activity recorded yet").length).toBeGreaterThanOrEqual(1);
@@ -90,7 +79,7 @@ describe("TrendLineChart", () => {
 
   it("handles edge cases: single data point and flat line", () => {
     const single = render(
-      <TrendLineChart title="Single Point" data={[{ label: "Only", value: 42 }]} />
+      <TrendLineChart title="Single Point" data={[{ label: "Only", value: 42 }]} />,
     );
     expect(single.container.querySelector("svg")).toBeInTheDocument();
 
@@ -101,7 +90,7 @@ describe("TrendLineChart", () => {
           { label: "A", value: 10 },
           { label: "B", value: 10 },
         ]}
-      />
+      />,
     );
     expect(flat.container.querySelector("svg")).toBeInTheDocument();
   });
@@ -112,7 +101,7 @@ describe("TrendLineChart", () => {
         title="Token Themed"
         data={sampleData}
         themeTokens={{ "--color-accent": "var(--color-chalk)" }}
-      />
+      />,
     );
 
     const section = container.querySelector("section");
@@ -121,12 +110,7 @@ describe("TrendLineChart", () => {
   });
 
   it("formats values using a custom valueFormatter", () => {
-    render(
-      <TrendLineChart
-        data={sampleData}
-        valueFormatter={(v) => `$${v}.00`}
-      />
-    );
+    render(<TrendLineChart data={sampleData} valueFormatter={(v) => `$${v}.00`} />);
 
     const cells = screen.getAllByRole("cell");
     expect(cells.some((c) => c.textContent === "$36.00")).toBe(true);
@@ -157,10 +141,7 @@ describe("LessonDropoffBarChart", () => {
 
   it("renders horizontal bars with lesson titles and dropoff rates", () => {
     const { container } = render(
-      <LessonDropoffBarChart
-        title="Per-Lesson Drop-Off"
-        data={lessonData}
-      />
+      <LessonDropoffBarChart title="Per-Lesson Drop-Off" data={lessonData} />,
     );
 
     const svg = container.querySelector("svg");
@@ -215,7 +196,7 @@ describe("LessonDropoffBarChart", () => {
 
   it("supports vertical orientation", () => {
     const { container } = render(
-      <LessonDropoffBarChart data={lessonData} orientation="vertical" />
+      <LessonDropoffBarChart data={lessonData} orientation="vertical" />,
     );
 
     const svg = container.querySelector("svg");
@@ -223,12 +204,7 @@ describe("LessonDropoffBarChart", () => {
   });
 
   it("renders empty state when no lesson metrics exist", () => {
-    render(
-      <LessonDropoffBarChart
-        data={[]}
-        emptyMessage="No lesson drop-off metrics yet"
-      />
-    );
+    render(<LessonDropoffBarChart data={[]} emptyMessage="No lesson drop-off metrics yet" />);
 
     expect(screen.getAllByText("No lesson drop-off metrics yet").length).toBeGreaterThanOrEqual(1);
   });
@@ -242,9 +218,7 @@ describe("BarChart", () => {
   ];
 
   it("renders vertical bars and accessible table", () => {
-    const { container } = render(
-      <BarChart title="Courses by Enrollment" data={categories} />
-    );
+    const { container } = render(<BarChart title="Courses by Enrollment" data={categories} />);
 
     expect(container.querySelector("svg")).toBeInTheDocument();
     expect(screen.getByRole("table")).toBeInTheDocument();
@@ -253,9 +227,7 @@ describe("BarChart", () => {
   });
 
   it("renders horizontal bars when requested", () => {
-    const { container } = render(
-      <BarChart data={categories} orientation="horizontal" />
-    );
+    const { container } = render(<BarChart data={categories} orientation="horizontal" />);
 
     expect(container.querySelector("svg")).toBeInTheDocument();
     expect(container.textContent).toContain("Course B");
@@ -269,7 +241,7 @@ describe("AccessibleChartContainer interactions", () => {
         title="Toggleable Table"
         data={[{ label: "Jan", value: 5 }]}
         showTableToggle={true}
-      />
+      />,
     );
 
     const toggleButton = screen.getByRole("button", { name: "View data table" });
@@ -290,7 +262,7 @@ describe("ChartCard", () => {
         metricLabel="+12% from last month"
       >
         <div data-testid="chart-content">Chart Body</div>
-      </ChartCard>
+      </ChartCard>,
     );
 
     expect(screen.getByText("Total Learners")).toBeInTheDocument();
