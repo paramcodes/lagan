@@ -11,7 +11,7 @@ import { checkCourseAccess, getCourseDetail, getResumeLessonForCourse } from "./
 import { SyllabusPreview } from "./syllabus-preview";
 
 interface CourseDetailPageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ courseId: string }>;
   searchParams: Promise<{ checkout?: string }>;
 }
 
@@ -20,10 +20,10 @@ export const instant = false;
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ courseId: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
-  const course = await getCourseDetail(id);
+  const { courseId } = await params;
+  const course = await getCourseDetail(courseId);
   if (!course) {
     return { title: "Course not found | Lagan" };
   }
@@ -41,10 +41,10 @@ export async function generateMetadata({
 
 export default async function CourseDetailPage({ params, searchParams }: CourseDetailPageProps) {
   await connection();
-  const { id } = await params;
+  const { courseId } = await params;
   const sp = await searchParams;
 
-  const course = await getCourseDetail(id);
+  const course = await getCourseDetail(courseId);
   if (!course) {
     notFound();
     return null;

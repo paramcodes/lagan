@@ -89,7 +89,7 @@ describe("CourseDetailPage", () => {
       queryMock.getCourseDetail.mockResolvedValueOnce(null);
 
       await CourseDetailPage({
-        params: Promise.resolve({ id: "missing" }),
+        params: Promise.resolve({ courseId: "missing" }),
         searchParams: Promise.resolve({}),
       });
 
@@ -102,7 +102,7 @@ describe("CourseDetailPage", () => {
       queryMock.getCourseDetail.mockResolvedValueOnce(sampleCourse);
 
       const metadata = await generateMetadata({
-        params: Promise.resolve({ id: "course_1" }),
+        params: Promise.resolve({ courseId: "course_1" }),
       });
 
       expect(metadata.title).toBe("Building Distributed Services | Lagan");
@@ -113,7 +113,7 @@ describe("CourseDetailPage", () => {
       queryMock.getCourseDetail.mockResolvedValueOnce(null);
 
       const metadata = await generateMetadata({
-        params: Promise.resolve({ id: "missing" }),
+        params: Promise.resolve({ courseId: "missing" }),
       });
 
       expect(metadata.title).toBe("Course not found | Lagan");
@@ -125,7 +125,7 @@ describe("CourseDetailPage", () => {
       queryMock.getCourseDetail.mockResolvedValue(sampleCourse);
 
       const page = await CourseDetailPage({
-        params: Promise.resolve({ id: "course_1" }),
+        params: Promise.resolve({ courseId: "course_1" }),
         searchParams: Promise.resolve({}),
       });
 
@@ -171,7 +171,7 @@ describe("CourseDetailPage", () => {
       });
 
       const page = await CourseDetailPage({
-        params: Promise.resolve({ id: "course_1" }),
+        params: Promise.resolve({ courseId: "course_1" }),
         searchParams: Promise.resolve({}),
       });
 
@@ -195,7 +195,7 @@ describe("CourseDetailPage", () => {
       authMock.getSession.mockResolvedValue({ user: { id: "user_learner" } });
 
       const page = await CourseDetailPage({
-        params: Promise.resolve({ id: "course_free" }),
+        params: Promise.resolve({ courseId: "course_free" }),
         searchParams: Promise.resolve({}),
       });
 
@@ -210,7 +210,7 @@ describe("CourseDetailPage", () => {
       authMock.getSession.mockResolvedValue({ user: { id: "user_learner" } });
 
       const page = await CourseDetailPage({
-        params: Promise.resolve({ id: "course_1" }),
+        params: Promise.resolve({ courseId: "course_1" }),
         searchParams: Promise.resolve({}),
       });
 
@@ -223,7 +223,7 @@ describe("CourseDetailPage", () => {
       queryMock.getCourseDetail.mockResolvedValue(sampleCourse);
 
       const page = await CourseDetailPage({
-        params: Promise.resolve({ id: "course_1" }),
+        params: Promise.resolve({ courseId: "course_1" }),
         searchParams: Promise.resolve({}),
       });
 
@@ -239,7 +239,7 @@ describe("CourseDetailPage", () => {
 
       // Success
       const successPage = await CourseDetailPage({
-        params: Promise.resolve({ id: "course_1" }),
+        params: Promise.resolve({ courseId: "course_1" }),
         searchParams: Promise.resolve({ checkout: "success" }),
       });
       const { unmount } = render(successPage);
@@ -248,7 +248,7 @@ describe("CourseDetailPage", () => {
 
       // Cancelled
       const cancelledPage = await CourseDetailPage({
-        params: Promise.resolve({ id: "course_1" }),
+        params: Promise.resolve({ courseId: "course_1" }),
         searchParams: Promise.resolve({ checkout: "cancelled" }),
       });
       render(cancelledPage);
