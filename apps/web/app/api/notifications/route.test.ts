@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { resetRateLimit } from "../../../lib/rate-limit";
 
 const authMock = vi.hoisted(() => {
   const state = { session: { user: { id: "user_1", tenantId: "default" } } as unknown };
@@ -84,6 +85,7 @@ function makeJsonRequest(
 
 describe("/api/notifications route", () => {
   beforeEach(() => {
+    resetRateLimit();
     authMock.state.session = { user: { id: "user_1", tenantId: "default" } };
   });
 
@@ -156,6 +158,24 @@ describe("/api/notifications route", () => {
       expect(res.status).toBe(400);
       const data = await res.json();
       expect(data).toEqual({ error: "invalid_json" });
+    });
+
+    it("rejects unknown fields in payload", async () => {
+      const res = await PATCH(makeJsonRequest("PATCH", { id: "notif_1", maliciousKey: "bad" }));
+      expect(res.status).toBe(400);
+      const data = await res.json();
+      expect(data).toEqual({ error: "missing_parameters" });
+    });
+
+    it("rate limits burst PATCH requests exceeding 60 req/min per user", async () => {
+      for (let i = 0; i < 60; i++) {
+        const res = await PATCH(makeJsonRequest("PATCH", { id: "notif_1" }));
+        expect(res.status).toBe(200);
+      }
+
+      const burstRes = await PATCH(makeJsonRequest("PATCH", { id: "notif_1" }));
+      expect(burstRes.status).toBe(429);
+      expect(burstRes.headers.get("Retry-After")).toBeDefined();
     });
   });
 

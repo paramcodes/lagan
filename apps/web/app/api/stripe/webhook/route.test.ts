@@ -1,6 +1,7 @@
 import { createHmac } from "node:crypto";
 import { enrollments } from "@lagan/db";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { resetRateLimit } from "../../../../lib/rate-limit";
 
 const { insertMock, valuesMock, onConflictMock, returningMock } = vi.hoisted(() => {
   const returningMock = vi.fn(async () => [{ id: "enrollment_1" }]);
@@ -43,6 +44,7 @@ const checkoutCompleted = {
 
 describe("POST /api/stripe/webhook", () => {
   beforeEach(() => {
+    resetRateLimit();
     vi.stubEnv("STRIPE_WEBHOOK_SIGNING_SECRET", SECRET);
   });
 
@@ -117,5 +119,16 @@ describe("POST /api/stripe/webhook", () => {
 
     expect(response.status).toBe(500);
     expect(insertMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 429 when rate limit threshold is exceeded", async () => {
+    for (let i = 0; i < 100; i++) {
+      const res = await POST(signedRequest(checkoutCompleted));
+      expect(res.status).toBe(200);
+    }
+
+    const burstResponse = await POST(signedRequest(checkoutCompleted));
+    expect(burstResponse.status).toBe(429);
+    expect(burstResponse.headers.get("Retry-After")).toBeDefined();
   });
 });
