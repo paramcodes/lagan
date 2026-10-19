@@ -14,19 +14,19 @@ Mark [x] when merged to main. One worktree per item.
 ## Phase 1 — Auth, roles, profile, shell
 - [x] P1.1 Better Auth setup
 - [x] P1.2 Role model + guards
-- [ ] P1.3 Tokens + base styles + dark mode
+- [x] P1.3 Tokens + base styles + dark mode
 - [x] P1.4 shadcn Sidebar (collapsed rail)
 - [x] P1.5 Profile schema + migration
-- [ ] P1.6 Auth pages
+- [x] P1.6 Auth pages
 - [x] P1.7 Profile view/edit
 - [ ] P1.8 Public author profile
 - [x] P1.9 App shell layout (search + category filter)
 
 ## Phase 2 — Course authoring
-- [ ] P2.1 Course/module/lesson schema
+- [x] P2.1 Course/module/lesson schema
 - [ ] P2.2 TipTap editor + sanitizer
-- [ ] P2.3 Mux upload + webhook
-- [ ] P2.4 IndexedDB draft store
+- [x] P2.3 Mux upload + webhook
+- [x] P2.4 IndexedDB draft store
 - [ ] P2.5 @dnd-kit wrappers
 - [ ] P2.6 Course CRUD actions
 - [ ] P2.7 Module/lesson CRUD + ordering
