@@ -5,8 +5,6 @@ import {
   markNotificationAsRead,
 } from "../../../lib/notifications";
 
-export const dynamic = "force-dynamic";
-
 function resolveTenantId(sessionUser: unknown, headers: Headers): string {
   if (
     sessionUser &&

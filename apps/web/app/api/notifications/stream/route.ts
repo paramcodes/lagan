@@ -6,8 +6,6 @@ import {
   notificationBus,
 } from "../../../../lib/notifications";
 
-export const dynamic = "force-dynamic";
-
 const DEFAULT_PING_INTERVAL_MS = 20_000;
 
 export async function GET(request: Request): Promise<Response> {
