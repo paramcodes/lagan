@@ -2,6 +2,7 @@ import { lessons } from "@lagan/db";
 import { eq } from "drizzle-orm";
 import { db } from "../../../../lib/db";
 import { parseMuxWebhookEvent, verifyMuxWebhookSignature } from "../../../../lib/mux";
+import { checkRateLimit, getClientIp, rateLimitResponse } from "../../../../lib/rate-limit";
 
 /**
  * Mux webhook receiver.
@@ -10,6 +11,12 @@ import { parseMuxWebhookEvent, verifyMuxWebhookSignature } from "../../../../lib
  * when there is nothing to update. Only an unverifiable delivery is rejected.
  */
 export async function POST(request: Request): Promise<Response> {
+  const ip = getClientIp(request.headers);
+  const rl = checkRateLimit(`mux-webhook:${ip}`, 100, 60);
+  if (!rl.allowed) {
+    return rateLimitResponse(rl.resetSeconds);
+  }
+
   const secret = process.env.MUX_WEBHOOK_SIGNING_SECRET;
   if (!secret) {
     return Response.json({ error: "MUX_WEBHOOK_SIGNING_SECRET is not set" }, { status: 500 });

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { resetRateLimit } from "../../../../lib/rate-limit";
 
 const dbMock = vi.hoisted(() => {
   const state = { rows: [] as unknown[] };
@@ -48,6 +49,7 @@ function request(body: unknown): Request {
 
 describe("POST /api/stripe/checkout", () => {
   beforeEach(() => {
+    resetRateLimit();
     dbMock.state.rows = [course];
     authMock.state.session = { user: { id: "user_1" } };
     stripeMock.createCheckoutMock.mockResolvedValue({
@@ -142,5 +144,26 @@ describe("POST /api/stripe/checkout", () => {
 
     expect(response.status).toBe(400);
     expect(stripeMock.createCheckoutMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects client-supplied price or unknown fields", async () => {
+    const response = await POST(request({ courseId: "course_1", priceCents: 100 }));
+
+    expect(response.status).toBe(400);
+    expect(stripeMock.createCheckoutMock).not.toHaveBeenCalled();
+  });
+
+  it("rate limits checkout session generation to 10 req/min per user", async () => {
+    for (let i = 0; i < 10; i++) {
+      const response = await POST(request({ courseId: "course_1" }));
+      expect(response.status).toBe(200);
+    }
+    expect(stripeMock.createCheckoutMock).toHaveBeenCalledTimes(10);
+
+    // 11th request triggers rate limit
+    const rateLimitedResponse = await POST(request({ courseId: "course_1" }));
+    expect(rateLimitedResponse.status).toBe(429);
+    expect(rateLimitedResponse.headers.get("Retry-After")).toBeDefined();
+    expect(stripeMock.createCheckoutMock).toHaveBeenCalledTimes(10);
   });
 });

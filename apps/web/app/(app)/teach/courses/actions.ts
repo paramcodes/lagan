@@ -5,11 +5,15 @@ import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { auth } from "../../../../lib/auth";
 import { db } from "../../../../lib/db";
+import { RateLimitError, checkRateLimit } from "../../../../lib/rate-limit";
 import {
-  courseIdSchema,
   createCourseSchema,
+  deleteCourseSchema,
+  publishCourseSchema,
   updateCourseSchema,
   type CreateCourseInput,
+  type DeleteCourseInput,
+  type PublishCourseInput,
   type UpdateCourseInput,
 } from "./schema";
 
@@ -25,8 +29,11 @@ async function requireUserId(): Promise<string> {
 
 export async function createCourse(input: CreateCourseInput) {
   const authorId = await requireUserId();
+  const rl = checkRateLimit(`course-create:${authorId}`, 20, 60);
+  if (!rl.allowed) {
+    throw new RateLimitError(rl.resetSeconds);
+  }
   const data = createCourseSchema.parse(input);
-
   const [course] = await db
     .insert(courses)
     .values({
@@ -50,8 +57,11 @@ export async function createCourse(input: CreateCourseInput) {
 
 export async function updateCourse(input: UpdateCourseInput) {
   const authorId = await requireUserId();
+  const rl = checkRateLimit(`course-update:${authorId}`, 60, 60);
+  if (!rl.allowed) {
+    throw new RateLimitError(rl.resetSeconds);
+  }
   const { id, ...fields } = updateCourseSchema.parse(input);
-
   const values: Partial<NewCourse> = { updatedAt: new Date() };
   if (fields.title !== undefined) values.title = fields.title;
   if (fields.description !== undefined) values.description = fields.description;
@@ -71,10 +81,13 @@ export async function updateCourse(input: UpdateCourseInput) {
   return course;
 }
 
-export async function deleteCourse(input: { id: string }) {
+export async function deleteCourse(input: DeleteCourseInput) {
   const authorId = await requireUserId();
-  const id = courseIdSchema.parse(input.id);
-
+  const rl = checkRateLimit(`course-delete:${authorId}`, 20, 60);
+  if (!rl.allowed) {
+    throw new RateLimitError(rl.resetSeconds);
+  }
+  const { id } = deleteCourseSchema.parse(input);
   const deleted = await db
     .delete(courses)
     .where(and(eq(courses.id, id), eq(courses.authorId, authorId)))
@@ -86,11 +99,14 @@ export async function deleteCourse(input: { id: string }) {
   return { id };
 }
 
-export async function publishCourse(input: { id: string }) {
+export async function publishCourse(input: PublishCourseInput) {
   const authorId = await requireUserId();
-  const id = courseIdSchema.parse(input.id);
+  const rl = checkRateLimit(`course-publish:${authorId}`, 20, 60);
+  if (!rl.allowed) {
+    throw new RateLimitError(rl.resetSeconds);
+  }
+  const { id } = publishCourseSchema.parse(input);
   const now = new Date();
-
   const [course] = await db
     .update(courses)
     .set({ status: "published", publishedAt: now, updatedAt: now })

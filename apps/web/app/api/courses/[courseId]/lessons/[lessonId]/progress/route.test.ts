@@ -1,5 +1,6 @@
 import type * as LaganDb from "@lagan/db";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { resetRateLimit } from "../../../../../../../lib/rate-limit";
 
 const authMock = vi.hoisted(() => {
   const state = { session: { user: { id: "user_1" } } as unknown };
@@ -72,6 +73,7 @@ import { GET, POST } from "./route";
 describe("POST /api/courses/[courseId]/lessons/[lessonId]/progress", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetRateLimit();
     authMock.state.session = { user: { id: "user_1" } };
     accessMock.hasAccessMock.mockResolvedValue(true);
     dbMock.state.course = {
@@ -154,6 +156,49 @@ describe("POST /api/courses/[courseId]/lessons/[lessonId]/progress", () => {
       completed: true,
     });
     expect(dbMock.insertMock).toHaveBeenCalled();
+  });
+
+  it("returns 400 when unknown fields are provided in payload", async () => {
+    const request = new Request("http://localhost/api/courses/course_1/lessons/lesson_1/progress", {
+      method: "POST",
+      body: JSON.stringify({ positionSeconds: 120, completed: true, maliciousField: "injected" }),
+    });
+
+    const response = await POST(request, {
+      params: Promise.resolve({ courseId: "course_1", lessonId: "lesson_1" }),
+    });
+
+    expect(response.status).toBe(400);
+    const data = await response.json();
+    expect(data.error).toBe("Invalid payload");
+    expect(dbMock.insertMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 429 when rate limit threshold is exceeded", async () => {
+    for (let i = 0; i < 60; i++) {
+      const req = new Request("http://localhost/api/courses/course_1/lessons/lesson_1/progress", {
+        method: "POST",
+        body: JSON.stringify({ positionSeconds: 10 }),
+      });
+      const res = await POST(req, {
+        params: Promise.resolve({ courseId: "course_1", lessonId: "lesson_1" }),
+      });
+      expect(res.status).toBe(200);
+    }
+
+    const burstReq = new Request(
+      "http://localhost/api/courses/course_1/lessons/lesson_1/progress",
+      {
+        method: "POST",
+        body: JSON.stringify({ positionSeconds: 10 }),
+      },
+    );
+    const burstRes = await POST(burstReq, {
+      params: Promise.resolve({ courseId: "course_1", lessonId: "lesson_1" }),
+    });
+
+    expect(burstRes.status).toBe(429);
+    expect(burstRes.headers.get("Retry-After")).toBeDefined();
   });
 });
 

@@ -1,8 +1,16 @@
 import { courses, hasAccess, lessonProgress } from "@lagan/db";
 import { and, eq, sql } from "drizzle-orm";
+import { z } from "zod";
 import { auth } from "../../../../../../../lib/auth";
 import { db } from "../../../../../../../lib/db";
+import { checkRateLimit, rateLimitResponse } from "../../../../../../../lib/rate-limit";
 
+const progressBodySchema = z
+  .object({
+    positionSeconds: z.number().int().min(0).max(86400).optional(),
+    completed: z.boolean().optional(),
+  })
+  .strict();
 interface RouteParams {
   courseId: string;
   lessonId: string;
@@ -21,6 +29,10 @@ export async function POST(
 
   const userId = session.user.id;
 
+  const rl = checkRateLimit(`progress:${userId}`, 60, 60);
+  if (!rl.allowed) {
+    return rateLimitResponse(rl.resetSeconds);
+  }
   const [courseRow] = await db
     .select({
       id: courses.id,
@@ -52,15 +64,23 @@ export async function POST(
     return Response.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  let body: { positionSeconds?: number; completed?: boolean } = {};
+  let rawBody: unknown = {};
   try {
-    body = await request.json();
+    const text = await request.text();
+    if (text.trim().length > 0) {
+      rawBody = JSON.parse(text);
+    }
   } catch {
-    // Body is optional or empty
+    return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const positionSeconds = Math.max(0, Math.floor(body.positionSeconds ?? 0));
-  const isCompleted = Boolean(body.completed);
+  const parsed = progressBodySchema.safeParse(rawBody);
+  if (!parsed.success) {
+    return Response.json({ error: "Invalid payload" }, { status: 400 });
+  }
+
+  const positionSeconds = parsed.data.positionSeconds ?? 0;
+  const isCompleted = Boolean(parsed.data.completed);
   const now = new Date();
 
   await db

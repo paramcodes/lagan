@@ -5,6 +5,7 @@ import {
   parseStripeWebhookEvent,
   verifyStripeWebhookSignature,
 } from "../../../../lib/stripe";
+import { checkRateLimit, getClientIp, rateLimitResponse } from "../../../../lib/rate-limit";
 
 /**
  * Stripe webhook receiver.
@@ -13,6 +14,12 @@ import {
  * there is nothing to insert. Only an unverifiable delivery is rejected.
  */
 export async function POST(request: Request): Promise<Response> {
+  const ip = getClientIp(request.headers);
+  const rl = checkRateLimit(`stripe-webhook:${ip}`, 100, 60);
+  if (!rl.allowed) {
+    return rateLimitResponse(rl.resetSeconds);
+  }
+
   const secret = process.env.STRIPE_WEBHOOK_SIGNING_SECRET;
   if (!secret) {
     return Response.json({ error: "STRIPE_WEBHOOK_SIGNING_SECRET is not set" }, { status: 500 });

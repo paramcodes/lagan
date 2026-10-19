@@ -3,11 +3,14 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "../../../../lib/auth";
 import { db } from "../../../../lib/db";
+import { checkRateLimit, rateLimitResponse } from "../../../../lib/rate-limit";
 import { computeChargeCents, createStripeCheckoutSession } from "../../../../lib/stripe";
 
-const checkoutRequestSchema = z.object({
-  courseId: z.string().min(1),
-});
+const checkoutRequestSchema = z
+  .object({
+    courseId: z.string().min(1),
+  })
+  .strict();
 
 export async function POST(request: Request): Promise<Response> {
   const session = await auth.api.getSession({ headers: request.headers });
@@ -16,11 +19,15 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
 
+  const rl = checkRateLimit(`checkout:${userId}`, 10, 60);
+  if (!rl.allowed) {
+    return rateLimitResponse(rl.resetSeconds);
+  }
+
   const parsed = checkoutRequestSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return Response.json({ error: "invalid payload" }, { status: 400 });
   }
-
   const [course] = await db
     .select()
     .from(courses)

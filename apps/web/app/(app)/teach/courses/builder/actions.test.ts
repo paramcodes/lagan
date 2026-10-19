@@ -1,5 +1,6 @@
 import { lessons, modules } from "@lagan/db";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { resetRateLimit } from "../../../../../lib/rate-limit";
 
 vi.mock("drizzle-orm", async (importOriginal) => {
   const actual = await importOriginal<typeof import("drizzle-orm")>();
@@ -141,6 +142,7 @@ function assertTwoPhasePositions(values: Record<string, unknown>[]): void {
 describe("module server actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetRateLimit();
     dbMock.selectResults.length = 0;
     dbMock.selectWhere.length = 0;
     getSession.mockResolvedValue({ user: { id: USER_ID } });
@@ -298,6 +300,7 @@ describe("module server actions", () => {
 describe("lesson server actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetRateLimit();
     dbMock.selectResults.length = 0;
     dbMock.selectWhere.length = 0;
     getSession.mockResolvedValue({ user: { id: USER_ID } });
@@ -516,5 +519,27 @@ describe("lesson server actions", () => {
     ).rejects.toThrow("Module not found");
 
     expect(dbMock.transaction).not.toHaveBeenCalled();
+  });
+
+  it("rejects unknown fields via strict schema validation", async () => {
+    await expect(
+      // @ts-expect-error Testing unknown field rejection
+      createLesson({ moduleId: MODULE_ID, type: "text", title: "Intro", unknownField: "bad" }),
+    ).rejects.toThrow();
+  });
+
+  it("rate limits rapid builder operations exceeding 120 req/min per author", async () => {
+    dbMock.selectResults.length = 0;
+    for (let i = 0; i < 120; i++) {
+      dbMock.selectResults.push([{ id: MODULE_ID }]);
+      dbMock.selectResults.push([{ position: 0 }]);
+      dbMock.insertReturning.mockResolvedValue([{ id: LESSON_ID }]);
+      await createLesson({ moduleId: MODULE_ID, type: "text", title: "Intro" });
+    }
+
+    // 121st call triggers rate limit
+    await expect(
+      createLesson({ moduleId: MODULE_ID, type: "text", title: "Intro" }),
+    ).rejects.toThrow("Too many requests");
   });
 });
