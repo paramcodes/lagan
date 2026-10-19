@@ -6,7 +6,8 @@ search queries, category taxonomy, and `/courses/[id]` detail page — are **pla
 
 Cross-links: [architecture](../architecture.md), [data model](../data-model.md),
 [payments](./payments.md), [authoring](./authoring.md), [player and progress](./player-progress.md),
-[ADR-0002 (Postgres / Tenancy)](../adr/index.md), [ADR-0007 (Managed Video)](../adr/index.md).
+[author analytics](./analytics.md), [ADR-0002 (Postgres / Tenancy)](../adr/index.md),
+[ADR-0007 (Managed Video)](../adr/index.md).
 
 ## Status by item
 

@@ -7,7 +7,7 @@ publish — is **planned and absent**.
 
 Cross-links: [architecture](../architecture.md), [data model](../data-model.md),
 [profiles](./profiles.md), [payments](./payments.md), [discovery](./discovery.md),
-[player and progress](./player-progress.md).
+[player and progress](./player-progress.md), [author analytics](./analytics.md).
 
 ## Status by item
 

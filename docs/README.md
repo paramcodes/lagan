@@ -69,6 +69,7 @@ Features:
 - [`features/payments.md`](features/payments.md) — Stripe checkout, webhook signature verification, replay idempotency, enrollments schema.
 - [`features/discovery.md`](features/discovery.md) — course catalog, search architecture, category filtering, free vs paid paths.
 - [`features/player-progress.md`](features/player-progress.md) — video player wrapper, progress tracking grain, auto-advance, and completion aggregation.
+- [`features/analytics.md`](features/analytics.md) — author analytics metrics, course event ingestion, aggregation windowing, and accessible chart visualization.
 
 Reference:
 - [`stack.md`](stack.md) — condensed stack decision log.
