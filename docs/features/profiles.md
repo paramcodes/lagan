@@ -1,6 +1,6 @@
 # Feature — profiles
 
-Status: **built** (P1.5, P1.7). Public author profile is **planned and deferred** (P1.8).
+Status: **built** (P1.5, P1.7, P1.8).
 
 Scope: the authenticated profile view/edit surface, the `profiles` table, and the fields a
 learner or author can set. Related background: [architecture](../architecture.md),
@@ -95,20 +95,16 @@ dynamic and never serves a cached shell.
   union in `apps/web/lib/roles.ts` (`student | instructor | ta | admin`) is not consulted by
   anything under `profile/`.
 
-## P1.8 — public author profile (deferred)
+## P1.8 — public author profile
 
-Not built. No route, component, or query serves a profile to anyone other than its owner. The
-profile page always resolves the owner from the session; there is no `/[handle]` or `/authors/[id]`
-route, and no public projection of `profiles`.
+Built at `apps/web/app/(app)/authors/[id]/`. A public Server Component (`page.tsx`) rendering an
+instructor's public profile, presentation stats, and catalog of published courses:
 
-Deferred deliberately until courses exist: the page's content is the author's published courses,
-and until course CRUD and publish land (P2.6, P2.7, P2.10) there is nothing to list. Building it now
-would mean shipping a page that renders a bio and an empty course list.
-
-Prerequisites before it can be built:
-
-- A published-course query filtered by `authorId` and `status = 'published'` (see the `courses`
-  table in [data-model](../data-model.md)).
-- A decision on the public identifier — the `profiles` table has no handle or slug column, so the
-  URL is either the internal `user.id` or a new column plus backfill.
-- A display name, which must come from the `user` table, not `profiles`.
+- **Author identity**: Resolves display name from Better Auth's `user` table joined with presentation
+  attributes (`bio`, `avatarUrl`, `websiteUrl`, `socialLinksJson`) from `profiles`.
+- **Presentation metadata**: Author headline (`"Instructor"`), dynamic page `<title>`, and OpenGraph tags
+  dynamically populated from author name and bio.
+- **Author stats**: Aggregate counts of published courses and distinct enrolled learners across courses.
+- **Course grid**: Renders `@lagan/ui` `CourseCard` items for all published courses authored by this user,
+  with empty-state fallback when no courses are published yet.
+- **Public route**: Unauthenticated route, exempt from auth gating. Non-existent authors trigger `notFound()`.
