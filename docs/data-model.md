@@ -1,7 +1,8 @@
 # Data model
 
-Reference for the Drizzle schema in `packages/db`. Everything here is read from the schema
-files, not from a database: the repository has no committed SQL migration yet.
+Reference for the Drizzle schema in `packages/db` and the committed SQL migrations in
+`packages/db/drizzle/` (`0000_fresh_shooting_star.sql`, `0001_bitter_hedge_knight.sql`,
+`0002_yielding_gideon.sql`).
 
 Source files:
 
@@ -10,7 +11,9 @@ Source files:
 | `packages/db/src/schema/profile.ts` | `user` (mirror), `profiles` |
 | `packages/db/src/schema/course.ts` | `courses`, `modules`, `lessons` |
 | `packages/db/src/schema/event.ts` | `course_event` |
-
+| `packages/db/src/schema/enrollment.ts` | `enrollments` |
+| `packages/db/src/schema/progress.ts` | `lesson_progress` |
+| `packages/db/src/schema/notification.ts` | `notifications` |
 All are re-exported from `packages/db/src/index.ts`, which is what `apps/web` imports as
 `@lagan/db`.
 
@@ -20,10 +23,16 @@ All are re-exported from `packages/db/src/index.ts`, which is what `apps/web` im
 erDiagram
   user ||--o| profiles : "user_id (unique)"
   user ||--o{ courses : "author_id"
+  user ||--o{ enrollments : "user_id"
+  user ||--o{ lesson_progress : "user_id"
+  user ||--o{ notifications : "user_id"
   user ||--o{ course_event : "user_id"
   courses ||--o{ modules : "course_id"
+  courses ||--o{ enrollments : "course_id"
+  courses ||--o{ lesson_progress : "course_id"
   courses ||--o{ course_event : "course_id"
   modules ||--o{ lessons : "module_id"
+  lessons ||--o{ lesson_progress : "lesson_id"
   lessons ||--o{ course_event : "lesson_id (nullable)"
 ```
 
@@ -49,17 +58,18 @@ alongside the plural binding, plus row types:
 | `modules` | `modules`, `module` | `Module`, `NewModule` |
 | `lessons` | `lessons`, `lesson` | `Lesson`, `NewLesson` |
 | `course_event` | `courseEvent`, `courseEvents` | `CourseEvent`, `NewCourseEvent` |
-
+| `enrollments` | `enrollments`, `enrollment` | `Enrollment`, `NewEnrollment` |
+| `lesson_progress` | `lessonProgress`, `lesson_progress`, `lessonProgresses` | `LessonProgress`, `NewLessonProgress` |
+| `notifications` | `notifications`, `notification` | `Notification`, `NewNotification` |
 **Timestamps.** `timestamp(name, { withTimezone: true })` → `timestamptz`, with
 `.defaultNow().notNull()` where present. `lessons` has `updated_at` but no `created_at`.
 
 **Tenancy.** `tenant_id` is required on every table that holds institution data, from the
-first migration, per [ADR-0002](adr/index.md). `courses` and `course_event` carry it today:
-`tenantId` is `text().notNull()` with no default and no foreign key, because no `tenants`
-table exists (the tenancy model is open in [ADR-0014](adr/index.md), fork F4). The only
-value any code writes is the literal `"default"` in
-`apps/web/app/(app)/teach/courses/actions.ts`, which is a placeholder until tenants are
-real. The column is in place so later work cannot forget it.
+first migration, per [ADR-0002](adr/index.md). `courses`, `course_event`, `lesson_progress`, and
+`notifications` carry it today: `tenantId` is `text().notNull()` or `varchar(64).notNull()` with
+no foreign key, because no `tenants` table exists (the tenancy model is open in
+[ADR-0014](adr/index.md), fork F4). The standard development value is `"default"` or a tenant id
+generated per institution context.
 
 **Money.** Stored as integer cents: `courses.price_cents`, integer, not null, default `0`.
 There is no currency column; the app is single-currency. Discounts are
@@ -74,14 +84,14 @@ rewrites the type, and `erasableSyntaxOnly` in `tsconfig.base.json` forbids Type
 `enum` anyway. A consequence to respect: the database accepts any string in these columns.
 There is no `CHECK` constraint, so the union is enforced only where the application validates.
 
-| Union | Values | Used by |
+| Union / Type | Values | Used by |
 |---|---|---|
 | `CourseStatus` | `draft`, `published`, `archived` | `courses.status` |
 | `LessonStatus` | `draft`, `published` | `lessons.status` |
 | `LessonType` | `video`, `text`, `quiz`, `file`, `external` | `lessons.type` |
 | `LessonContent` | `{ type: "doc"; content?: unknown[] }` | `lessons.content_json` |
 | `CourseEventType` | `view`, `progress`, `complete`, `drop` | `course_event.type` |
-
+| `NotificationPayload` | `Record<string, unknown>` | `notifications.payload` |
 ## `user` (mirror)
 
 A two-column-wide mirror of Better Auth's own table, present only so other tables have a
@@ -188,6 +198,62 @@ Indexes: `course_event_tenant_id_idx`, `course_event_user_id_idx`, `course_event
 `course_event_lesson_id_idx`, and `course_event_course_id_created_at_idx` on
 `(course_id, created_at)`, which is the index a per-course time-series read uses.
 
+
+## `enrollments`
+
+User entitlement records, inserted on Stripe checkout completion or free enrollment fulfillment
+(see [payments feature reference](features/payments.md)).
+
+| Column | TS property | Type | Null | Default | Notes |
+|---|---|---|---|---|---|
+| `id` | `id` | `text` | no | — | Primary key |
+| `user_id` | `userId` | `text` | no | — | FK → `user.id`, `ON DELETE CASCADE` |
+| `course_id` | `courseId` | `text` | no | — | FK → `courses.id`, `ON DELETE CASCADE` |
+| `stripe_payment_id` | `stripePaymentId` | `text` | no | — | Unique Stripe checkout session id |
+| `enrolled_at` | `enrolledAt` | `timestamptz` | no | `now()` | Fulfillment timestamp |
+| `course_version_seen` | `courseVersionSeen` | `integer` | no | `1` | Snapshot of `courses.version` upon enrollment |
+
+Indexes: `enrollments_user_id_idx` on `user_id`, `enrollments_course_id_idx` on `course_id`, and
+unique `enrollments_user_id_course_id_key` on `(user_id, course_id)`.
+
+## `lesson_progress`
+
+Per-learner progress tracking and completion state for individual lessons
+(see [player and progress reference](features/player-progress.md)).
+
+| Column | TS property | Type | Null | Default | Notes |
+|---|---|---|---|---|---|
+| `id` | `id` | `text` | no | — | Primary key |
+| `tenant_id` | `tenantId` | `varchar(64)` | no | — | Institutional tenant ID |
+| `user_id` | `userId` | `text` | no | — | FK → `user.id`, `ON DELETE CASCADE` |
+| `lesson_id` | `lessonId` | `text` | no | — | FK → `lessons.id`, `ON DELETE CASCADE` |
+| `course_id` | `courseId` | `text` | no | — | FK → `courses.id`, `ON DELETE CASCADE` |
+| `completed` | `completed` | `boolean` | no | `false` | True when lesson is finished or passed threshold |
+| `completed_at` | `completedAt` | `timestamptz` | yes | — | Stamped upon completion |
+| `position_seconds` | `positionSeconds` | `integer` | no | `0` | Media playback position in seconds |
+| `last_seen_at` | `lastSeenAt` | `timestamptz` | no | `now()` | Refreshed on progress updates |
+
+Indexes: unique `lesson_progress_user_id_lesson_id_key` on `(user_id, lesson_id)`, composite
+`lesson_progress_user_id_course_id_completed_idx` on `(user_id, course_id, completed)`, and
+`lesson_progress_tenant_id_idx` on `tenant_id`.
+
+## `notifications`
+
+Durable in-app notification rows delivered via SSE and rendered in the notification center
+(see [notifications feature reference](features/notifications.md)).
+
+| Column | TS property | Type | Null | Default | Notes |
+|---|---|---|---|---|---|
+| `id` | `id` | `text` | no | — | Primary key |
+| `tenant_id` | `tenantId` | `varchar(64)` | no | — | Institutional tenant ID |
+| `user_id` | `userId` | `text` | no | — | FK → `user.id`, `ON DELETE CASCADE` |
+| `type` | `type` | `varchar(64)` | no | — | Notification event type |
+| `payload` | `payload` | `jsonb` (`NotificationPayload`) | no | `{}` | Typed structured metadata |
+| `read_at` | `readAt` | `timestamptz` | yes | — | Stamped when recipient marks as read; null = unread |
+| `created_at` | `createdAt` | `timestamptz` | no | `now()` | Row creation timestamp |
+
+Indexes: composite `notifications_user_id_read_at_created_at_idx` on `(user_id, read_at, created_at)`,
+and `notifications_tenant_id_idx` on `tenant_id`.
 ## Foreign keys and cascade behaviour
 
 | Child | Column | Parent | On delete | Effect of deleting the parent |
@@ -199,7 +265,12 @@ Indexes: `course_event_tenant_id_idx`, `course_event_user_id_idx`, `course_event
 | `course_event` | `user_id` | `user.id` | `CASCADE` | That user's activity rows are deleted |
 | `course_event` | `course_id` | `courses.id` | `CASCADE` | Activity for the course is deleted with it |
 | `course_event` | `lesson_id` | `lessons.id` | `CASCADE` | Activity for the lesson is deleted with it |
-
+| `enrollments` | `user_id` | `user.id` | `CASCADE` | Enrollment disappears when learner account is deleted |
+| `enrollments` | `course_id` | `courses.id` | `CASCADE` | Enrollments disappear when course is deleted |
+| `lesson_progress` | `user_id` | `user.id` | `CASCADE` | Progress history disappears with the user |
+| `lesson_progress` | `course_id` | `courses.id` | `CASCADE` | Progress records deleted with course |
+| `lesson_progress` | `lesson_id` | `lessons.id` | `CASCADE` | Progress records deleted with lesson |
+| `notifications` | `user_id` | `user.id` | `CASCADE` | Notifications deleted with recipient user |
 All seven cascades are asserted in `packages/db/src/schema/course.test.ts` and
 `packages/db/src/schema/event.test.ts`, which read the table config rather than a live
 database. Note the author cascade: deleting an author's account removes published courses.
@@ -215,6 +286,9 @@ courses: an activity log that must survive is a separate store, not a cascade.
 | `profiles.user_id` unique | `profiles` | `user_id` | One profile per user |
 | `modules_course_id_position_key` | `modules` | `(course_id, position)` | No two modules in a course share a position |
 | `lessons_module_id_position_key` | `lessons` | `(module_id, position)` | No two lessons in a module share a position |
+| `enrollments.stripe_payment_id` unique | `enrollments` | `stripe_payment_id` | Idempotent replay protection for Stripe checkouts |
+| `enrollments_user_id_course_id_key` | `enrollments` | `(user_id, course_id)` | Single active enrollment per learner per course |
+| `lesson_progress_user_id_lesson_id_key` | `lesson_progress` | `(user_id, lesson_id)` | Single progress record per learner per lesson |
 
 `course_event` adds no unique constraint: it is an append log, so several rows can share the
 same `(user_id, course_id, type)`.
@@ -235,25 +309,24 @@ Consequences for authoring:
   per [ADR-0002](adr/index.md).
 - Better Auth's other tables (`session`, `account`, `verification`) are not declared here;
   they are created from Better Auth's own definition at runtime.
-- `course.test.ts` and `event.test.ts` are the pattern for schema tests: assert column names,
-  nullability, defaults, foreign-key targets and cascades, and index uniqueness through
-  `getTableColumns` / `getTableConfig`.
+- `course.test.ts`, `event.test.ts`, `enrollment.test.ts`, `progress.test.ts`, and `notification.test.ts`
+  are the pattern for schema tests: assert column names, nullability, defaults, foreign-key targets
+  and cascades, and index uniqueness through `getTableColumns` / `getTableConfig`.
 
 ## Tables that do not exist yet
 
 These are named deliberately: any feature work that reaches for them must add the table
-first. Only `courses` and `course_event` carry `tenant_id` today, and each new institution
-table must carry it too ([ADR-0002](adr/index.md)).
+first. Every table holding institution data must carry `tenant_id` from its initial migration
+([ADR-0002](adr/index.md)).
 
-| Table | Purpose | Issue |
+| Table | Purpose | Issue / Status |
 |---|---|---|
 | `tenants` | The institution row `tenant_id` points at, with RLS policies | Tenancy model open: [ADR-0014](adr/index.md); no issue filed |
-| `enrollments` (entitlements) | Access per `(user_id, course_id)`, granted on purchase or free enrol | [P3.4 (#18)](https://github.com/paramcodes/lagan/issues/18) |
-| `lesson_progress` | Per-learner completion and playback position, unique on `(user_id, lesson_id)` | [P4.2 (#24)](https://github.com/paramcodes/lagan/issues/24) |
-| `notifications` | Durable notification rows: recipient, type, JSONB payload, `read_at`, `created_at` | [P6.1 (#31)](https://github.com/paramcodes/lagan/issues/31) |
+| `submissions` / files | Student submissions and uploaded file metadata | Storage covered by [ADR-0008](adr/index.md); table schema planned |
+| `audit_logs` | Security, administrative, and access audit log | Planned for enterprise compliance |
 
-Also absent: any table for submissions or uploaded files ([ADR-0008](adr/index.md) covers the
-storage shape, not the rows), and any audit or event log.
+Also absent: any table for student submissions or uploaded files ([ADR-0008](adr/index.md) covers the
+storage shape, not the rows), and any administrative audit log.
 
 ## Adding a table
 
