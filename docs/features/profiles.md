@@ -4,7 +4,7 @@ Status: **built** (P1.5, P1.7). Public author profile is **planned and deferred*
 
 Scope: the authenticated profile view/edit surface, the `profiles` table, and the fields a
 learner or author can set. Related background: [architecture](../architecture.md),
-[data model](../data-model.md), [authoring](./authoring.md), [payments](./payments.md), [discovery](./discovery.md).
+[data model](../data-model.md), [authoring](./authoring.md), [payments](./payments.md), [discovery](./discovery.md), [player and progress](./player-progress.md).
 
 ## What exists
 
