@@ -22,7 +22,6 @@ const signUpSchema = z
 type SignUpValues = z.infer<typeof signUpSchema>;
 
 function SignUpForm() {
-
   const form = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {

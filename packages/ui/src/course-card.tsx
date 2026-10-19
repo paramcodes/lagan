@@ -83,10 +83,7 @@ function Price({ course, align = "left" }: { course: CourseCardData; align?: "le
 export function CourseCard({ course, className }: { course: CourseCardData; className?: string }) {
   return (
     <article className={[CARD_SHELL, className].filter(Boolean).join(" ")}>
-      <a
-        href={`/courses/${course.id}`}
-        className={["flex flex-1 flex-col", FOCUS_RING].join(" ")}
-      >
+      <a href={`/courses/${course.id}`} className={["flex flex-1 flex-col", FOCUS_RING].join(" ")}>
         <Thumbnail thumbnailUrl={course.thumbnailUrl} title={course.title} badge={course.badge} />
         <div className="flex flex-1 flex-col gap-1 px-4 py-4">
           <div className="flex items-start justify-between gap-2">

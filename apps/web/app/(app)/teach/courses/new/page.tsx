@@ -42,13 +42,19 @@ export default function NewCoursePage() {
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         {error && (
-          <div role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-400">
+          <div
+            role="alert"
+            className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-400"
+          >
             {error}
           </div>
         )}
 
         <div>
-          <label htmlFor="course-title" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          <label
+            htmlFor="course-title"
+            className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+          >
             Course title
           </label>
           <input
@@ -64,7 +70,10 @@ export default function NewCoursePage() {
         </div>
 
         <div>
-          <label htmlFor="course-description" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          <label
+            htmlFor="course-description"
+            className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+          >
             Course description
           </label>
           <textarea
@@ -87,14 +96,20 @@ export default function NewCoursePage() {
             aria-label="Free course"
             className="h-4 w-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500"
           />
-          <label htmlFor="course-is-free" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          <label
+            htmlFor="course-is-free"
+            className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+          >
             This is a free course
           </label>
         </div>
 
         {!isFree && (
           <div>
-            <label htmlFor="course-price" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label
+              htmlFor="course-price"
+              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
               Price (in cents)
             </label>
             <input
