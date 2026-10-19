@@ -34,9 +34,7 @@ describe("parseCourseListParams", () => {
   });
 
   it("falls back for unknown category, unknown view and bad page", () => {
-    expect(
-      parseCourseListParams({ category: "astrology", view: "tiles", page: "-2" }),
-    ).toEqual({
+    expect(parseCourseListParams({ category: "astrology", view: "tiles", page: "-2" })).toEqual({
       search: "",
       category: "all",
       page: 1,

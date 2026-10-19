@@ -17,10 +17,7 @@ export function buildPublishedCourseWhere(search: string): SQL {
   if (!term) return published;
 
   const pattern = `%${term}%`;
-  const matches = or(
-    ilike(courses.title, pattern),
-    ilike(courses.description, pattern),
-  );
+  const matches = or(ilike(courses.title, pattern), ilike(courses.description, pattern));
 
   return and(published, matches) ?? published;
 }
