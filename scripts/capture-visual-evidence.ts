@@ -37,6 +37,11 @@ const ROUTES: RouteSpec[] = [
     path: "/courses/course_distributed/lessons/les_raft",
     description: "Lesson player page",
   },
+  {
+    name: "course-detail",
+    path: "/courses/course_distributed",
+    description: "Course detail page",
+  },
 ];
 
 const targetRouteArg = process.argv[2];
