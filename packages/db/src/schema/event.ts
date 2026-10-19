@@ -2,8 +2,16 @@ import { index, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { courses, lessons } from "./course";
 import { user } from "./profile";
 
-/** Learner activity recorded against a course for author analytics. */
-export type CourseEventType = "view" | "progress" | "complete" | "drop";
+/** Learner activity and course lifecycle events recorded against a course. */
+export type CourseEventType =
+  | "view"
+  | "progress"
+  | "complete"
+  | "drop"
+  | "publish"
+  | "version_bump"
+  | "archive"
+  | "unarchive";
 
 export const courseEvent = pgTable(
   "course_event",

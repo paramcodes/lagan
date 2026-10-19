@@ -38,6 +38,8 @@ export interface CourseBuilderData {
   discountPercent: number;
   isFree: boolean;
   status: CourseStatus;
+  version?: number;
+  publishedAt?: Date | null;
   authorId: string;
   modules: BuilderModule[];
 }
@@ -55,6 +57,8 @@ export async function loadCourseBuilderData(
       discountPercent: courses.discountPercent,
       isFree: courses.isFree,
       status: courses.status,
+      version: courses.version,
+      publishedAt: courses.publishedAt,
       authorId: courses.authorId,
     })
     .from(courses)
