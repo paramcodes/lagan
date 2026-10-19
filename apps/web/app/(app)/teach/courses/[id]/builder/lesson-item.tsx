@@ -15,7 +15,7 @@ import {
   Video,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { BuilderLesson } from "./query";
 
 const LESSON_TYPES: readonly LessonType[] = ["video", "text", "quiz", "file", "external"];
@@ -61,6 +61,12 @@ export interface LessonItemProps {
   ) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onMove: (id: string, direction: "up" | "down") => void;
+  onDraftChange?:
+    | ((id: string, data: { title: string; type: LessonType; status: LessonStatus }) => void)
+    | undefined;
+  onBlur?:
+    | ((id: string, data: { title: string; type: LessonType; status: LessonStatus }) => void)
+    | undefined;
 }
 
 export function LessonItem({
@@ -73,11 +79,20 @@ export function LessonItem({
   onUpdate,
   onDelete,
   onMove,
+  onDraftChange,
+  onBlur,
 }: LessonItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(lesson.title);
   const [editType, setEditType] = useState<LessonType>(lesson.type);
   const [editStatus, setEditStatus] = useState<LessonStatus>(lesson.status);
+
+  useEffect(() => {
+    setEditTitle(lesson.title);
+    setEditType(lesson.type);
+    setEditStatus(lesson.status);
+  }, [lesson.title, lesson.type, lesson.status]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -123,7 +138,23 @@ export function LessonItem({
               type="text"
               required
               value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
+              onChange={(e) => {
+                setEditTitle(e.target.value);
+                onDraftChange?.(lesson.id, {
+                  title: e.target.value,
+                  type: editType,
+                  status: editStatus,
+                });
+              }}
+              onBlur={() => {
+                if (editTitle.trim()) {
+                  onBlur?.(lesson.id, {
+                    title: editTitle.trim(),
+                    type: editType,
+                    status: editStatus,
+                  });
+                }
+              }}
               className={[CONTROL_CLASS, "w-full"].join(" ")}
             />
           </div>
@@ -138,7 +169,24 @@ export function LessonItem({
               <select
                 id={`lesson-type-${lesson.id}`}
                 value={editType}
-                onChange={(e) => setEditType(e.target.value as LessonType)}
+                onChange={(e) => {
+                  const newType = e.target.value as LessonType;
+                  setEditType(newType);
+                  onDraftChange?.(lesson.id, {
+                    title: editTitle,
+                    type: newType,
+                    status: editStatus,
+                  });
+                }}
+                onBlur={() => {
+                  if (editTitle.trim()) {
+                    onBlur?.(lesson.id, {
+                      title: editTitle.trim(),
+                      type: editType,
+                      status: editStatus,
+                    });
+                  }
+                }}
                 className={[CONTROL_CLASS, "w-full"].join(" ")}
               >
                 {LESSON_TYPES.map((type) => (
@@ -158,7 +206,24 @@ export function LessonItem({
               <select
                 id={`lesson-status-${lesson.id}`}
                 value={editStatus}
-                onChange={(e) => setEditStatus(e.target.value as LessonStatus)}
+                onChange={(e) => {
+                  const newStatus = e.target.value as LessonStatus;
+                  setEditStatus(newStatus);
+                  onDraftChange?.(lesson.id, {
+                    title: editTitle,
+                    type: editType,
+                    status: newStatus,
+                  });
+                }}
+                onBlur={() => {
+                  if (editTitle.trim()) {
+                    onBlur?.(lesson.id, {
+                      title: editTitle.trim(),
+                      type: editType,
+                      status: editStatus,
+                    });
+                  }
+                }}
                 className={[CONTROL_CLASS, "w-full"].join(" ")}
               >
                 {LESSON_STATUSES.map((status) => (

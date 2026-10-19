@@ -2,7 +2,7 @@
 
 import type { LessonStatus, LessonType } from "@lagan/db";
 import { SortableItem, SortableList, useViewPreference, ViewToggle } from "@lagan/ui";
-import { AlertCircle, ArrowLeft, Plus, X } from "lucide-react";
+import { AlertCircle, ArrowLeft, Check, Loader2, Plus, RotateCcw, Save, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import {
@@ -17,6 +17,7 @@ import {
 } from "../../builder/actions";
 import { ModuleCard } from "./module-card";
 import type { BuilderLesson, BuilderModule, CourseBuilderData } from "./query";
+import { useCourseAutosave } from "./use-course-autosave";
 
 const VIEW_OPTIONS = [
   { value: "cards", label: "Cards" },
@@ -32,9 +33,26 @@ const BUTTON_SECONDARY =
 
 export function CourseOutlineBuilder({ initialCourse }: { initialCourse: CourseBuilderData }) {
   const [course] = useState<CourseBuilderData>(initialCourse);
-  const [modules, setModules] = useState<BuilderModule[]>(initialCourse.modules);
   const [view, setView] = useViewPreference("lagan.builder.view", "cards");
   const [error, setError] = useState<string | null>(null);
+
+  const {
+    modules,
+    setModules,
+    saveState,
+    hasRestoredDraft,
+    onDraftModuleTitle,
+    onDraftLesson,
+    flushModule,
+    flushLesson,
+    flushAll,
+    discardDraft,
+  } = useCourseAutosave({
+    courseId: initialCourse.id,
+    initialModules: initialCourse.modules,
+    onServerUpdateModule: updateModule,
+    onServerUpdateLesson: updateLesson,
+  });
 
   const [isAddingModule, setIsAddingModule] = useState(false);
   const [newModuleTitle, setNewModuleTitle] = useState("");
@@ -75,10 +93,10 @@ export function CourseOutlineBuilder({ initialCourse }: { initialCourse: CourseB
   const handleUpdateModuleTitle = async (id: string, title: string) => {
     try {
       setError(null);
-      const updated = await updateModule({ id, title });
-      setModules((prev) =>
-        prev.map((mod) => (mod.id === id ? { ...mod, title: updated.title } : mod)),
-      );
+      const ok = await flushModule(id, title);
+      if (!ok) {
+        setError("Failed to update module");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update module");
     }
@@ -168,29 +186,10 @@ export function CourseOutlineBuilder({ initialCourse }: { initialCourse: CourseB
   ) => {
     try {
       setError(null);
-      const updated = await updateLesson({
-        id: lessonId,
-        title: data.title,
-        type: data.type,
-        status: data.status,
-      });
-
-      setModules((prev) =>
-        prev.map((mod) => ({
-          ...mod,
-          lessons: mod.lessons.map((les) =>
-            les.id === lessonId
-              ? {
-                  ...les,
-                  title: updated.title,
-                  type: updated.type,
-                  status: updated.status,
-                  updatedAt: updated.updatedAt,
-                }
-              : les,
-          ),
-        })),
-      );
+      const ok = await flushLesson(lessonId, data);
+      if (!ok) {
+        setError("Failed to update lesson");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update lesson");
     }
@@ -290,6 +289,33 @@ export function CourseOutlineBuilder({ initialCourse }: { initialCourse: CourseB
             >
               {course.status}
             </span>
+            <span
+              data-testid="save-state-badge"
+              role="status"
+              aria-live="polite"
+              className={[
+                "inline-flex items-center gap-1.5 rounded-[var(--radius-chip)] px-2.5 py-0.5 text-xs font-medium transition-colors",
+                saveState === "Saved"
+                  ? "border border-[var(--color-line)] bg-[var(--color-canvas)] text-[var(--color-edge)]"
+                  : saveState === "Saving..."
+                    ? "border border-[var(--color-brand)]/20 bg-[var(--color-brand)]/10 text-[var(--color-brand)]"
+                    : "border border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+              ].join(" ")}
+            >
+              {saveState === "Saving..." && (
+                <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
+              )}
+              {saveState === "Saved" && (
+                <Check
+                  className="h-3 w-3 text-emerald-600 dark:text-emerald-400"
+                  aria-hidden="true"
+                />
+              )}
+              {saveState === "Offline / Unsaved draft" && (
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden="true" />
+              )}
+              {saveState}
+            </span>
           </div>
           <p className="mt-1 text-sm text-[var(--color-edge)]">
             {modules.length} {modules.length === 1 ? "module" : "modules"} • {totalLessons}{" "}
@@ -297,6 +323,22 @@ export function CourseOutlineBuilder({ initialCourse }: { initialCourse: CourseB
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={async () => {
+              setError(null);
+              const ok = await flushAll();
+              if (!ok) {
+                setError("Failed to save draft to server");
+              }
+            }}
+            disabled={saveState === "Saved" || saveState === "Saving..."}
+            className={BUTTON_PRIMARY}
+            aria-label="Save draft"
+          >
+            <Save className="h-3.5 w-3.5" />
+            Save
+          </button>
           <ViewToggle
             value={activeView}
             onChange={setView}
@@ -306,6 +348,50 @@ export function CourseOutlineBuilder({ initialCourse }: { initialCourse: CourseB
           />
         </div>
       </header>
+
+      {/* Restored draft banner */}
+      {hasRestoredDraft && (
+        <div
+          role="status"
+          aria-label="Restored draft notification"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-panel)] border border-[var(--color-brand)]/40 bg-[var(--color-brand)]/10 px-4 py-3 text-sm text-[var(--color-ink)]"
+        >
+          <div className="flex items-center gap-2">
+            <RotateCcw className="h-4 w-4 shrink-0 text-[var(--color-brand)]" aria-hidden="true" />
+            <span>
+              <strong className="font-semibold text-[var(--color-ink)]">Restored draft:</strong> You
+              have unsaved changes restored from a previous session.
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={async () => {
+                await discardDraft();
+              }}
+              className={BUTTON_SECONDARY}
+              aria-label="Discard draft"
+            >
+              Discard draft
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                setError(null);
+                const ok = await flushAll();
+                if (!ok) {
+                  setError("Failed to save restored draft to server");
+                }
+              }}
+              disabled={saveState === "Saving..."}
+              className={BUTTON_PRIMARY}
+              aria-label="Save changes"
+            >
+              Save changes
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Error banner */}
       {error && (
@@ -360,6 +446,10 @@ export function CourseOutlineBuilder({ initialCourse }: { initialCourse: CourseB
                   onDeleteLesson={handleDeleteLesson}
                   onReorderLessons={handleReorderLessons}
                   onMoveLesson={handleMoveLesson}
+                  onDraftTitleChange={onDraftModuleTitle}
+                  onBlurTitle={(id, title) => flushModule(id, title)}
+                  onDraftLesson={onDraftLesson}
+                  onBlurLesson={(id, data) => flushLesson(id, data)}
                 />
               )}
             </SortableItem>

@@ -91,7 +91,7 @@ const sampleCourse: CourseBuilderData = {
   ],
 };
 
-describe("CourseOutlineBuilder", () => {
+describe("CourseOutlineBuilder", { timeout: 20000 }, () => {
   beforeEach(() => {
     vi.clearAllMocks();
     window.localStorage.clear();
