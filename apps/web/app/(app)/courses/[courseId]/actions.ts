@@ -4,16 +4,33 @@ import { courses, enrollLearner } from "@lagan/db";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
+import { z } from "zod";
 import { auth } from "../../../../lib/auth";
 import { db } from "../../../../lib/db";
+import { RateLimitError, checkRateLimit } from "../../../../lib/rate-limit";
 
-export async function enrollFreeCourse(courseId: string): Promise<{ success: boolean }> {
+export { saveLessonProgress, saveLessonProgressInputSchema } from "./lessons/[lessonId]/actions";
+
+export const enrollFreeCourseInputSchema = z.union([
+  z.string().trim().min(1, "Course ID is required"),
+  z.object({ courseId: z.string().trim().min(1, "Course ID is required") }).strict(),
+]);
+export async function enrollFreeCourse(
+  courseInput: string | { courseId: string },
+): Promise<{ success: boolean }> {
   const session = await auth.api.getSession({ headers: await headers() });
   const userId = session?.user?.id;
   if (!userId) {
     throw new Error("Unauthorized");
   }
 
+  const parsedInput = enrollFreeCourseInputSchema.parse(courseInput);
+  const courseId = typeof parsedInput === "string" ? parsedInput : parsedInput.courseId;
+
+  const rl = checkRateLimit(`enroll:${userId}`, 10, 60);
+  if (!rl.allowed) {
+    throw new RateLimitError(rl.resetSeconds);
+  }
   const [course] = await db
     .select({
       id: courses.id,

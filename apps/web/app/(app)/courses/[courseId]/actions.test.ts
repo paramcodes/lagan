@@ -1,5 +1,6 @@
 import type * as LaganDb from "@lagan/db";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { resetRateLimit } from "../../../../lib/rate-limit";
 import { enrollFreeCourse } from "./actions";
 
 const authMock = vi.hoisted(() => ({
@@ -45,6 +46,7 @@ vi.mock("@lagan/db", async (importOriginal) => {
 describe("enrollFreeCourse server action", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetRateLimit();
   });
 
   it("rejects anonymous callers with Unauthorized", async () => {
@@ -131,5 +133,41 @@ describe("enrollFreeCourse server action", () => {
 
     expect(cacheMock.revalidatePath).toHaveBeenCalledWith("/courses/course_free");
     expect(cacheMock.revalidatePath).toHaveBeenCalledWith("/learn");
+  });
+
+  it("rejects unknown fields in input payload", async () => {
+    authMock.getSession.mockResolvedValue({ user: { id: "user_123" } });
+    await expect(
+      // @ts-expect-error Testing unknown fields rejection
+      enrollFreeCourse({ courseId: "course_free", invalidField: "hack" }),
+    ).rejects.toThrow();
+    expect(dbPackageMock.enrollLearner).not.toHaveBeenCalled();
+  });
+
+  it("rate limits rapid free enrollments to 10 req/min per user", async () => {
+    authMock.getSession.mockResolvedValue({ user: { id: "user_123" } });
+    dbMock.select.mockReturnValue({
+      from: vi.fn(() => ({
+        where: vi.fn(() => ({
+          limit: vi.fn().mockResolvedValue([
+            {
+              id: "course_free",
+              tenantId: "default",
+              status: "published",
+              priceCents: 0,
+              isFree: true,
+            },
+          ]),
+        })),
+      })),
+    });
+
+    for (let i = 0; i < 10; i++) {
+      const res = await enrollFreeCourse("course_free");
+      expect(res).toEqual({ success: true });
+    }
+
+    // 11th request triggers rate limit
+    await expect(enrollFreeCourse("course_free")).rejects.toThrow("Too many requests");
   });
 });
