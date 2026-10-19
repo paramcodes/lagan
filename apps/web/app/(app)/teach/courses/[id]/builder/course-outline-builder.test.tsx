@@ -23,6 +23,20 @@ vi.mock("../../builder/actions", () => ({
   reorderLessons: actionsMock.reorderLessons,
 }));
 
+const publishMock = vi.hoisted(() => ({
+  publishCourse: vi.fn(),
+  archiveCourse: vi.fn(),
+  unarchiveCourse: vi.fn(),
+  validateCoursePreflight: vi.fn(),
+}));
+
+vi.mock("./publish", () => ({
+  publishCourse: publishMock.publishCourse,
+  archiveCourse: publishMock.archiveCourse,
+  unarchiveCourse: publishMock.unarchiveCourse,
+  validateCoursePreflight: publishMock.validateCoursePreflight,
+}));
+
 import { CourseOutlineBuilder } from "./course-outline-builder";
 import type { CourseBuilderData } from "./query";
 
@@ -354,5 +368,128 @@ describe("CourseOutlineBuilder", { timeout: 20000 }, () => {
 
     expect(screen.getByText("No modules yet")).toBeTruthy();
     expect(screen.getByText("0 modules • 0 lessons")).toBeTruthy();
+  });
+
+  it("opens publish modal and displays preflight validation errors if incomplete", async () => {
+    publishMock.publishCourse.mockResolvedValueOnce({
+      success: false,
+      errors: ['Module "Foundations" must have at least one published lesson.'],
+    });
+
+    render(<CourseOutlineBuilder initialCourse={sampleCourse} />);
+
+    // Open modal
+    fireEvent.click(screen.getByRole("button", { name: "Publish course" }));
+    expect(screen.getByRole("dialog")).toBeTruthy();
+    expect(screen.getByText("Publish Course")).toBeTruthy();
+
+    // Confirm publish
+    fireEvent.click(screen.getByRole("button", { name: "Confirm & Publish" }));
+
+    await waitFor(() => {
+      expect(publishMock.publishCourse).toHaveBeenCalledWith(sampleCourse.id);
+      expect(screen.getByRole("alert")).toBeTruthy();
+      expect(
+        screen.getByText('Module "Foundations" must have at least one published lesson.'),
+      ).toBeTruthy();
+    });
+
+    // Cancel closes modal
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("successfully publishes a draft course and updates status badge", async () => {
+    publishMock.publishCourse.mockResolvedValueOnce({
+      success: true,
+      course: {
+        ...sampleCourse,
+        status: "published",
+        version: 1,
+        publishedAt: new Date("2026-10-19"),
+      },
+      isVersionBump: false,
+      version: 1,
+    });
+
+    render(<CourseOutlineBuilder initialCourse={sampleCourse} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Publish course" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm & Publish" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Course published successfully!")).toBeTruthy();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Done" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.getByText("Published • v1")).toBeTruthy();
+  });
+
+  it("republishes an already published course and bumps the version", async () => {
+    const publishedCourse: CourseBuilderData = {
+      ...sampleCourse,
+      status: "published",
+      version: 1,
+      publishedAt: new Date("2026-09-01"),
+    };
+
+    publishMock.publishCourse.mockResolvedValueOnce({
+      success: true,
+      course: {
+        ...publishedCourse,
+        status: "published",
+        version: 2,
+        publishedAt: new Date("2026-10-19"),
+      },
+      isVersionBump: true,
+      version: 2,
+    });
+
+    render(<CourseOutlineBuilder initialCourse={publishedCourse} />);
+
+    expect(screen.getByText("Published • v1")).toBeTruthy();
+    const republishBtn = screen.getByRole("button", { name: "Republish course" });
+    expect(republishBtn.textContent).toContain("Republish (v2)");
+
+    fireEvent.click(republishBtn);
+    expect(screen.getByText("Publish New Version")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: /Confirm Republish/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Course republished successfully as version 2!")).toBeTruthy();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Done" }));
+    expect(screen.getByText("Published • v2")).toBeTruthy();
+  });
+
+  it("archives and unarchives course from the outline UI", async () => {
+    publishMock.archiveCourse.mockResolvedValueOnce({
+      success: true,
+      course: { ...sampleCourse, status: "archived" },
+    });
+    publishMock.unarchiveCourse.mockResolvedValueOnce({
+      success: true,
+      course: { ...sampleCourse, status: "draft" },
+    });
+
+    render(<CourseOutlineBuilder initialCourse={sampleCourse} />);
+
+    // Archive
+    fireEvent.click(screen.getByRole("button", { name: "Archive course" }));
+    await waitFor(() => {
+      expect(publishMock.archiveCourse).toHaveBeenCalledWith(sampleCourse.id);
+      expect(screen.getByTestId("course-status-badge").textContent).toContain("archived");
+    });
+
+    // Unarchive
+    const unarchiveBtn = screen.getByRole("button", { name: "Unarchive course" });
+    fireEvent.click(unarchiveBtn);
+    await waitFor(() => {
+      expect(publishMock.unarchiveCourse).toHaveBeenCalledWith(sampleCourse.id);
+      expect(screen.getByTestId("course-status-badge").textContent).toContain("draft");
+    });
   });
 });
