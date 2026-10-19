@@ -84,8 +84,9 @@ dynamic and never serves a cached shell.
 - **No avatar upload.** `avatarUrl` is a pasted URL. Object storage (MinIO/S3) is configured in
   Docker Compose but no upload endpoint exists.
 - **No profile test.** `apps/web/app/(app)/profile` has no unit or E2E coverage. The unit suites in
-  the repo today cover `packages/db/schema/course`, `packages/ui/{drafts,editor,sanitize}`,
-  `apps/web/lib/mux`, and the Mux webhook route; the only E2E spec is `apps/web/e2e/smoke.spec.ts`.
+  the repo today cover `packages/db/schema/{course,event}`,
+  `packages/ui/{drafts,editor,sanitize,sortable}`, `apps/web/lib/mux`, the Mux webhook route, and
+  `apps/web/app/(app)/teach/courses/actions`; the only E2E spec is `apps/web/e2e/smoke.spec.ts`.
 - **No length limit on `websiteUrl`, `avatarUrl`, or individual social links**, and no cap on
   `socialLinks` length. Only `bio` is bounded.
 - **No migration in the repo.** `drizzle-kit` is a devDependency, but there is no

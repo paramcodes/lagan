@@ -1,8 +1,9 @@
 # Feature — course authoring
 
-Status: the pipeline is **partly built**. The schema, the editor, the draft store, and the video
-plumbing are merged. Everything that turns a draft into published rows — CRUD actions, builder UI,
-autosave wiring, publish — is **planned and absent**.
+Status: the pipeline is **partly built**. The schema, the editor, the draft store, the video
+plumbing, the `@dnd-kit` wrappers, and course CRUD server actions are merged. Everything that turns
+a draft into published rows — the builder UI, autosave wiring, module/lesson CRUD, and a draft-based
+publish — is **planned and absent**.
 
 Cross-links: [architecture](../architecture.md), [data model](../data-model.md),
 [profiles](./profiles.md).
@@ -15,20 +16,20 @@ Cross-links: [architecture](../architecture.md), [data model](../data-model.md),
 | P2.2 | TipTap editor + sanitizer | **merged** | `packages/ui/src/editor.tsx`, `packages/ui/src/sanitize.ts`, `224b33a` (#9) |
 | P2.3 | Mux upload + webhook | **merged** | `apps/web/lib/mux.ts`, `apps/web/app/api/mux/webhook/route.ts`, `7bca697` (#8) |
 | P2.4 | IndexedDB draft store | **merged** | `packages/ui/src/drafts.ts`, `634c78f` (#7) |
-| P2.5 | `@dnd-kit` wrappers | planned | tracked as #11 |
-| P2.6 | Course CRUD server actions | planned | tracked as #12 |
+| P2.5 | `@dnd-kit` wrappers | **merged** | `packages/ui/src/sortable.tsx`, `dfef1dd` (#48) |
+| P2.6 | Course CRUD server actions | **merged** | `apps/web/app/(app)/teach/courses/actions.ts`, `c98bd32` (#50) |
 | P2.7 | Module / lesson CRUD + ordering actions | planned | tracked as #13 |
 | P2.8 | Course builder UI (cards / list toggle) | planned | tracked as #14 |
 | P2.9 | Draft autosave | planned | — |
 | P2.10 | Publish + version bump | planned | — |
 
-Note on the tracker: `todos.md` still shows `P2.2` unchecked even though the editor and sanitizer
-are merged on `origin/master`. Everything else in the table matches the file.
+Note on the tracker: `todos.md` now marks `P2.2` checked, but still shows `P2.5` and `P2.6`
+unchecked although both are merged on `origin/master`. The tracker lags the code.
 
-Nothing under `apps/web/app` renders an authoring surface. There is no `/teach` route; the
+No page under `apps/web/app` renders an authoring surface. `apps/web/app/(app)/teach/courses/`
+exists with server actions and their zod schemas (P2.6), but no `page.tsx` or component. The
 middleware matches `/teach/:path*` and protects it, and a comment reserves a server-side role check
-there, but the directory does not exist yet. Draft manipulation is available only as an API — no
-component calls `useDraftStore`.
+there. Draft manipulation is available only as an API — no component calls `useDraftStore`.
 
 ## Schema — `packages/db/src/schema/course.ts`
 
@@ -293,17 +294,18 @@ that never becomes ready.
 
 - **`createMuxUpload` has no caller outside its test.** There is no upload route under
   `apps/web/app/api`. An author cannot get an upload URL today.
-- **The webhook writes rows nothing creates.** `lessons.muxPlaybackId` is set by id, but course and
-  lesson CRUD (P2.6, P2.7) does not exist, so against a real database the update matches zero rows
-  and answers `updated: false`.
+- **The webhook writes rows nothing creates.** `lessons.muxPlaybackId` is set by id, but lesson
+  CRUD (P2.7) does not exist — only course CRUD (P2.6) shipped — so against a real database the
+  update matches zero rows and answers `updated: false`.
 - Playback id is taken from `playback_ids[0]` with no preference for the policy, which matters once
   signed playback is added.
 
 ## Publish flow — design sketch (not built)
 
-No code performs this. `version` is written only by `createCourseDraft` (always `1`) and by the
-database default; no server action reads a draft. The sketch below is the shape the draft store and
-schema were built for.
+No code performs this draft-to-rows publish. A `publishCourse` server action (P2.6) flips an
+existing course row to `published` and stamps `publishedAt`, but nothing reads a draft. `version` is
+written only by `createCourseDraft` (always `1`) and by the database default. The sketch below is
+the shape the draft store and schema were built for.
 
 | Step | Action | Notes |
 |---|---|---|
