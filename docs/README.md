@@ -76,6 +76,7 @@ Reference:
 - [`stack.md`](stack.md) — condensed stack decision log.
 - [`contributing.md`](contributing.md) — how to contribute.
 - [`testing/screen-reader-checklist.md`](testing/screen-reader-checklist.md) — VoiceOver and NVDA manual verification flows.
+- [`evidence/README.md`](evidence/README.md) — visual verification screenshots across light and dark color schemes.
 - [`adr/`](adr/index.md) — architecture decision records (index).
 - [`decisions/`](decisions/2026-stack-decisions.md) — full stack decision document.
 - `research/` — background research:
