@@ -32,7 +32,15 @@ const ROUTES: RouteSpec[] = [
     path: "/courses?view=ledger",
     description: "Catalogue list view",
   },
+  {
+    name: "lesson-player",
+    path: "/courses/course_distributed/lessons/les_raft",
+    description: "Lesson player page",
+  },
 ];
+
+const targetRouteArg = process.argv[2];
+const activeRoutes = targetRouteArg ? ROUTES.filter((r) => r.name === targetRouteArg) : ROUTES;
 
 const THEMES = [
   { name: "light", colorScheme: "light" as const, darkClass: false },
@@ -57,22 +65,26 @@ async function seedDatabaseIfPossible(databaseUrl?: string) {
       ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name;
     `);
 
-    // Check existing course count
-    const countRes = await client.query('SELECT count(*)::int AS count FROM "courses"');
-    const count = countRes.rows[0]?.count ?? 0;
+    // Seed sample courses, modules and lessons
+    await client.query(`
+      INSERT INTO "courses" (id, tenant_id, author_id, title, description, price_cents, discount_percent, is_free, status, published_at)
+      VALUES 
+        ('course_distributed', 'default', 'author_evelyn', 'Distributed Systems in Practice', 'Build robust, fault-tolerant distributed services with consensus and replication algorithms.', 4999, 10, false, 'published', NOW() - INTERVAL '3 days'),
+        ('course_typescript', 'default', 'author_evelyn', 'Type-Driven Architecture with TypeScript', 'Master type-level programming, brand types, template literals, and domain modeling.', 2999, 0, false, 'published', NOW() - INTERVAL '2 days'),
+        ('course_database', 'default', 'author_evelyn', 'Database Internals: Storage & Retrieval', 'Learn B-trees, LSM trees, WAL, write amplification, and page buffer management from scratch.', 0, 0, true, 'published', NOW() - INTERVAL '1 day')
+      ON CONFLICT (id) DO NOTHING;
 
-    if (count === 0) {
-      console.log("Seeding sample published courses for visual evidence...");
-      await client.query(`
-        INSERT INTO "courses" (id, tenant_id, author_id, title, description, price_cents, discount_percent, is_free, status, published_at)
-        VALUES 
-          ('course_distributed', 'default', 'author_evelyn', 'Distributed Systems in Practice', 'Build robust, fault-tolerant distributed services with consensus and replication algorithms.', 4999, 10, false, 'published', NOW() - INTERVAL '3 days'),
-          ('course_typescript', 'default', 'author_evelyn', 'Type-Driven Architecture with TypeScript', 'Master type-level programming, brand types, template literals, and domain modeling.', 2999, 0, false, 'published', NOW() - INTERVAL '2 days'),
-          ('course_database', 'default', 'author_evelyn', 'Database Internals: Storage & Retrieval', 'Learn B-trees, LSM trees, WAL, write amplification, and page buffer management from scratch.', 0, 0, true, 'published', NOW() - INTERVAL '1 day')
-        ON CONFLICT (id) DO NOTHING;
-      `);
-    }
+      INSERT INTO "modules" (id, course_id, title, position)
+      VALUES ('mod_consensus', 'course_distributed', 'Consensus & State Machine Replication', 0)
+      ON CONFLICT (id) DO NOTHING;
 
+      INSERT INTO "lessons" (id, module_id, type, title, position, status, mux_playback_id)
+      VALUES 
+        ('les_raft', 'mod_consensus', 'video', 'Raft Consensus Protocol & Leader Election', 0, 'published', 'demo_playback_id'),
+        ('les_safety', 'mod_consensus', 'text', 'Safety and Invariants in Distributed Systems', 1, 'published', NULL),
+        ('les_quiz', 'mod_consensus', 'quiz', 'Module Knowledge Assessment', 2, 'published', NULL)
+      ON CONFLICT (id) DO NOTHING;
+    `);
     await client.end();
     return url;
   } catch (err) {
@@ -147,11 +159,11 @@ async function main() {
 
   // Pre-warm routes so Turbopack compiles them before browser navigation
   console.log("Warming up product routes...");
-  for (const route of ROUTES) {
+  for (const route of activeRoutes) {
     try {
       console.log(`  Pre-warming ${route.path}...`);
       await fetch(`${baseUrl}${route.path}`, {
-        headers: { Accept: "text/html" },
+        headers: { Accept: "text/html", "x-dev-user-id": "author_evelyn" },
         signal: AbortSignal.timeout(60_000),
       });
     } catch {
@@ -172,9 +184,12 @@ async function main() {
         viewport: { width: 1440, height: 900 },
         deviceScaleFactor: 2,
         colorScheme: theme.colorScheme,
+        extraHTTPHeaders: {
+          "x-dev-user-id": "author_evelyn",
+        },
       });
 
-      for (const route of ROUTES) {
+      for (const route of activeRoutes) {
         const page = await context.newPage();
         const pageUrl = `${baseUrl}${route.path}`;
         console.log(`Navigating to ${route.description} (${pageUrl})...`);
