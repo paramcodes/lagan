@@ -36,25 +36,25 @@ Mark [x] when merged to main. One worktree per item.
 - [ ] P2.10 Publish + version bump
 
 ## Phase 3 — Discovery + purchase + enrollment
-- [ ] P3.1 Browse + search + category filter
+- [x] P3.1 Browse + search + category filter
 - [ ] P3.2 Course detail
 - [x] P3.3 Stripe checkout + webhook
 - [ ] P3.4 Entitlements/enrollment
-- [ ] P3.5 View toggle component
+- [x] P3.5 View toggle component
 - [ ] P3.6 Buy -> enroll flow
 - [ ] P3.7 My Learning
 - [ ] P3.8 Free course path
 
 ## Phase 4 — Player + progress
 - [x] P4.1 Mux Player wrapper
-- [ ] P4.2 lesson_progress schema
+- [x] P4.2 lesson_progress schema
 - [ ] P4.3 Progress tracking hook
 - [ ] P4.4 Lesson page + auto-advance
 - [ ] P4.5 Course progress aggregation
 
 ## Phase 5 — Author analytics
 - [x] P5.1 course_event schema
-- [ ] P5.2 Aggregation queries
+- [x] P5.2 Aggregation queries
 - [ ] P5.3 Analytics dashboard UI
 - [x] P5.4 Chart components
 
@@ -76,8 +76,8 @@ Mark [x] when merged to main. One worktree per item.
 - [x] D1 Architecture + design-system + data-model
 - [x] D2 features/authoring + features/profiles
 - [x] D3 features/payments + features/discovery
-- [ ] D4 features/player-progress
-- [ ] D5 features/analytics
+- [x] D4 features/player-progress
+- [x] D5 features/analytics
 - [ ] D6 features/notifications
 - [ ] D7 Final pass + diagrams + link check
 
@@ -87,26 +87,25 @@ Rule: keep >=3 in flight; refill the moment one finishes.
 
 | In flight | Issue | Worktree | Depends on |
 |---|---|---|---|
-| [ ] | P3.1 Browse + search + category filter | `/home/param/Work/lagan-wt/p3-1` (`feat/p3-1-browse`) | P1.9, P2.1 (merged) |
-| [ ] | P5.2 Aggregation queries | `/home/param/Work/lagan-wt/p5-2` (`feat/p5-2-analytics-queries`) | P5.1 (merged) |
-| [ ] | D4 features/player-progress | `/home/param/Work/lagan-wt/d4` (`docs/d4-player-progress`) | P4.1 (merged) |
+| [ ] | P2.8 Course builder UI (cards/list toggle) | `/home/param/Work/lagan-wt/p2-8` (`feat/p2-8-builder-ui`) | P2.5, P2.6, P3.5 (merged) |
+| [ ] | P6.1 Notification schema | `/home/param/Work/lagan-wt/p6-1` (`feat/p6-1-notification-schema`) | P0.8 (merged) |
+| [ ] | P6.4 Email sending | `/home/param/Work/lagan-wt/p6-4` (`feat/p6-4-email`) | None |
+| [ ] | P7.2 axe a11y + SR checklist | `/home/param/Work/lagan-wt/p7-2` (`feat/p7-2-a11y-audit`) | None |
+| [ ] | D6 features/notifications | `/home/param/Work/lagan-wt/d6` (`docs/d6-notifications`) | P6.1 |
 
-Merged so far: P0.1-P0.8, P1.1-P1.7, P1.9, P2.1-P2.7, P3.3, P4.1, P5.1, P5.4, D0-D3.
+Merged so far: P0.1-P0.8, P1.1-P1.7, P1.9, P2.1-P2.7, P3.1, P3.3, P3.5, P4.1, P4.2, P5.1, P5.2, P5.4, D0-D5.
 
 ### Ready (independent, safe to run concurrently)
 
 Each item owns a distinct package or file set, so these can all start now.
 
 - P1.8 Public author profile — profile route only
-- P2.8 Course builder UI (cards/list toggle) — `apps/web`; P2.5 and P2.6 merged
 - P2.9 Draft autosave — `packages/ui` / `apps/web`; P2.4 and P2.6 merged
-- P3.2 Course detail — discovery route; coordinate with P3.1 on the shared route folder
+- P3.2 Course detail — discovery route; P3.1 merged
 - P3.4 Entitlements/enrollment — `packages/db` + server action / route; P3.3 merged
-- P3.5 View toggle component — `packages/ui` only
-- P4.2 lesson_progress schema — new schema file; P2.1 merged
-- P6.1 Notification schema — new schema file
-- P6.4 Email sending — `packages/email` (new), no UI
-- P7.2 axe a11y + SR checklist — test config + static audit
+- P4.3 Progress tracking hook — `packages/ui` / `apps/web`; P4.2 merged
+- P4.5 Course progress aggregation — `packages/db`; P4.2 merged
+- P5.3 Analytics dashboard UI — `apps/web`; P5.2 merged
 
 ### Blocked (waiting on a merge)
 
@@ -114,17 +113,11 @@ Each item owns a distinct package or file set, so these can all start now.
 - P3.6 Buy -> enroll flow — after P3.3 (merged) and P3.4
 - P3.7 My Learning — after P3.4 (entitlements)
 - P3.8 Free course path — after P3.4 (entitlements)
-- P4.3 Progress tracking hook — after P4.2 (lesson_progress schema)
 - P4.4 Lesson page + auto-advance — after P4.1 (merged) and P4.3 (progress hook)
-- P4.5 Course progress aggregation — after P4.2 (lesson_progress schema)
-- P5.3 Analytics dashboard UI — after P5.2 (aggregation queries)
 - P6.2 SSE route + hook — after P6.1 (notification schema)
 - P6.3 New-content detection + notify — after P6.1 (notification schema)
 - P6.5 Notification center UI — after P6.2 (SSE route)
 - P7.1 Playwright E2E — after phases 3-6 land
 - P7.3 Rate limiting + validation audit — after P2.6, P3.3, P3.4 stop editing API routes
 - P7.4 Docs final pass — after D1-D6
-- D4 features/player-progress — after P4.1 (merged), P4.2 and P4.4
-- D5 features/analytics — after P5.1 (merged) and P5.2
-- D6 features/notifications — after P6.1
 - D7 Final pass + diagrams + link check — after D1-D6
