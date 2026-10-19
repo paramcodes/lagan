@@ -5,8 +5,8 @@ endpoints exist (P3.3, #54), user-facing discovery surfaces — the `/learn` cat
 search queries, category taxonomy, and `/courses/[id]` detail page — are **planned and unbuilt**.
 
 Cross-links: [architecture](../architecture.md), [data model](../data-model.md),
-[payments](./payments.md), [authoring](./authoring.md), [ADR-0002 (Postgres / Tenancy)](../adr/index.md),
-[ADR-0007 (Managed Video)](../adr/index.md).
+[payments](./payments.md), [authoring](./authoring.md), [player and progress](./player-progress.md),
+[ADR-0002 (Postgres / Tenancy)](../adr/index.md), [ADR-0007 (Managed Video)](../adr/index.md).
 
 ## Status by item
 
