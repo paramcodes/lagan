@@ -171,7 +171,7 @@ one a lesson uses is a convention: `content_json` for `text`/`quiz`, `mux_playba
 ## `course_event`
 
 Append-only learner activity, read by author analytics ([P5.1 #47](https://github.com/paramcodes/lagan/issues/47),
-merged as `96ea406` (#49)). Nothing writes a row yet.
+merged as `96ea406` (#49); see [analytics feature reference](features/analytics.md)). Nothing writes a row yet.
 
 | Column | TS property | Type | Null | Default | Notes |
 |---|---|---|---|---|---|

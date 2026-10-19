@@ -10,7 +10,8 @@ checks (P3.4), free course enrollment (P3.8), and refund/dispute webhooks are **
 
 Cross-links: [architecture](../architecture.md), [data model](../data-model.md),
 [discovery](./discovery.md), [authoring](./authoring.md), [player and progress](./player-progress.md),
-[ADR-0002 (Postgres / Tenancy)](../adr/index.md), [ADR-0007 (Managed Video)](../adr/index.md).
+[author analytics](./analytics.md), [ADR-0002 (Postgres / Tenancy)](../adr/index.md),
+[ADR-0007 (Managed Video)](../adr/index.md).
 
 ## Status by item
 
