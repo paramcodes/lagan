@@ -159,7 +159,7 @@ sequenceDiagram
 
 | URL | File | Group | Notes |
 |---|---|---|---|
-| `/` | `apps/web/app/page.tsx` | none | Still the `create-next-app` placeholder page. |
+| `/` | `apps/web/app/page.tsx` | none | Branded LMS product landing page. |
 | `/courses` | `apps/web/app/(app)/courses/page.tsx` | `(app)` | Course catalog discovery, search query, category filter, and view toggle (P3.1, P3.5). |
 | `/sign-in` | `apps/web/app/(auth)/sign-in/page.tsx` | `(auth)` | Client form, `react-hook-form` + Zod; honours `?next=`. |
 | `/sign-up` | `apps/web/app/(auth)/sign-up/page.tsx` | `(auth)` | Same pattern. |

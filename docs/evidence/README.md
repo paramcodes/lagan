@@ -49,12 +49,11 @@ All visual evidence artifacts are captured under standardized test environment c
 - **Light Mode**: `landing-light.png` (2880 × 1800 px)
 - **Dark Mode**: `landing-dark.png` (2880 × 1800 px)
 - **Verified Features**:
-  - Hero header hierarchy and typography scale (`text-3xl font-semibold`).
-  - Primary call-to-action buttons and interactive hover tokens.
-  - Brand assets and theme inversion (`.dark:invert` logomarks).
-  - Background surface tokens (`bg-zinc-50` vs. `dark:bg-black`).
-  - Footer and template reference links layout consistency.
-
+  - High-impact LMS hero header hierarchy: "Master Systems with Depth".
+  - Primary action CTAs: "Explore Courses" (`/courses`) and "Sign In" (`/sign-in`).
+  - Four core feature pillars: Interactive Editor, Video Player, In-depth Curriculum, Author Analytics.
+  - Strict DTCG design tokens (`--color-canvas`, `--color-surface`, `--color-brand`, etc.) supporting light and dark modes.
+  - Semantic HTML landmarks: `<header>`, `<main>`, `<section>`, `<footer>`.
 #### 2. Authentication Surface (`/sign-in`)
 
 - **Light Mode**: `sign-in-light.png` (2880 × 1800 px)
