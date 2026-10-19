@@ -59,7 +59,7 @@ Mark [x] when merged to main. One worktree per item.
 - [x] P5.4 Chart components
 
 ## Phase 6 — Notifications
-- [ ] P6.1 Notification schema
+- [x] P6.1 Notification schema
 - [ ] P6.2 SSE route + hook
 - [ ] P6.3 New-content detection + notify
 - [ ] P6.4 Email sending
@@ -78,7 +78,7 @@ Mark [x] when merged to main. One worktree per item.
 - [x] D3 features/payments + features/discovery
 - [x] D4 features/player-progress
 - [x] D5 features/analytics
-- [ ] D6 features/notifications
+- [x] D6 features/notifications
 - [ ] D7 Final pass + diagrams + link check
 
 ## Batch queue
@@ -88,12 +88,11 @@ Rule: keep >=3 in flight; refill the moment one finishes.
 | In flight | Issue | Worktree | Depends on |
 |---|---|---|---|
 | [ ] | P2.8 Course builder UI (cards/list toggle) | `/home/param/Work/lagan-wt/p2-8` (`feat/p2-8-builder-ui`) | P2.5, P2.6, P3.5 (merged) |
-| [ ] | P6.1 Notification schema | `/home/param/Work/lagan-wt/p6-1` (`feat/p6-1-notification-schema`) | P0.8 (merged) |
 | [ ] | P6.4 Email sending | `/home/param/Work/lagan-wt/p6-4` (`feat/p6-4-email`) | None |
 | [ ] | P7.2 axe a11y + SR checklist | `/home/param/Work/lagan-wt/p7-2` (`feat/p7-2-a11y-audit`) | None |
-| [ ] | D6 features/notifications | `/home/param/Work/lagan-wt/d6` (`docs/d6-notifications`) | P6.1 |
+| [ ] | D7 Final pass + diagrams + link check | `/home/param/Work/lagan-wt/d7` (`docs/d7-final-pass`) | D0-D6 (merged) |
 
-Merged so far: P0.1-P0.8, P1.1-P1.7, P1.9, P2.1-P2.7, P3.1, P3.3, P3.5, P4.1, P4.2, P5.1, P5.2, P5.4, D0-D5.
+Merged so far: P0.1-P0.8, P1.1-P1.7, P1.9, P2.1-P2.7, P3.1, P3.3, P3.5, P4.1, P4.2, P5.1, P5.2, P5.4, P6.1, D0-D6.
 
 ### Ready (independent, safe to run concurrently)
 
@@ -106,6 +105,9 @@ Each item owns a distinct package or file set, so these can all start now.
 - P4.3 Progress tracking hook — `packages/ui` / `apps/web`; P4.2 merged
 - P4.5 Course progress aggregation — `packages/db`; P4.2 merged
 - P5.3 Analytics dashboard UI — `apps/web`; P5.2 merged
+- P6.2 SSE route + hook — `apps/web`; P6.1 merged
+- P6.3 New-content detection + notify — `packages/db` / `apps/web`; P6.1 merged
+- P7.4 Docs final pass — docs only; D0-D6 merged
 
 ### Blocked (waiting on a merge)
 
@@ -114,10 +116,6 @@ Each item owns a distinct package or file set, so these can all start now.
 - P3.7 My Learning — after P3.4 (entitlements)
 - P3.8 Free course path — after P3.4 (entitlements)
 - P4.4 Lesson page + auto-advance — after P4.1 (merged) and P4.3 (progress hook)
-- P6.2 SSE route + hook — after P6.1 (notification schema)
-- P6.3 New-content detection + notify — after P6.1 (notification schema)
 - P6.5 Notification center UI — after P6.2 (SSE route)
 - P7.1 Playwright E2E — after phases 3-6 land
 - P7.3 Rate limiting + validation audit — after P2.6, P3.3, P3.4 stop editing API routes
-- P7.4 Docs final pass — after D1-D6
-- D7 Final pass + diagrams + link check — after D1-D6
