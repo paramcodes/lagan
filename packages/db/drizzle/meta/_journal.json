@@ -15,6 +15,13 @@
       "when": 1792397686222,
       "tag": "0001_bitter_hedge_knight",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792398973097,
+      "tag": "0002_yielding_gideon",
+      "breakpoints": true
     }
   ]
 }
