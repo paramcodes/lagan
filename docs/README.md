@@ -58,9 +58,9 @@ bun run dev                    # http://localhost:3000
 
 Start here:
 
-- [`architecture.md`](architecture.md) — monorepo layout, request path, routes, guards, planned SSE work.
+- [`architecture.md`](architecture.md) — monorepo layout, request path, auth flow, routes, guards, and real-time SSE architecture.
 - [`design-system.md`](design-system.md) — DTCG token pipeline, `@theme`, palette, dark mode, sidebar.
-- [`data-model.md`](data-model.md) — every table, column, key, constraint, and what is still missing.
+- [`data-model.md`](data-model.md) — every table, column, key, constraint, and database migration.
 
 Features:
 
@@ -77,4 +77,6 @@ Reference:
 - [`contributing.md`](contributing.md) — how to contribute.
 - [`adr/`](adr/index.md) — architecture decision records (index).
 - [`decisions/`](decisions/2026-stack-decisions.md) — full stack decision document.
-- `research/` — background research.
+- `research/` — background research:
+  - [`research/2026-stack.md`](research/2026-stack.md) — 2026 full-stack technology research.
+  - [`research/2026-tooling.md`](research/2026-tooling.md) — 2026 runtime, build, and test tooling research.
