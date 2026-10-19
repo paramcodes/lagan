@@ -53,8 +53,16 @@ bun run dev                    # http://localhost:3000
 
 ## Docs
 
-- `stack.md` — condensed stack decision log.
-- `contributing.md` — how to contribute.
-- `adr/` — architecture decision records (index).
-- `decisions/` — full stack decision document.
+Start here:
+
+- [`architecture.md`](architecture.md) — monorepo layout, request path, routes, guards, planned SSE work.
+- [`design-system.md`](design-system.md) — DTCG token pipeline, `@theme`, palette, dark mode, sidebar.
+- [`data-model.md`](data-model.md) — every table, column, key, constraint, and what is still missing.
+
+Reference:
+
+- [`stack.md`](stack.md) — condensed stack decision log.
+- [`contributing.md`](contributing.md) — how to contribute.
+- [`adr/`](adr/index.md) — architecture decision records (index).
+- [`decisions/`](decisions/2026-stack-decisions.md) — full stack decision document.
 - `research/` — background research.
