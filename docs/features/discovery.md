@@ -1,9 +1,10 @@
 # Feature — course discovery
 
-Status: **planned** (P3.1, P3.2, P3.5, P3.8). While the payments data layer and checkout
-endpoints exist (P3.3, #54), user-facing discovery surfaces — the `/learn` catalog, Postgres
-search queries, category taxonomy, and `/courses/[id]` detail page — are **planned and unbuilt**.
-
+Status: **partly built** (P3.1, P3.3, P3.5). The catalog browse, search, category filtering, and
+view toggle (grid / list) are **merged** in `apps/web/app/(app)/courses/` and `packages/ui/src/`
+(commit `7711a4a`, #68), and payments infrastructure is merged (P3.3, #54). Course detail page
+(`/courses/[id]`, P3.2), entitlement query helpers (P3.4), and free enrollment path (P3.8) are
+**planned**.
 Cross-links: [architecture](../architecture.md), [data model](../data-model.md),
 [payments](./payments.md), [authoring](./authoring.md), [player and progress](./player-progress.md),
 [author analytics](./analytics.md), [ADR-0002 (Postgres / Tenancy)](../adr/index.md),
@@ -13,11 +14,11 @@ Cross-links: [architecture](../architecture.md), [data model](../data-model.md),
 
 | Item | What | State | Evidence |
 |---|---|---|---|
-| P3.1 | Browse + search + category filter | planned | tracked as #15 |
+| P3.1 | Browse + search + category filter | **merged** | `apps/web/app/(app)/courses/`, commit `7711a4a` (#68) |
 | P3.2 | Course detail page (`/courses/[id]`) | planned | tracked as #16 |
 | P3.3 | Stripe checkout + webhook | **merged** | `apps/web/lib/stripe.ts`, `apps/web/app/api/stripe/`, `packages/db/src/schema/enrollment.ts` (#54) |
 | P3.4 | Entitlements / enrollment query helpers | planned | tracked as #18 |
-| P3.5 | View toggle component (grid / list) | planned | tracked as #19 |
+| P3.5 | View toggle component (grid / list) | **merged** | `packages/ui/src/view-toggle.tsx`, `course-view-toggle.tsx`, commit `7711a4a` (#68) |
 | P3.8 | Free course enrollment path | planned | tracked as #22 |
 
 ## Discovery surfaces

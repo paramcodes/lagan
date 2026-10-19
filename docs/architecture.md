@@ -22,7 +22,7 @@ phase-6 real-time work will attach. Decisions behind these choices live in
 |---|---|---|
 | `apps/web` | The only deployable: App Router pages, route handlers, server actions, middleware. | Live |
 | `packages/ui` | Client primitives and authoring widgets: sidebar, TipTap editor, HTML sanitizer, IndexedDB draft store. | Live |
-| `packages/db` | Drizzle schema and types for `profiles`, `courses`, `modules`, `lessons`, `course_event`. | Live |
+| `packages/db` | Drizzle schema, migrations, queries, and types for `profiles`, `courses`, `modules`, `lessons`, `course_event`, `enrollments`, `lesson_progress`, `notifications`. | Live |
 | `packages/types` | Shared domain types. | Placeholder — export list is empty |
 | `packages/config` | Shared env and constants. | Placeholder — export list is empty |
 | `tokens/tokens.json` | DTCG design tokens; source of truth ([ADR-0004](adr/index.md)). | Live |
@@ -79,15 +79,29 @@ public surface, and `packages/*/src/index.ts` is the barrel that defines it.
 ## Request path
 
 ```mermaid
-flowchart LR
-  B[Browser] --> M[middleware.ts<br/>cookie guard]
-  M -->|no session on /learn,/teach,/profile| S[({ auth }) sign-in]
-  M --> A[({ app }) layout -> AppShell]
-  A --> P[Server component or route handler]
-  P --> AC[Server action / route handler<br/>auth.api.getSession]
-  AC --> DB[(PostgreSQL 18<br/>via packages/db)]
-  X[Mux] -->|signed webhook| WH[/api/mux/webhook/]
-  WH --> DB
+flowchart TD
+  Client["Browser / Client"] --> MW["middleware.ts<br/>Edge Cookie Guard"]
+  MW -->|No session cookie on /learn, /teach, /profile| AuthPage["/(auth)/sign-in<br/>Client Form"]
+  MW -->|Session cookie present on /sign-in, /sign-up| LearnRedirect["/learn Redirect"]
+  MW -->|Cookie present / Public route| AppLayout["/(app) layout<br/>AppShell"]
+
+  AppLayout --> DiscoveryPage["/(app)/courses<br/>Server Component"]
+  AppLayout --> ProfilePage["/(app)/profile<br/>Server Component"]
+  AppLayout --> TeachActions["/(app)/teach/courses<br/>Server Actions"]
+
+  Client --> CheckoutAPI["/api/stripe/checkout<br/>Route Handler"]
+  Client --> AuthAPI["/api/auth/[...all]<br/>Better Auth Route Handler"]
+
+  MuxService["Mux Video API"] -->|Signed Webhook HMAC-SHA256| MuxWebhook["/api/mux/webhook<br/>Route Handler"]
+  StripeService["Stripe API"] -->|Signed Webhook HMAC-SHA256| StripeWebhook["/api/stripe/webhook<br/>Route Handler"]
+
+  DiscoveryPage --> Drizzle[("PostgreSQL 18<br/>via @lagan/db")]
+  ProfilePage --> Drizzle
+  TeachActions --> Drizzle
+  CheckoutAPI --> Drizzle
+  AuthAPI --> Drizzle
+  MuxWebhook --> Drizzle
+  StripeWebhook --> Drizzle
 ```
 
 Read the path top to bottom:
@@ -103,17 +117,57 @@ Read the path top to bottom:
 5. Third-party callbacks arrive as route handlers. `/api/mux/webhook` verifies the HMAC
    signature, then updates `lessons.mux_playback_id`.
 
+
+### Auth request flow
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor Browser
+  participant MW as middleware.ts<br/>(Edge Cookie Guard)
+  participant SignIn as /(auth)/sign-in<br/>(Client Form)
+  participant AuthAPI as /api/auth/[...all]<br/>(Better Auth)
+  participant SC as Server Component / Action<br/>(/(app)/*)
+  participant DB as PostgreSQL 18<br/>(Better Auth + packages/db)
+
+  Note over Browser,MW: Case 1: Unauthenticated request to protected route
+  Browser->>MW: GET /profile (or /learn, /teach)
+  MW->>MW: Check getSessionCookie(request)
+  Note over MW: No session cookie present
+  MW-->>Browser: 307 Redirect to /sign-in?next=/profile
+
+  Note over Browser,AuthAPI: Case 2: Sign-in credential submission
+  Browser->>SignIn: Submit email & password
+  SignIn->>AuthAPI: authClient.signIn.email({ email, password })
+  AuthAPI->>DB: Verify password hash & query user/account
+  DB-->>AuthAPI: Valid user record
+  AuthAPI->>DB: INSERT INTO session (token, expires_at, user_id)
+  AuthAPI-->>Browser: 200 OK + Set-Cookie: better-auth.session_token (httpOnly)
+
+  Note over Browser,DB: Case 3: Authenticated access to protected route
+  Browser->>MW: GET /profile (with session cookie)
+  MW->>MW: getSessionCookie(request) -> cookie exists
+  MW->>SC: Forward request to Server Component
+  SC->>AuthAPI: auth.api.getSession({ headers })
+  AuthAPI->>DB: SELECT FROM session JOIN user WHERE token = $1
+  DB-->>AuthAPI: Valid session & user
+  SC->>DB: Fetch user profile (packages/db)
+  SC-->>Browser: 200 OK (Rendered profile page in AppShell)
+```
+
 ## Routes and route groups
 
 | URL | File | Group | Notes |
 |---|---|---|---|
 | `/` | `apps/web/app/page.tsx` | none | Still the `create-next-app` placeholder page. |
+| `/courses` | `apps/web/app/(app)/courses/page.tsx` | `(app)` | Course catalog discovery, search query, category filter, and view toggle (P3.1, P3.5). |
 | `/sign-in` | `apps/web/app/(auth)/sign-in/page.tsx` | `(auth)` | Client form, `react-hook-form` + Zod; honours `?next=`. |
 | `/sign-up` | `apps/web/app/(auth)/sign-up/page.tsx` | `(auth)` | Same pattern. |
 | `/profile` | `apps/web/app/(app)/profile/page.tsx` | `(app)` | Server component; redirects to `/sign-in` without a session. |
 | `/api/auth/[...all]` | `apps/web/app/api/auth/[...all]/route.ts` | none | Better Auth mounted with `toNextJsHandler`. |
+| `/api/stripe/checkout` | `apps/web/app/api/stripe/checkout/route.ts` | none | Creates authenticated Stripe checkout session (P3.3). |
+| `/api/stripe/webhook` | `apps/web/app/api/stripe/webhook/route.ts` | none | Signed Stripe checkout completion webhook, grants enrollment (P3.3). |
 | `/api/mux/webhook` | `apps/web/app/api/mux/webhook/route.ts` | none | Signed Mux event receiver. |
-
 The two route groups carry different chrome and no URL segment of their own:
 
 - **`(app)`** exists only to provide the shell. `apps/web/app/(app)/layout.tsx` is two lines:
@@ -122,12 +176,12 @@ The two route groups carry different chrome and no URL segment of their own:
 - **`(auth)`** has no `layout.tsx`; each page is a self-contained full-screen card that pins
   itself with `min-h-screen` and reads the design tokens directly.
 
-`/learn` and `/teach` appear in the middleware matcher but neither serves a page yet.
-`/learn` is the post-sign-in landing path (Phase 3 discovery). `/teach` is the authoring
-surface: `apps/web/app/(app)/teach/courses/` already holds the course CRUD server actions
-(P2.6) and their Zod schemas, with no `page.tsx` in front of them. Pages arrive with later
-phases in [`todos.md`](../todos.md); the paths are guarded today so the guard cannot be
-forgotten when they do.
+`/learn` and `/teach` appear in the middleware matcher. `/courses` is the live course discovery
+surface (P3.1, P3.5), with `/learn` designated as the post-sign-in learner dashboard. `/teach` is
+the authoring surface: `apps/web/app/(app)/teach/courses/` holds course CRUD server actions (P2.6)
+and `apps/web/app/(app)/teach/courses/builder/` holds module and lesson CRUD with two-phase ordering
+actions (P2.7). The paths are guarded today so the edge and server guards protect newly mounted
+pages.
 
 ## Middleware: guards and the role split
 
@@ -181,17 +235,17 @@ against Better Auth's own migrations. Writes in this app then hang off that id, 
 | PostgreSQL 18 | System of record; planned queue backend (pg-boss, [ADR-0006](adr/index.md)) | Local container; `pg-boss` is not a dependency yet |
 | Mux | Video upload and playback ids | Implemented: `apps/web/lib/mux.ts` (direct upload, signature verification, event parsing) and `/api/mux/webhook`. Assets are created with `playback_policies: ["public"]`; signed playback waits for the entitlement work. |
 | MinIO (S3 API) | Local object storage for submissions | Container only; no upload code yet ([ADR-0008](adr/index.md)) |
-| Stripe | Paid checkout | Not implemented — [P3.3 (#17)](https://github.com/paramcodes/lagan/issues/17) |
+| Stripe | Paid checkout and webhook fulfillment | Implemented: `apps/web/lib/stripe.ts`, `/api/stripe/checkout`, `/api/stripe/webhook`, and `packages/db/src/schema/enrollment.ts` ([P3.3 #17](https://github.com/paramcodes/lagan/issues/17)) |
 | Email | Notification delivery | Not implemented — [P6.4 (#34)](https://github.com/paramcodes/lagan/issues/34) |
 
 Jobs must be idempotent and resumable, because a retry replays them.
 
-## Planned: notifications over SSE (Phase 6)
+## Notifications over SSE (Phase 6)
 
-The direction, from the phase-6 issues, is **stored rows as the source of truth and SSE as a
-transport over them**. Nothing in the current tree implements it: `/api` holds only the auth
-and Mux routes, there is no notifications table, and no client hook.
-
+The architecture treats **stored database rows as the source of truth and SSE as a transport
+over them**. The schema is merged (`packages/db/src/schema/notification.ts`, P6.1), while the
+SSE streaming route, background worker, email integration, and shell notification centre UI
+are tracked in the subsequent phase-6 deliverables:
 | Step | Issue | Shape |
 |---|---|---|
 | Notification schema | [P6.1 (#31)](https://github.com/paramcodes/lagan/issues/31) | `notifications` table: recipient, type, JSONB payload, `read_at` (null = unread), `created_at`, `tenant_id`; index on `(user_id, read_at, created_at)` |

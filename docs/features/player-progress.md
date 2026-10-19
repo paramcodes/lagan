@@ -1,12 +1,12 @@
 # Feature — player and progress
 
-Status: **partly built** (P4.1). The `LessonPlayer` component (`packages/ui/src/player.tsx`) is
-**merged** with token-driven theming, per-second time tracking, and completion signaling
-(commit `fd043f4`, PR #57).
+Status: **partly built** (P4.1, P4.2). The `LessonPlayer` component (`packages/ui/src/player.tsx`,
+commit `fd043f4`, PR #57) and the `lesson_progress` schema and migration
+(`packages/db/src/schema/progress.ts`, migration `0001_bitter_hedge_knight.sql`, commit `040f000`,
+PR #67) are **merged**.
 
-The data layer (`lesson_progress` schema, P4.2), client progress hook (`useLessonProgress`, P4.3),
-lesson page with poly-type rendering and auto-advance (P4.4), and progress aggregation (P4.5)
-are **planned and specified**.
+The client progress hook (`useLessonProgress`, P4.3), lesson page with poly-type rendering and
+auto-advance (P4.4), and progress aggregation queries (P4.5) are **planned and specified**.
 
 Cross-links: [architecture](../architecture.md), [data model](../data-model.md),
 [authoring](./authoring.md), [payments](./payments.md), [discovery](./discovery.md),
@@ -19,7 +19,7 @@ Cross-links: [architecture](../architecture.md), [data model](../data-model.md),
 | Item | What | State | Evidence |
 |---|---|---|---|
 | P4.1 | Mux Player wrapper with token theming | **merged** | `packages/ui/src/player.tsx`, `player.test.tsx` (#57) |
-| P4.2 | `lesson_progress` schema & migration | planned | #24 |
+| P4.2 | `lesson_progress` schema & migration | **merged** | `packages/db/src/schema/progress.ts`, commit `040f000` (#67) |
 | P4.3 | Progress tracking hook (`useLessonProgress`) | planned | #25 |
 | P4.4 | Lesson page + auto-advance | planned | #26 |
 | P4.5 | Course progress aggregation | planned | #27 |
@@ -41,14 +41,14 @@ sequenceDiagram
     Web-->>Learner: Redirect /courses/:courseId (403)
   else Enrolled (hasAccess = true)
     Web->>DB: Fetch lesson & lesson_progress
-    Web-->>Learner: Render LessonPage with startTime = playbackSeconds
+    Web-->>Learner: Render LessonPage with startTime = positionSeconds
     Learner->>Player: Mounts MuxPlayer with startTime
     Player->>Mux: Stream HLS asset (playbackId)
     loop Playback (every 1s bucket)
       Player->>Player: Throttled handleTimeUpdate
       Player-->>Learner: onProgress({ currentTime, duration, percent })
       Note over Learner: useLessonProgress debounces writes (5s / unload)
-      Learner->>DB: Upsert lesson_progress (playback_seconds = currentTime)
+      Learner->>DB: Upsert lesson_progress (position_seconds = currentTime)
     end
     Learner->>Player: Playback reaches true end (disablePseudoEnded)
     Player-->>Learner: onEnded -> onComplete()
@@ -138,30 +138,30 @@ The media `timeupdate` event fires ~4 times per second. Raw events would flood p
 
 ---
 
-## Planned data model — `packages/db/src/schema/progress.ts` (P4.2)
+## Data model — `packages/db/src/schema/progress.ts` (P4.2)
 
 The `lesson_progress` table tracks per-learner playback positions, completion status, and activity timestamps:
 
 | Column | TS Property | Type | Nullable | Default | Notes |
 |---|---|---|---|---|---|
 | `id` | `id` | `text` | no | — | PK. App UUID (`crypto.randomUUID()`). |
-| `tenant_id` | `tenantId` | `text` | no | — | Multi-tenant isolation (ADR-0002). Indexed. |
+| `tenant_id` | `tenantId` | `varchar(64)` | no | — | Multi-tenant isolation (ADR-0002). Indexed. |
 | `user_id` | `userId` | `text` | no | — | FK → `user.id` (`ON DELETE CASCADE`). Indexed. |
 | `lesson_id` | `lessonId` | `text` | no | — | FK → `lessons.id` (`ON DELETE CASCADE`). Indexed. |
 | `course_id` | `courseId` | `text` | no | — | FK → `courses.id` (`ON DELETE CASCADE`). Denormalized. |
 | `completed` | `completed` | `boolean` | no | `false` | `true` once completion rule is met. |
 | `completed_at` | `completedAt` | `timestamptz` | yes | `null` | Timestamp when completed became true. |
-| `playback_seconds` | `playbackSeconds` | `integer` | no | `0` | Stored resume position in seconds. |
+| `position_seconds` | `positionSeconds` | `integer` | no | `0` | Stored resume position in seconds. |
 | `last_seen_at` | `lastSeenAt` | `timestamptz` | no | `defaultNow()` | Last activity timestamp. |
 
 ### Indexes and constraints
 
 1. **`lesson_progress_user_id_lesson_id_key` (Unique index on `(user_id, lesson_id)`)**:
    Enforces one progress record per learner per lesson. Upserts conflict on this pair.
-2. **`lesson_progress_user_id_course_id_idx` (Index on `(user_id, course_id)`)**:
-   Powers course overview queries, loading all lesson states in one round-trip.
-3. **`lesson_progress_user_course_completed_idx` (Index on `(user_id, course_id, completed)`)**:
+2. **`lesson_progress_user_id_course_id_completed_idx` (Index on `(user_id, course_id, completed)`)**:
    Accelerates course completion counting queries (`COUNT(*) FILTER (WHERE completed = true)`).
+3. **`lesson_progress_tenant_id_idx` (Index on `tenant_id`)**:
+   Ensures multi-tenant query isolation and institution filtering.
 4. **Cascading deletes**: Removing a user, lesson, or course cascades to progress rows.
 
 ### Upsert semantics & monotonic completion
@@ -169,10 +169,10 @@ The `lesson_progress` table tracks per-learner playback positions, completion st
 Progress writes use PostgreSQL `INSERT ... ON CONFLICT (user_id, lesson_id) DO UPDATE`:
 
 ```sql
-INSERT INTO lesson_progress (id, tenant_id, user_id, lesson_id, course_id, playback_seconds, completed, completed_at, last_seen_at)
+INSERT INTO lesson_progress (id, tenant_id, user_id, lesson_id, course_id, position_seconds, completed, completed_at, last_seen_at)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
 ON CONFLICT (user_id, lesson_id) DO UPDATE SET
-  playback_seconds = EXCLUDED.playback_seconds,
+  position_seconds = EXCLUDED.position_seconds,
   completed = CASE WHEN lesson_progress.completed THEN true ELSE EXCLUDED.completed END,
   completed_at = COALESCE(lesson_progress.completed_at, EXCLUDED.completed_at),
   last_seen_at = NOW();
