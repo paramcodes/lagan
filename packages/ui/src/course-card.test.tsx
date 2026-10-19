@@ -19,7 +19,7 @@ describe("CourseCard", () => {
     expect(screen.getByText("Jane Doe")).toBeTruthy();
     expect(screen.getByText("$49.99")).toBeTruthy();
 
-    const link = screen.getByRole("link", { name: "Intro to Modern TypeScript" });
+    const link = screen.getByRole("link", { name: /Intro to Modern TypeScript/i });
     expect(link.getAttribute("href")).toBe("/courses/course_123");
   });
 

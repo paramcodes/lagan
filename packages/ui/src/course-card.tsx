@@ -71,7 +71,7 @@ function Price({ course, align = "left" }: { course: CourseCardData; align?: "le
     >
       <span className="text-sm font-semibold text-[var(--color-ink)]">{price.amount}</span>
       {price.originalAmount ? (
-        <span className="text-xs text-[var(--color-edge)] line-through">
+        <span className="text-xs text-[var(--color-ink2)] line-through">
           {price.originalAmount}
         </span>
       ) : null}
@@ -83,11 +83,7 @@ function Price({ course, align = "left" }: { course: CourseCardData; align?: "le
 export function CourseCard({ course, className }: { course: CourseCardData; className?: string }) {
   return (
     <article className={[CARD_SHELL, className].filter(Boolean).join(" ")}>
-      <a
-        href={`/courses/${course.id}`}
-        aria-label={course.title}
-        className={["flex flex-1 flex-col", FOCUS_RING].join(" ")}
-      >
+      <a href={`/courses/${course.id}`} className={["flex flex-1 flex-col", FOCUS_RING].join(" ")}>
         <Thumbnail thumbnailUrl={course.thumbnailUrl} title={course.title} badge={course.badge} />
         <div className="flex flex-1 flex-col gap-1 px-4 py-4">
           <div className="flex items-start justify-between gap-2">
@@ -98,7 +94,7 @@ export function CourseCard({ course, className }: { course: CourseCardData; clas
               </span>
             ) : null}
           </div>
-          <p className="text-xs text-[var(--color-edge)]">{course.authorName}</p>
+          <p className="text-xs text-[var(--color-ink2)]">{course.authorName}</p>
           <span className="mt-auto pt-3">
             <Price course={course} />
           </span>
@@ -142,7 +138,7 @@ export function CourseLedgerRow({
               </span>
             ) : null}
           </span>
-          <span className="truncate text-xs text-[var(--color-edge)]">{course.authorName}</span>
+          <span className="truncate text-xs text-[var(--color-ink2)]">{course.authorName}</span>
         </span>
         <Price course={course} align="right" />
       </a>

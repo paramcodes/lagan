@@ -149,7 +149,7 @@ export function ViewToggle({
               "outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ink)]",
               active
                 ? "bg-[var(--color-brand)] text-[var(--color-surface)]"
-                : "text-[var(--color-edge)] hover:text-[var(--color-ink)]",
+                : "text-[var(--color-ink2)] hover:text-[var(--color-ink)]",
             ].join(" ")}
           >
             {option.label}

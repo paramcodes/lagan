@@ -35,9 +35,9 @@ export default async function CoursesPage({
     <main className="mx-auto max-w-5xl p-6">
       <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs text-[var(--color-edge)]">Catalogue</p>
+          <p className="text-xs text-[var(--color-ink2)]">Catalogue</p>
           <h1 className="text-2xl font-semibold text-[var(--color-ink)]">Courses</h1>
-          <p className="mt-1 text-sm text-[var(--color-edge)]">
+          <p className="mt-1 text-sm text-[var(--color-ink2)]">
             {total === 0
               ? "No published courses"
               : `${total} published ${total === 1 ? "course" : "courses"}${
@@ -59,7 +59,7 @@ export default async function CoursesPage({
       ) : null}
 
       {params.search !== "" ? (
-        <p className="mb-4 text-sm text-[var(--color-edge)]">
+        <p className="mb-4 text-sm text-[var(--color-ink2)]">
           Results for <span className="font-medium text-[var(--color-ink)]">{params.search}</span>
         </p>
       ) : null}
@@ -69,7 +69,7 @@ export default async function CoursesPage({
           <h2 className="text-base font-semibold text-[var(--color-ink)]">
             {hasFilters ? "No courses match your search" : "No courses published yet"}
           </h2>
-          <p className="mt-1 text-sm text-[var(--color-edge)]">
+          <p className="mt-1 text-sm text-[var(--color-ink2)]">
             {hasFilters
               ? "Try a different term, or clear the filters to see everything."
               : "Published courses will appear here as authors release them."}

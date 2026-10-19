@@ -1,14 +1,7 @@
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { user, users } from "./auth";
 
-/**
- * Minimal mirror of Better Auth's `user` table, used as the foreign-key target
- * for profile rows. Better Auth owns the full table definition at runtime.
- */
-export const user = pgTable("user", {
-  id: text("id").primaryKey(),
-});
-
-export const users = user;
+export { user, users };
 
 export const profiles = pgTable("profiles", {
   id: text("id").primaryKey(),
@@ -20,12 +13,8 @@ export const profiles = pgTable("profiles", {
   websiteUrl: text("website_url"),
   socialLinksJson: text("social_links_json"),
   avatarUrl: text("avatar_url"),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 export const profile = profiles;

@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -16,7 +16,6 @@ const signInSchema = z.object({
 type SignInValues = z.infer<typeof signInSchema>;
 
 function SignInForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/learn";
 
@@ -40,8 +39,7 @@ function SignInForm() {
         setError(result.error.message ?? "Failed to sign in");
         return;
       }
-      router.push(next);
-      router.refresh();
+      window.location.href = next;
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to sign in");
     } finally {

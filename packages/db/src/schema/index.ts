@@ -4,3 +4,4 @@ export * from "./event";
 export * from "./profile";
 export * from "./progress";
 export * from "./notification";
+export * from "./auth";

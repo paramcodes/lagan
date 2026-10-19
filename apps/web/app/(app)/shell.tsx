@@ -2,11 +2,12 @@
 
 import { Sidebar } from "@lagan/ui";
 import { ChevronDown, Search, User } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { authClient } from "../../lib/auth-client";
 import { COURSE_CATEGORY_OPTIONS } from "./courses/params";
 import { NotificationCenter } from "../../components/notification-center";
-
 const COURSES_PATH = "/courses";
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -24,7 +25,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // its own navigation without fighting a user who is still typing.
   const appliedQuery = useRef<string | null>(null);
   const appliedCategory = useRef<string | null>(null);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    if (!accountMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(e.target as Node)) {
+        setAccountMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [accountMenuOpen]);
+
+  const handleSignOut = async () => {
+    setAccountMenuOpen(false);
+    await authClient.signOut();
+    router.push("/sign-in");
+    router.refresh();
+  };
   useEffect(() => {
     if (!isCatalogue) return;
 
@@ -133,13 +153,43 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="ml-auto flex items-center gap-3">
             <NotificationCenter />
 
-            <button
-              type="button"
-              aria-label="Account"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 text-zinc-600 transition-colors hover:bg-zinc-200 dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-            >
-              <User className="h-5 w-5" />
-            </button>
+            <div className="relative" ref={accountMenuRef}>
+              <button
+                type="button"
+                aria-label="Account"
+                aria-expanded={accountMenuOpen}
+                aria-haspopup="menu"
+                onClick={() => setAccountMenuOpen((prev) => !prev)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 text-zinc-600 transition-colors hover:bg-zinc-200 dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+              >
+                <User className="h-5 w-5" />
+              </button>
+
+              {accountMenuOpen && (
+                <div
+                  role="menu"
+                  aria-label="Account menu"
+                  className="absolute right-0 top-full mt-2 w-48 rounded-md border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-800 dark:bg-zinc-900 z-50"
+                >
+                  <Link
+                    href="/profile"
+                    role="menuitem"
+                    onClick={() => setAccountMenuOpen(false)}
+                    className="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  >
+                    Profile
+                  </Link>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleSignOut}
+                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-zinc-100 dark:text-red-400 dark:hover:bg-zinc-800"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
