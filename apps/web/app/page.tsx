@@ -53,7 +53,7 @@ export default function HomePage() {
             <nav className="hidden md:flex items-center gap-6" aria-label="Main Navigation">
               <Link
                 href="/courses"
-                className="text-sm font-medium text-[var(--color-edge)] transition-colors hover:text-[var(--color-ink)]"
+                className="text-sm font-medium text-[var(--color-ink2)] transition-colors hover:text-[var(--color-ink)]"
               >
                 Courses
               </Link>
@@ -87,7 +87,7 @@ export default function HomePage() {
         >
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-3xl text-center">
-              <div className="mb-6 inline-flex items-center gap-2 rounded-[var(--radius-chip)] border border-[var(--color-line)] bg-[var(--color-surface)] px-3 py-1 text-xs font-medium text-[var(--color-edge)] shadow-xs">
+              <div className="mb-6 inline-flex items-center gap-2 rounded-[var(--radius-chip)] border border-[var(--color-line)] bg-[var(--color-surface)] px-3 py-1 text-xs font-medium text-[var(--color-ink2)] shadow-xs">
                 <span className="flex h-2 w-2 rounded-full bg-[var(--color-accent)]" />
                 Specialized Systems Engineering Education
               </div>
@@ -99,7 +99,7 @@ export default function HomePage() {
                 Master Systems with Depth
               </h1>
 
-              <p className="mt-6 text-lg leading-relaxed text-[var(--color-edge)] sm:text-xl">
+              <p className="mt-6 text-lg leading-relaxed text-[var(--color-ink2)] sm:text-xl">
                 Expert-led courses in database internals, distributed architectures, and systems
                 programming.
               </p>
@@ -156,7 +156,7 @@ export default function HomePage() {
               >
                 Built for Rigorous Engineering
               </h2>
-              <p className="mt-4 text-base leading-relaxed text-[var(--color-edge)] sm:text-lg">
+              <p className="mt-4 text-base leading-relaxed text-[var(--color-ink2)] sm:text-lg">
                 Four unified pillars designed to transform complex systems concepts into production
                 intuitions.
               </p>
@@ -174,13 +174,13 @@ export default function HomePage() {
                       <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-canvas)] text-[var(--color-ink)]">
                         <IconComponent className="h-6 w-6" aria-hidden="true" />
                       </div>
-                      <span className="block text-[11px] font-mono uppercase tracking-wider text-[var(--color-edge)]">
+                      <span className="block text-[11px] font-mono uppercase tracking-wider text-[var(--color-ink2)]">
                         {pillar.badge}
                       </span>
                       <h3 className="mt-2 text-lg font-semibold text-[var(--color-ink)]">
                         {pillar.title}
                       </h3>
-                      <p className="mt-2 text-sm leading-relaxed text-[var(--color-edge)]">
+                      <p className="mt-2 text-sm leading-relaxed text-[var(--color-ink2)]">
                         {pillar.description}
                       </p>
                     </div>
@@ -218,7 +218,7 @@ export default function HomePage() {
                 >
                   No Toy Implementations. Real Systems Code.
                 </h2>
-                <p className="mt-4 text-base leading-relaxed text-[var(--color-edge)]">
+                <p className="mt-4 text-base leading-relaxed text-[var(--color-ink2)]">
                   Traditional courses explain algorithms on whiteboards. Lagan teaches you to build
                   real runtimes from source, debug cache-invalidation races under thread sanitizers,
                   and benchmark p99 tail latencies.
@@ -252,7 +252,7 @@ export default function HomePage() {
                     <h3 className="text-base font-semibold text-[var(--color-ink)]">
                       Course Architecture Map
                     </h3>
-                    <p className="text-xs text-[var(--color-edge)]">
+                    <p className="text-xs text-[var(--color-ink2)]">
                       Self-contained modules with interactive progression
                     </p>
                   </div>
@@ -271,7 +271,7 @@ export default function HomePage() {
                         <p className="truncate text-sm font-medium text-[var(--color-ink)]">
                           {track.title}
                         </p>
-                        <p className="mt-0.5 text-xs text-[var(--color-edge)]">
+                        <p className="mt-0.5 text-xs text-[var(--color-ink2)]">
                           {track.tag} • {track.lessons}
                         </p>
                       </div>
@@ -296,7 +296,7 @@ export default function HomePage() {
               >
                 Ready to Master Systems with Depth?
               </h2>
-              <p className="mx-auto mt-4 max-w-2xl text-base text-[var(--color-edge)] sm:text-lg">
+              <p className="mx-auto mt-4 max-w-2xl text-base text-[var(--color-ink2)] sm:text-lg">
                 Join engineering teams building resilient databases, distributed caches, and cloud
                 infrastructure.
               </p>

@@ -10,11 +10,11 @@ export function CodeSandboxPreview() {
             <span className="h-3 w-3 rounded-full bg-[var(--color-line)]" />
             <span className="h-3 w-3 rounded-full bg-[var(--color-line)]" />
             <span className="h-3 w-3 rounded-full bg-[var(--color-line)]" />
-            <span className="ml-2 font-mono text-xs text-[var(--color-edge)]">
+            <span className="ml-2 font-mono text-xs text-[var(--color-ink2)]">
               storage/engine/btree.rs — Write-Ahead Log & B-Tree Node Split
             </span>
           </div>
-          <span className="inline-flex items-center gap-1.5 rounded-[var(--radius-chip)] bg-[var(--color-canvas)] px-2.5 py-0.5 font-mono text-[11px] text-[var(--color-edge)]">
+          <span className="inline-flex items-center gap-1.5 rounded-[var(--radius-chip)] bg-[var(--color-canvas)] px-2.5 py-0.5 font-mono text-[11px] text-[var(--color-ink2)]">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
             Active Sandbox
           </span>
@@ -23,7 +23,7 @@ export function CodeSandboxPreview() {
         <div className="overflow-x-auto p-4 font-mono text-xs sm:text-sm leading-relaxed text-[var(--color-ink)]">
           <pre className="text-[var(--color-ink)]">
             <code>
-              <span className="text-[var(--color-edge)]">
+              <span className="text-[var(--color-ink2)]">
                 {"// Concurrent write-ahead logging with monotonic LSN sequence"}
               </span>
               {"\n"}
@@ -32,7 +32,7 @@ export function CodeSandboxPreview() {
               {"(&mut self, idx: usize, child: &mut BTreeNode) -> Result<LogSeqNum> {"}
               {"\n"}
               {"    "}
-              <span className="text-[var(--color-edge)]">
+              <span className="text-[var(--color-ink2)]">
                 {"// Enforce WAL record before dirty page modification"}
               </span>
               {"\n"}
@@ -71,11 +71,11 @@ export function LandingFooter() {
               <Terminal className="h-3.5 w-3.5" aria-hidden="true" />
             </div>
             <span className="font-bold tracking-tight text-[var(--color-ink)]">Lagan</span>
-            <span className="text-xs text-[var(--color-edge)]">— Systems Engineering LMS</span>
+            <span className="text-xs text-[var(--color-ink2)]">— Systems Engineering LMS</span>
           </div>
 
           <nav
-            className="flex items-center gap-6 text-sm text-[var(--color-edge)]"
+            className="flex items-center gap-6 text-sm text-[var(--color-ink2)]"
             aria-label="Footer Navigation"
           >
             <Link href="/courses" className="transition-colors hover:text-[var(--color-ink)]">
@@ -86,7 +86,7 @@ export function LandingFooter() {
             </Link>
           </nav>
 
-          <p className="text-xs text-[var(--color-edge)]">
+          <p className="text-xs text-[var(--color-ink2)]">
             &copy; 2026 Lagan LMS. Built for systems engineering.
           </p>
         </div>
