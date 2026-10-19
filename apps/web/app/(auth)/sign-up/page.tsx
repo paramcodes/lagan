@@ -1,7 +1,6 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -23,7 +22,6 @@ const signUpSchema = z
 type SignUpValues = z.infer<typeof signUpSchema>;
 
 function SignUpForm() {
-  const router = useRouter();
 
   const form = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
@@ -51,8 +49,7 @@ function SignUpForm() {
         setError(result.error.message ?? "Failed to sign up");
         return;
       }
-      router.push("/learn");
-      router.refresh();
+      window.location.href = "/learn";
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to sign up");
     } finally {
