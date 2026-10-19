@@ -1,1 +1,9 @@
 .gstack/
+node_modules/
+.next/
+.turbo/
+dist/
+*.tsbuildinfo
+.env
+.env.local
+coverage/

@@ -1,0 +1,17 @@
+{
+  "name": "lagan",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "bun --cwd apps/web dev",
+    "build": "bun --cwd apps/web build",
+    "typecheck": "tsc --noEmit -p tsconfig.base.json",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0"
+  }
+}

@@ -1,0 +1,7 @@
+[install]
+# Use exact versions for reproducibility
+exact = true
+
+[test]
+# Vitest is the test runner; bun test only for quick scripts
+preload = []
