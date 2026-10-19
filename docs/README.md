@@ -1,0 +1,60 @@
+# Lagan
+
+A higher-education LMS (learning management system). Monorepo: one Next.js app plus shared packages.
+
+## Structure
+
+- `apps/web` — Next.js 16 App Router application (the only deployable).
+- `packages/{config,db,types,ui}` — shared modules; populated as needed.
+- `tokens/tokens.json` — DTCG design tokens (source of truth).
+- `scripts/gen-tokens.ts` — generates `apps/web/app/tokens.css`.
+- `prototype/` — clickable design prototype (static HTML).
+- `docs/` — this directory.
+
+## Stack (short)
+
+- Runtime: Bun 1.4.x, Node-compatible.
+- Framework: Next.js 16.4.2, React 19.3, App Router, Turbopack.
+- Data: PostgreSQL 18, Drizzle ORM 0.45, `pg`.
+- Auth: Better Auth 1.7 (local accounts, passkeys; SAML/OIDC later).
+- Jobs: pg-boss 12 on Postgres.
+- Styling: Tailwind 4 via generated CSS vars from DTCG tokens.
+- UI behaviour: Base UI + React Aria Components (unstyled).
+- Video: managed HLS service (Mux or Cloudflare Stream) — decision pending (see `stack.md`).
+- Storage: S3-compatible (MinIO locally) with versioning.
+- Tooling: Biome 2.5, TypeScript 5.9, Vitest 5, Playwright 1.64, lefthook.
+
+## Getting started
+
+```bash
+bun install
+docker compose up -d           # Postgres 18 + MinIO
+# set DATABASE_URL=postgres://lagan:lagan@localhost:5432/lagan
+bun run gen:tokens             # regenerate tokens.css
+bun run dev                    # http://localhost:3000
+```
+
+## Scripts
+
+| Script | Purpose |
+|---|---|
+| `bun run dev` | Next.js dev server |
+| `bun run build` | Production build |
+| `bun run typecheck` | `tsc --noEmit` over `tsconfig.base.json` |
+| `bun run lint` | Biome lint |
+| `bun run format` | Biome format |
+| `bun run gen:tokens` | Regenerate CSS from tokens |
+| `bun run test` | Vitest |
+| `bun run test:e2e` | Playwright |
+
+## Local services
+
+`docker-compose.yml` provides Postgres 18 (`lagan`/`lagan`, db `lagan`) and MinIO on 9000/9001.
+
+## Docs
+
+- `stack.md` — condensed stack decision log.
+- `contributing.md` — how to contribute.
+- `adr/` — architecture decision records (index).
+- `decisions/` — full stack decision document.
+- `research/` — background research.
