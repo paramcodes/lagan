@@ -2,7 +2,7 @@ pre-commit:
   parallel: true
   commands:
     format:
-      glob: "*.{ts,tsx,css,json,md}"
+      glob: "*.{ts,tsx,css,json}"
       run: bunx biome format --write {staged_files}
     lint:
       glob: "*.{ts,tsx}"

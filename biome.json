@@ -27,7 +27,6 @@
   "files": {
     "includes": [
       "**",
-      ".github/**",
       "!.next",
       "!node_modules",
       "!dist",
