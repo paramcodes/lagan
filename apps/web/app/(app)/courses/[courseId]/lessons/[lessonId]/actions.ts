@@ -9,7 +9,7 @@ import { auth } from "../../../../../../lib/auth";
 import { db } from "../../../../../../lib/db";
 import { RateLimitError, checkRateLimit } from "../../../../../../lib/rate-limit";
 
-export const saveLessonProgressInputSchema = z
+const saveLessonProgressInputSchema = z
   .object({
     courseId: z.string().min(1),
     lessonId: z.string().min(1),

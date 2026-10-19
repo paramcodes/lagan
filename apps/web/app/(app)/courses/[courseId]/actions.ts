@@ -9,9 +9,7 @@ import { auth } from "../../../../lib/auth";
 import { db } from "../../../../lib/db";
 import { RateLimitError, checkRateLimit } from "../../../../lib/rate-limit";
 
-export { saveLessonProgress, saveLessonProgressInputSchema } from "./lessons/[lessonId]/actions";
-
-export const enrollFreeCourseInputSchema = z.union([
+const enrollFreeCourseInputSchema = z.union([
   z.string().trim().min(1, "Course ID is required"),
   z.object({ courseId: z.string().trim().min(1, "Course ID is required") }).strict(),
 ]);
