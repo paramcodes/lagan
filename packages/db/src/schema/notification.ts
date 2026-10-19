@@ -1,6 +1,13 @@
 import { index, jsonb, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 import { user } from "./profile";
 
+export type NotificationType =
+  | "course_published"
+  | "lesson_published"
+  | "enrollment_confirmed"
+  | "announcement_posted"
+  | (string & {});
+
 export type NotificationPayload = Record<string, unknown>;
 
 export const notifications = pgTable(
