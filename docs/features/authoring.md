@@ -1,9 +1,10 @@
 # Feature — course authoring
 
-Status: the pipeline is **partly built**. The schema, the editor, the draft store, the video
-plumbing, the `@dnd-kit` wrappers, and course CRUD server actions are merged. Everything that turns
-a draft into published rows — the builder UI, autosave wiring, module/lesson CRUD, and a draft-based
-publish — is **planned and absent**.
+Status: the authoring pipeline is **partly built**. The schema (P2.1), rich text editor and
+sanitizer (P2.2), video upload plumbing (P2.3), draft store (P2.4), sortable UI wrappers (P2.5),
+course CRUD actions (P2.6), and module/lesson CRUD with transactional ordering actions (P2.7) are
+**merged**. The visual builder UI (P2.8), draft autosave (P2.9), and draft-to-database publish
+orchestration (P2.10) are **planned**.
 
 Cross-links: [architecture](../architecture.md), [data model](../data-model.md),
 [profiles](./profiles.md), [payments](./payments.md), [discovery](./discovery.md),
@@ -19,18 +20,66 @@ Cross-links: [architecture](../architecture.md), [data model](../data-model.md),
 | P2.4 | IndexedDB draft store | **merged** | `packages/ui/src/drafts.ts`, `634c78f` (#7) |
 | P2.5 | `@dnd-kit` wrappers | **merged** | `packages/ui/src/sortable.tsx`, `dfef1dd` (#48) |
 | P2.6 | Course CRUD server actions | **merged** | `apps/web/app/(app)/teach/courses/actions.ts`, `c98bd32` (#50) |
-| P2.7 | Module / lesson CRUD + ordering actions | planned | tracked as #13 |
+| P2.7 | Module / lesson CRUD + ordering actions | **merged** | `apps/web/app/(app)/teach/courses/builder/actions.ts`, `packages/db/src/ordering.ts`, commit `bd808d9` (#60) |
 | P2.8 | Course builder UI (cards / list toggle) | planned | tracked as #14 |
 | P2.9 | Draft autosave | planned | — |
 | P2.10 | Publish + version bump | planned | — |
 
-Note on the tracker: `todos.md` now marks `P2.2` checked, but still shows `P2.5` and `P2.6`
-unchecked although both are merged on `origin/master`. The tracker lags the code.
+`todos.md` tracks these items and shows P2.1 through P2.7 as merged. Server actions and schema
+validation live under `apps/web/app/(app)/teach/courses/` (course CRUD) and
+`apps/web/app/(app)/teach/courses/builder/` (module and lesson CRUD with two-phase transactional
+ordering). Client draft management is provided by `useDraftStore` in `packages/ui/src/drafts.ts`.
 
-No page under `apps/web/app` renders an authoring surface. `apps/web/app/(app)/teach/courses/`
-exists with server actions and their zod schemas (P2.6), but no `page.tsx` or component. The
-middleware matches `/teach/:path*` and protects it, and a comment reserves a server-side role check
-there. Draft manipulation is available only as an API — no component calls `useDraftStore`.
+## Authoring lifecycle
+
+```mermaid
+stateDiagram-v2
+  [*] --> LocalDraft: createDraft() in useDraftStore (IndexedDB)
+  
+  state LocalDraft {
+    [*] --> EditingMetadata: Set title, description, pricing
+    EditingMetadata --> StructuringCurriculum: addModule(), addLesson()
+    
+    state StructuringCurriculum {
+      [*] --> AuthoringLesson
+      AuthoringLesson --> VideoUpload: type = "video"
+      VideoUpload --> MuxProcessing: POST direct upload to Mux
+      MuxProcessing --> VideoReady: Webhook video.asset.ready (muxPlaybackId set)
+      
+      AuthoringLesson --> RichTextEditing: type = "text" | "quiz"
+      RichTextEditing --> SanitizedContent: TipTap edit -> sanitizeHtml -> content_json
+      
+      AuthoringLesson --> ResourceConfig: type = "file" | "external"
+      ResourceConfig --> ResourceLinked: Set externalUrl / fileKey
+    }
+
+    StructuringCurriculum --> OrderingCurriculum: moveModule() / moveLesson()
+    OrderingCurriculum --> DraftPersisted: Persist state to IndexedDB (lagan-authoring)
+  }
+
+  LocalDraft --> ServerDraft: Server action createCourse() / createModule() / createLesson()
+  
+  state ServerDraft {
+    CourseDraftRow: Course (status = "draft", version = 1)
+    LessonDraftRows: Lessons (status = "draft")
+    CourseDraftRow --> ReorderingTransactions: applyModuleOrder() / applyLessonOrder()
+    ReorderingTransactions --> CourseDraftRow: Two-phase position update
+  }
+
+  ServerDraft --> Published: publishCourse() server action
+  
+  state Published {
+    CoursePublished: Course (status = "published", version = N+1, publishedAt = now())
+    LessonsPublished: Lessons (status = "published")
+  }
+
+  Published --> ServerDraft: Author makes revisions / draft edits
+  Published --> Archived: archiveCourse()
+  
+  state Archived {
+    CourseArchived: Course (status = "archived", catalog hidden)
+  }
+```
 
 ## Schema — `packages/db/src/schema/course.ts`
 
@@ -295,9 +344,10 @@ that never becomes ready.
 
 - **`createMuxUpload` has no caller outside its test.** There is no upload route under
   `apps/web/app/api`. An author cannot get an upload URL today.
-- **The webhook writes rows nothing creates.** `lessons.muxPlaybackId` is set by id, but lesson
-  CRUD (P2.7) does not exist — only course CRUD (P2.6) shipped — so against a real database the
-  update matches zero rows and answers `updated: false`.
+- **Lesson record creation vs Mux webhook:** Lesson CRUD (P2.7) is merged in
+  `apps/web/app/(app)/teach/courses/builder/actions.ts`, enabling module and lesson creation.
+  A lesson row with type `"video"` receives its `muxPlaybackId` once Mux finishes encoding and
+  delivers the `video.asset.ready` webhook.
 - Playback id is taken from `playback_ids[0]` with no preference for the policy, which matters once
   signed playback is added.
 

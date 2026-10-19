@@ -1,6 +1,6 @@
 # Feature — notifications
 
-Status: **planned and in progress**. Notifications provide durable event records in PostgreSQL, realtime in-app delivery via Server-Sent Events (SSE), background fan-out via `pg-boss` (ADR-0006), email dispatch via `packages/email`, and an accessible notification center in the app shell. The schema (P6.1) is in progress (#31); SSE transport (P6.2), fan-out jobs (P6.3), email sending (P6.4), and notification center UI (P6.5) are planned.
+Status: **partly built** (P6.1). Notifications provide durable event records in PostgreSQL, realtime in-app delivery via Server-Sent Events (SSE), background fan-out via `pg-boss` (ADR-0006), email dispatch via `packages/email`, and an accessible notification center in the app shell. The schema and migration (P6.1) are **merged** in `packages/db/src/schema/notification.ts` and `packages/db/drizzle/0002_yielding_gideon.sql` (commit `a90a2f2`, PR #69). The SSE transport (P6.2), fan-out jobs (P6.3), email sending (P6.4), and notification center UI (P6.5) are planned.
 
 Cross-links: [architecture](../architecture.md), [data model](../data-model.md), [course authoring](./authoring.md), [player and progress](./player-progress.md), [payments and enrollments](./payments.md), [discovery](./discovery.md), [author analytics](./analytics.md), [learner and author profiles](./profiles.md), [ADR-0002 (Postgres / Tenancy)](../adr/index.md), [ADR-0006 (Jobs in Postgres)](../adr/index.md), [ADR-0010 (Accessibility)](../adr/index.md), [ADR-0014 (Tenancy model)](../adr/index.md), [2026 Stack Decisions](../decisions/2026-stack-decisions.md).
 
@@ -10,7 +10,7 @@ Cross-links: [architecture](../architecture.md), [data model](../data-model.md),
 
 | Item | What | State | Evidence / Tracking |
 |---|---|---|---|
-| P6.1 | Notification schema (`notifications` table) | in progress | `packages/db/src/schema/notification.ts`, tracked as #31 |
+| P6.1 | Notification schema (`notifications` table) | **merged** | `packages/db/src/schema/notification.ts`, `0002_yielding_gideon.sql`, commit `a90a2f2` (#69) |
 | P6.2 | SSE delivery route & client hook | planned | `apps/web/app/api/notifications/stream/route.ts`, tracked as #32 |
 | P6.3 | New-content detection & fan-out dispatch | planned | `pg-boss` background worker, tracked as #33 |
 | P6.4 | Email sending integration & templates | planned | `packages/email`, suppression & provider queue, tracked as #34 |
