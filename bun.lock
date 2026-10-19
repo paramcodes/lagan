@@ -63,6 +63,14 @@
         "pg": "^8.13.0",
       },
     },
+    "packages/email": {
+      "name": "@lagan/email",
+      "version": "0.0.0",
+      "devDependencies": {
+        "typescript": "^5.8.0",
+        "vitest": "5.0.5",
+      },
+    },
     "packages/types": {
       "name": "@lagan/types",
       "version": "0.0.0",
@@ -307,6 +315,8 @@
     "@lagan/config": ["@lagan/config@workspace:packages/config"],
 
     "@lagan/db": ["@lagan/db@workspace:packages/db"],
+
+    "@lagan/email": ["@lagan/email@workspace:packages/email"],
 
     "@lagan/types": ["@lagan/types@workspace:packages/types"],
 
