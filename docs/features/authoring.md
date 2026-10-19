@@ -6,7 +6,7 @@ a draft into published rows — the builder UI, autosave wiring, module/lesson C
 publish — is **planned and absent**.
 
 Cross-links: [architecture](../architecture.md), [data model](../data-model.md),
-[profiles](./profiles.md).
+[profiles](./profiles.md), [payments](./payments.md), [discovery](./discovery.md).
 
 ## Status by item
 
