@@ -1,1 +1,1 @@
-// Shared UI components. Populated in later phases.
+export * from "./sidebar";
