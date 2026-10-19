@@ -158,6 +158,16 @@ All visual evidence artifacts are captured under standardized test environment c
   - Unread styling with indigo accent border, unread status dot, and per-item "Mark as read" button.
   - Clean relative timestamp formatting ("5m ago", "45m ago", "3h ago").
   - Seamless color scheme adaptation across light and dark tokens.
+
+#### 7. Lesson Player View (`/courses/[courseId]/lessons/[lessonId]`)
+
+- **Light Mode**: `lesson-player-light.png` (2880 × 1800 px)
+- **Dark Mode**: `lesson-player-dark.png` (2880 × 1800 px)
+- **Verified Features**:
+  - Embedded `LessonPlayer` video surface with token styling and playback controls.
+  - Lesson navigation sidebar with module hierarchy and completed lesson checkmarks.
+  - Auto-advance countdown banner on completion with direct trigger to next lesson.
+  - Throttled progress persistence via `useLessonProgress` client hook.
 ---
 
 ## Reproduction and Automated Capture
