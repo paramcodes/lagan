@@ -1,0 +1,36 @@
+/* AUTO-GENERATED from tokens/tokens.json. Do not edit. */
+:root {
+  --color-ink: #0C0D0C;
+  --color-ink2: #171817;
+  --color-canvas: #F4F4F2;
+  --color-surface: #FFFFFF;
+  --color-line: #E0E1DE;
+  --color-edge: #7C7E77;
+  --color-brand: #111311;
+  --color-chalk: #F2E679;
+  --color-due: #8A5200;
+  --color-alert: #A62B22;
+  --color-accent: #4F46E5;
+  --radius-panel: 14px;
+  --radius-control: 10px;
+  --radius-chip: 7px;
+  --font-sans: Archivo, system-ui, sans-serif;
+}
+
+@theme inline {
+  --color-color-ink: var(--color-ink);
+  --color-color-ink2: var(--color-ink2);
+  --color-color-canvas: var(--color-canvas);
+  --color-color-surface: var(--color-surface);
+  --color-color-line: var(--color-line);
+  --color-color-edge: var(--color-edge);
+  --color-color-brand: var(--color-brand);
+  --color-color-chalk: var(--color-chalk);
+  --color-color-due: var(--color-due);
+  --color-color-alert: var(--color-alert);
+  --color-color-accent: var(--color-accent);
+  --color-radius-panel: var(--radius-panel);
+  --color-radius-control: var(--radius-control);
+  --color-radius-chip: var(--radius-chip);
+  --color-font-sans: var(--font-sans);
+}

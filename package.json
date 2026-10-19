@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.base.json",
     "lint": "biome lint .",
     "format": "biome format --write .",
+    "gen:tokens": "bun scripts/gen-tokens.ts",
     "test": "vitest run",
     "test:e2e": "playwright test"
   },
