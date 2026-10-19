@@ -4,3 +4,4 @@ export * from "./player";
 export * from "./sanitize";
 export * from "./sidebar";
 export * from "./sortable";
+export * from "./charts";
