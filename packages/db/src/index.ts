@@ -8,3 +8,4 @@ export * from "./schema/progress";
 export * from "./schema/notification";
 export * from "./progress";
 export * from "./access";
+export * from "./notifications";
