@@ -53,22 +53,19 @@ function SignInForm() {
     <div className="flex min-h-screen items-center justify-center bg-[var(--color-canvas)] px-4">
       <div className="w-full max-w-sm rounded-[var(--radius-panel)] border border-[var(--color-line)] bg-[var(--color-surface)] p-6 shadow-sm">
         <h1 className="text-xl font-semibold text-[var(--color-ink)]">Sign in</h1>
-        <p className="mt-1 text-sm text-[var(--color-edge)]">
+        <p className="mt-1 text-sm text-[var(--color-ink2)]">
           Welcome back. Enter your credentials to continue.
         </p>
         <form onSubmit={form.handleSubmit(onSubmit)} className="mt-6 space-y-4">
           <div>
-            <label
-              className="block text-sm font-medium text-[var(--color-ink)]"
-              htmlFor="email"
-            >
+            <label className="block text-sm font-medium text-[var(--color-ink)]" htmlFor="email">
               Email
             </label>
             <input
               id="email"
               type="email"
               autoComplete="email"
-              className="mt-1 w-full rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-ink)] outline-none focus:border-[var(--color-accent)]"
+              className="mt-1 w-full rounded-[var(--radius-control)] border border-[var(--color-edge)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-ink)] outline-none focus:border-[var(--color-accent)]"
               {...form.register("email")}
             />
             {form.formState.errors.email && (
@@ -79,17 +76,14 @@ function SignInForm() {
           </div>
 
           <div>
-            <label
-              className="block text-sm font-medium text-[var(--color-ink)]"
-              htmlFor="password"
-            >
+            <label className="block text-sm font-medium text-[var(--color-ink)]" htmlFor="password">
               Password
             </label>
             <input
               id="password"
               type="password"
               autoComplete="current-password"
-              className="mt-1 w-full rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-ink)] outline-none focus:border-[var(--color-accent)]"
+              className="mt-1 w-full rounded-[var(--radius-control)] border border-[var(--color-edge)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-ink)] outline-none focus:border-[var(--color-accent)]"
               {...form.register("password")}
             />
             {form.formState.errors.password && (
@@ -110,12 +104,9 @@ function SignInForm() {
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-[var(--color-edge)]">
+        <p className="mt-4 text-center text-sm text-[var(--color-ink2)]">
           No account?{" "}
-          <a
-            href="/sign-up"
-            className="text-[var(--color-accent)] underline"
-          >
+          <a href="/sign-up" className="text-[var(--color-accent)] underline">
             Sign up
           </a>
         </p>
