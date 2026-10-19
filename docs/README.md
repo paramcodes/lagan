@@ -70,6 +70,7 @@ Features:
 - [`features/discovery.md`](features/discovery.md) — course catalog, search architecture, category filtering, free vs paid paths.
 - [`features/player-progress.md`](features/player-progress.md) — video player wrapper, progress tracking grain, auto-advance, and completion aggregation.
 - [`features/analytics.md`](features/analytics.md) — author analytics metrics, course event ingestion, aggregation windowing, and accessible chart visualization.
+- [`features/notifications.md`](features/notifications.md) — notification data model, SSE delivery stream, fan-out event dispatch, email integration, and notification center UI.
 
 Reference:
 - [`stack.md`](stack.md) — condensed stack decision log.
