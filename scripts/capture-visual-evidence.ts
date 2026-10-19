@@ -110,10 +110,10 @@ async function seedDatabaseIfPossible(databaseUrl?: string) {
 
       INSERT INTO "modules" (id, course_id, title, position)
       VALUES
-        ('mod_consensus', 'course_distributed', 'Consensus & State Machine Replication', 0),
-        ('mod_replication', 'course_distributed', 'Replication & Failure Detection', 1),
-        ('mod_db_1', 'course_database', 'Storage Engine Fundamentals', 0),
-        ('mod_ts_1', 'course_typescript', 'Type-Level Programming', 0)
+        ('mod_consensus', 'course_distributed', 'Consensus & State Machine Replication', 10),
+        ('mod_replication', 'course_distributed', 'Replication & Failure Detection', 11),
+        ('mod_db_1', 'course_database', 'Storage Engine Fundamentals', 10),
+        ('mod_ts_1', 'course_typescript', 'Type-Level Programming', 10)
       ON CONFLICT DO NOTHING;
 
       INSERT INTO "lessons" (id, module_id, type, title, position, status, mux_playback_id)
@@ -208,6 +208,12 @@ async function createAuthorSession(baseUrl: string): Promise<{ name: string; val
     const { rows } = await client.query('SELECT id FROM "user" WHERE email = $1', [email]);
     const tempId = rows[0]?.id;
     if (tempId) {
+      // The seeded author must end up with exactly one credential account,
+      // otherwise sign-in picks a stale password hash from an earlier run.
+      await client.query('DELETE FROM "account" WHERE user_id = $1 AND provider_id = $2', [
+        AUTHOR_ID,
+        "credential",
+      ]);
       await client.query('UPDATE "session" SET user_id = $1 WHERE user_id = $2', [
         AUTHOR_ID,
         tempId,
