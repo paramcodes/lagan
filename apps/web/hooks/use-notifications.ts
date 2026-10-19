@@ -31,6 +31,7 @@ export interface UseNotificationsResult {
   markAsRead: (notificationId: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   isConnected: boolean;
+  isPolling: boolean;
 }
 
 type TimeoutHandle = number | NodeJS.Timeout;
@@ -51,6 +52,7 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [isPolling, setIsPolling] = useState<boolean>(false);
 
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectTimerRef = useRef<TimeoutHandle | undefined>(undefined);
@@ -110,6 +112,7 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
 
     if (typeof window === "undefined" || typeof EventSource === "undefined") {
       isFallbackModeRef.current = true;
+      setIsPolling(true);
       fetchRestFallback();
       if (!pollTimerRef.current) {
         pollTimerRef.current = setInterval(fetchRestFallback, fallbackPollIntervalMs);
@@ -131,8 +134,8 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
         setIsConnected(true);
         retryCountRef.current = 0;
         isFallbackModeRef.current = false;
+        setIsPolling(false);
         if (pollTimerRef.current) {
-          clearInterval(pollTimerRef.current);
           pollTimerRef.current = undefined;
         }
       };
@@ -204,6 +207,7 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
 
         if (retryCountRef.current >= maxRetries) {
           isFallbackModeRef.current = true;
+          setIsPolling(true);
           fetchRestFallback();
           if (!pollTimerRef.current) {
             pollTimerRef.current = setInterval(fetchRestFallback, fallbackPollIntervalMs);
@@ -225,6 +229,7 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
       if (!isMountedRef.current) return;
       setIsConnected(false);
       isFallbackModeRef.current = true;
+      setIsPolling(true);
       fetchRestFallback();
       if (!pollTimerRef.current) {
         pollTimerRef.current = setInterval(fetchRestFallback, fallbackPollIntervalMs);
@@ -351,5 +356,6 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
     markAsRead,
     markAllAsRead,
     isConnected,
+    isPolling,
   };
 }

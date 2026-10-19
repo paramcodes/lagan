@@ -1,10 +1,11 @@
 "use client";
 
 import { Sidebar } from "@lagan/ui";
-import { Bell, ChevronDown, Search, User } from "lucide-react";
+import { ChevronDown, Search, User } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { COURSE_CATEGORY_OPTIONS } from "./courses/params";
+import { NotificationCenter } from "../../components/notification-center";
 
 const COURSES_PATH = "/courses";
 const SEARCH_DEBOUNCE_MS = 300;
@@ -130,14 +131,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="ml-auto flex items-center gap-3">
-            <button
-              type="button"
-              aria-label="Notifications"
-              className="relative inline-flex h-10 w-10 items-center justify-center rounded-md text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-            >
-              <Bell className="h-5 w-5" />
-              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
-            </button>
+            <NotificationCenter />
 
             <button
               type="button"
