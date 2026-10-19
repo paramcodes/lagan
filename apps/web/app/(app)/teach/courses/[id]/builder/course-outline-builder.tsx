@@ -2,7 +2,18 @@
 
 import type { LessonStatus, LessonType } from "@lagan/db";
 import { SortableItem, SortableList, useViewPreference, ViewToggle } from "@lagan/ui";
-import { AlertCircle, ArrowLeft, Check, Loader2, Plus, RotateCcw, Save, X } from "lucide-react";
+import {
+  AlertCircle,
+  Archive,
+  ArrowLeft,
+  Check,
+  Globe,
+  Loader2,
+  Plus,
+  RotateCcw,
+  Save,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import {
@@ -15,6 +26,7 @@ import {
   updateLesson,
   updateModule,
 } from "../../builder/actions";
+import { archiveCourse, publishCourse, unarchiveCourse } from "./publish";
 import { ModuleCard } from "./module-card";
 import type { BuilderLesson, BuilderModule, CourseBuilderData } from "./query";
 import { useCourseAutosave } from "./use-course-autosave";
@@ -32,9 +44,15 @@ const BUTTON_SECONDARY =
   "inline-flex items-center gap-1.5 rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-surface)] px-3.5 py-2 text-xs font-medium text-[var(--color-ink)] transition-colors hover:border-[var(--color-edge)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ink)]";
 
 export function CourseOutlineBuilder({ initialCourse }: { initialCourse: CourseBuilderData }) {
-  const [course] = useState<CourseBuilderData>(initialCourse);
+  const [course, setCourse] = useState<CourseBuilderData>(initialCourse);
   const [view, setView] = useViewPreference("lagan.builder.view", "cards");
   const [error, setError] = useState<string | null>(null);
+
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [publishErrors, setPublishErrors] = useState<string[]>([]);
+  const [publishSuccessMessage, setPublishSuccessMessage] = useState<string | null>(null);
+  const [isArchiving, setIsArchiving] = useState(false);
 
   const {
     modules,
@@ -62,6 +80,67 @@ export function CourseOutlineBuilder({ initialCourse }: { initialCourse: CourseB
 
   const totalLessons = modules.reduce((acc, mod) => acc + mod.lessons.length, 0);
 
+  const handleOpenPublishModal = () => {
+    setPublishErrors([]);
+    setPublishSuccessMessage(null);
+    setIsPublishModalOpen(true);
+  };
+
+  const handleConfirmPublish = async () => {
+    try {
+      setIsPublishing(true);
+      setPublishErrors([]);
+      setError(null);
+      await flushAll();
+      const res = await publishCourse(course.id);
+      if (!res.success) {
+        setPublishErrors(res.errors);
+        return;
+      }
+      setCourse((prev) => ({
+        ...prev,
+        status: res.course.status,
+        version: res.course.version,
+        publishedAt: res.course.publishedAt,
+      }));
+      setPublishSuccessMessage(
+        res.isVersionBump
+          ? `Course republished successfully as version ${res.version}!`
+          : "Course published successfully!",
+      );
+    } catch (err) {
+      setPublishErrors([err instanceof Error ? err.message : "Failed to publish course"]);
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+  const handleArchive = async () => {
+    try {
+      setIsArchiving(true);
+      setError(null);
+      await flushAll();
+      const res = await archiveCourse(course.id);
+      setCourse((prev) => ({ ...prev, status: res.course.status }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to archive course");
+    } finally {
+      setIsArchiving(false);
+    }
+  };
+
+  const handleUnarchive = async () => {
+    try {
+      setIsArchiving(true);
+      setError(null);
+      const res = await unarchiveCourse(course.id);
+      setCourse((prev) => ({ ...prev, status: res.course.status }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to unarchive course");
+    } finally {
+      setIsArchiving(false);
+    }
+  };
   // Module actions
   const handleAddModule = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -280,14 +359,19 @@ export function CourseOutlineBuilder({ initialCourse }: { initialCourse: CourseB
               {course.title}
             </h1>
             <span
+              data-testid="course-status-badge"
               className={[
                 "rounded-[var(--radius-chip)] px-2 py-0.5 text-xs font-semibold capitalize",
                 course.status === "published"
                   ? "bg-[var(--color-brand)] text-[var(--color-surface)]"
-                  : "border border-[var(--color-line)] bg-[var(--color-canvas)] text-[var(--color-edge)]",
+                  : course.status === "archived"
+                    ? "border border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                    : "border border-[var(--color-line)] bg-[var(--color-canvas)] text-[var(--color-edge)]",
               ].join(" ")}
             >
-              {course.status}
+              {course.status === "published"
+                ? `Published • v${course.version ?? 1}`
+                : course.status}
             </span>
             <span
               data-testid="save-state-badge"
@@ -339,6 +423,50 @@ export function CourseOutlineBuilder({ initialCourse }: { initialCourse: CourseB
             <Save className="h-3.5 w-3.5" />
             Save
           </button>
+          {course.status === "archived" ? (
+            <button
+              type="button"
+              onClick={handleUnarchive}
+              disabled={isArchiving}
+              className={BUTTON_SECONDARY}
+              aria-label="Unarchive course"
+            >
+              {isArchiving ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <RotateCcw className="h-3.5 w-3.5" />
+              )}
+              Unarchive
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={handleOpenPublishModal}
+                className={BUTTON_PRIMARY}
+                aria-label={course.status === "published" ? "Republish course" : "Publish course"}
+              >
+                <Globe className="h-3.5 w-3.5" />
+                {course.status === "published"
+                  ? `Republish (v${(course.version ?? 1) + 1})`
+                  : "Publish"}
+              </button>
+              <button
+                type="button"
+                onClick={handleArchive}
+                disabled={isArchiving}
+                className={BUTTON_SECONDARY}
+                aria-label="Archive course"
+              >
+                {isArchiving ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Archive className="h-3.5 w-3.5" />
+                )}
+                Archive
+              </button>
+            </>
+          )}
           <ViewToggle
             value={activeView}
             onChange={setView}
@@ -507,6 +635,141 @@ export function CourseOutlineBuilder({ initialCourse }: { initialCourse: CourseB
           </button>
         )}
       </div>
+
+      {/* Publish Modal */}
+      {isPublishModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="publish-dialog-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs"
+        >
+          <div className="w-full max-w-md rounded-[var(--radius-panel)] border border-[var(--color-line)] bg-[var(--color-surface)] p-6 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--color-line)]">
+              <h2 id="publish-dialog-title" className="text-lg font-bold text-[var(--color-ink)]">
+                {course.status === "published" ? "Publish New Version" : "Publish Course"}
+              </h2>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsPublishModalOpen(false);
+                  setPublishErrors([]);
+                  setPublishSuccessMessage(null);
+                }}
+                className="inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-chip)] text-[var(--color-edge)] hover:bg-[var(--color-canvas)] hover:text-[var(--color-ink)]"
+                aria-label="Close dialog"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="py-4 space-y-4">
+              {publishSuccessMessage ? (
+                <div
+                  role="status"
+                  className="flex items-start gap-2.5 rounded-[var(--radius-panel)] border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-300"
+                >
+                  <Check className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
+                  <div>
+                    <p className="font-medium">{publishSuccessMessage}</p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm text-[var(--color-edge)]">
+                    {course.status === "published"
+                      ? `Publishing will bump the course to version ${(course.version ?? 1) + 1}. All learners will immediately see the updated outline and lessons.`
+                      : "Publishing makes your course visible to learners. Ensure your outline and lessons are complete."}
+                  </p>
+
+                  <div className="rounded-[var(--radius-control)] border border-[var(--color-line)] bg-[var(--color-canvas)] p-3 text-xs text-[var(--color-edge)] space-y-1">
+                    <div>
+                      <strong className="text-[var(--color-ink)]">Modules:</strong> {modules.length}
+                    </div>
+                    <div>
+                      <strong className="text-[var(--color-ink)]">Lessons:</strong> {totalLessons}
+                    </div>
+                    <div>
+                      <strong className="text-[var(--color-ink)]">Target version:</strong>{" "}
+                      {course.status === "published"
+                        ? (course.version ?? 1) + 1
+                        : (course.version ?? 1)}
+                    </div>
+                  </div>
+
+                  {publishErrors.length > 0 && (
+                    <div
+                      role="alert"
+                      aria-label="Publish preflight validation errors"
+                      className="rounded-[var(--radius-panel)] border border-[var(--color-alert)]/30 bg-[var(--color-alert)]/10 p-3 text-xs text-[var(--color-alert)] space-y-2"
+                    >
+                      <div className="flex items-center gap-1.5 font-semibold">
+                        <AlertCircle className="h-4 w-4 shrink-0" />
+                        <span>Cannot publish course. Please resolve the following:</span>
+                      </div>
+                      <ul className="list-disc pl-5 space-y-1">
+                        {publishErrors.map((err) => (
+                          <li key={err}>{err}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--color-line)]">
+              {publishSuccessMessage ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsPublishModalOpen(false);
+                    setPublishErrors([]);
+                    setPublishSuccessMessage(null);
+                  }}
+                  className={BUTTON_PRIMARY}
+                >
+                  Done
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsPublishModalOpen(false);
+                      setPublishErrors([]);
+                    }}
+                    disabled={isPublishing}
+                    className={BUTTON_SECONDARY}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmPublish}
+                    disabled={isPublishing}
+                    className={BUTTON_PRIMARY}
+                  >
+                    {isPublishing ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        Publishing...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="h-3.5 w-3.5" />
+                        {course.status === "published"
+                          ? `Confirm Republish (v${(course.version ?? 1) + 1})`
+                          : "Confirm & Publish"}
+                      </>
+                    )}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
