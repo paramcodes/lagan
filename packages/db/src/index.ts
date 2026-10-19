@@ -1,1 +1,1 @@
-// Database schema and queries. Populated in later phases.
+export * from "./schema/profile";
