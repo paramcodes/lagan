@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "../../../../lib/auth";
 import { db } from "../../../../lib/db";
-import { createStripeCheckoutSession } from "../../../../lib/stripe";
+import { computeChargeCents, createStripeCheckoutSession } from "../../../../lib/stripe";
 
 const checkoutRequestSchema = z.object({
   courseId: z.string().min(1),
@@ -34,12 +34,17 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "course is free" }, { status: 400 });
   }
 
+  const amountCents = computeChargeCents(course.priceCents, course.discountPercent);
+  if (amountCents <= 0) {
+    return Response.json({ error: "course has no chargeable amount" }, { status: 400 });
+  }
+
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(request.url).origin;
   const checkout = await createStripeCheckoutSession({
     userId,
     courseId: course.id,
     courseTitle: course.title,
-    priceCents: course.priceCents,
+    priceCents: amountCents,
     currency: "usd",
     successUrl: `${baseUrl}/courses/${course.id}?checkout=success`,
     cancelUrl: `${baseUrl}/courses/${course.id}?checkout=cancelled`,

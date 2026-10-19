@@ -1,6 +1,7 @@
 import { createHmac } from "node:crypto";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  computeChargeCents,
   createStripeCheckoutSession,
   enrollmentIntentFromEvent,
   parseStripeWebhookEvent,
@@ -63,6 +64,15 @@ describe("verifyStripeWebhookSignature", () => {
     const signature = `t=${TIMESTAMP},v1=${"0".repeat(64)},v1=${valid}`;
 
     expect(verifyStripeWebhookSignature(body, signature, SECRET, undefined, NOW)).toBe(true);
+  });
+});
+
+describe("computeChargeCents", () => {
+  it("subtracts the discount and rounds half up to the nearest cent", () => {
+    expect(computeChargeCents(10000, 50)).toBe(5000);
+    expect(computeChargeCents(9999, 33)).toBe(6699);
+    expect(computeChargeCents(10000, 0)).toBe(10000);
+    expect(computeChargeCents(10000, 100)).toBe(0);
   });
 });
 

@@ -23,7 +23,8 @@ vi.mock("../../../../lib/db", () => ({ db: { select: dbMock.selectMock } }));
 vi.mock("../../../../lib/auth", () => ({
   auth: { api: { getSession: authMock.getSessionMock } },
 }));
-vi.mock("../../../../lib/stripe", () => ({
+vi.mock("../../../../lib/stripe", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../../../lib/stripe")>()),
   createStripeCheckoutSession: stripeMock.createCheckoutMock,
 }));
 
@@ -33,6 +34,7 @@ const course = {
   id: "course_1",
   title: "Intro to Rust",
   priceCents: 4900,
+  discountPercent: 0,
   isFree: false,
 };
 
@@ -110,6 +112,26 @@ describe("POST /api/stripe/checkout", () => {
     const response = await POST(request({ courseId: "missing" }));
 
     expect(response.status).toBe(404);
+    expect(stripeMock.createCheckoutMock).not.toHaveBeenCalled();
+  });
+
+  it("charges the list price less the course discount", async () => {
+    dbMock.state.rows = [{ ...course, priceCents: 10000, discountPercent: 50 }];
+
+    const response = await POST(request({ courseId: "course_1" }));
+
+    expect(response.status).toBe(200);
+    expect(stripeMock.createCheckoutMock).toHaveBeenCalledWith(
+      expect.objectContaining({ priceCents: 5000 }),
+    );
+  });
+
+  it("does not open a zero-amount session for a fully discounted course", async () => {
+    dbMock.state.rows = [{ ...course, priceCents: 10000, discountPercent: 100 }];
+
+    const response = await POST(request({ courseId: "course_1" }));
+
+    expect(response.status).toBe(400);
     expect(stripeMock.createCheckoutMock).not.toHaveBeenCalled();
   });
 

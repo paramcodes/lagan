@@ -65,6 +65,15 @@ export async function createStripeCheckoutSession(
   return { id, url };
 }
 
+/**
+ * Amount to charge for a course: list price less its discount, rounded to the
+ * nearest cent (`Math.round`, i.e. half rounds up). Callers reject a non-positive
+ * result rather than opening a zero-amount paid session.
+ */
+export function computeChargeCents(priceCents: number, discountPercent: number): number {
+  return Math.round((priceCents * (100 - discountPercent)) / 100);
+}
+
 const stripeWebhookEventSchema = z.object({
   type: z.string(),
   data: z.object({
