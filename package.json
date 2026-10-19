@@ -12,12 +12,14 @@
     "lint": "biome lint .",
     "format": "biome format --write .",
     "gen:tokens": "bun scripts/gen-tokens.ts",
+    "check:contrast": "bun scripts/check-contrast.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "test": "vitest run",
     "test:e2e": "playwright test"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
     "@biomejs/biome": "2.5.15",
     "@playwright/test": "1.64.1",
     "@testing-library/jest-dom": "7.0.1",

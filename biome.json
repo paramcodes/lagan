@@ -36,7 +36,9 @@
       "!docs",
       "!docs/decisions",
       "!docs/research",
-      "!packages/db/drizzle/meta"
+      "!packages/db/drizzle/meta",
+      "!playwright-report",
+      "!test-results"
     ]
   }
 }

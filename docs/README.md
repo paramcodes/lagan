@@ -45,11 +45,11 @@ bun run dev                    # http://localhost:3000
 | `bun run lint` | Biome lint |
 | `bun run format` | Biome format |
 | `bun run gen:tokens` | Regenerate CSS from tokens |
+| `bun run check:contrast` | Enforce WCAG 2.2 AA token contrast rules |
 | `bun run db:generate` | Generate SQL migrations from schema |
 | `bun run db:migrate` | Apply pending SQL migrations to database |
 | `bun run test` | Vitest |
-| `bun run test:e2e` | Playwright |
-
+| `bun run test:e2e` | Playwright (includes axe WCAG 2.2 AA checks) |
 ## Local services
 
 `docker-compose.yml` provides Postgres 18 (`lagan`/`lagan`, db `lagan`) and MinIO on 9000/9001.
@@ -75,6 +75,7 @@ Features:
 Reference:
 - [`stack.md`](stack.md) — condensed stack decision log.
 - [`contributing.md`](contributing.md) — how to contribute.
+- [`testing/screen-reader-checklist.md`](testing/screen-reader-checklist.md) — VoiceOver and NVDA manual verification flows.
 - [`adr/`](adr/index.md) — architecture decision records (index).
 - [`decisions/`](decisions/2026-stack-decisions.md) — full stack decision document.
 - `research/` — background research.

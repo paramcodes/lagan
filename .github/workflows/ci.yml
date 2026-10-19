@@ -43,5 +43,53 @@ jobs:
       - name: Lint
         run: bun run lint
 
+      - name: Token contrast check
+        run: bun run check:contrast
+
       - name: Build
         run: bun run build
+
+  a11y-e2e:
+    name: E2E and accessibility (axe WCAG 2.2 AA)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: lagan
+          POSTGRES_PASSWORD: lagan
+          POSTGRES_DB: lagan
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://lagan:lagan@localhost:5432/lagan
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Apply DB migrations
+        run: bun run db:migrate
+
+      - name: Install Playwright browsers
+        run: bun x playwright install --with-deps chromium
+
+      - name: Run E2E and axe accessibility suite
+        run: bun run test:e2e
