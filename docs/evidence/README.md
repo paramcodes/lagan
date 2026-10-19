@@ -30,7 +30,10 @@ All visual evidence artifacts are captured under standardized test environment c
 | [`courses-cards-dark.png`](./courses-cards-dark.png) | `/courses?view=cards` | 1440 × 900 | 2880 × 1800 px | Dark |
 | [`courses-ledger-light.png`](./courses-ledger-light.png) | `/courses?view=ledger` | 1440 × 900 | 2880 × 1800 px | Light |
 | [`courses-ledger-dark.png`](./courses-ledger-dark.png) | `/courses?view=ledger` | 1440 × 900 | 2880 × 1800 px | Dark |
-
+| [`learn-cards-light.png`](./learn-cards-light.png) | `/learn?view=cards` | 1440 × 900 | 2880 × 1800 px | Light |
+| [`learn-cards-dark.png`](./learn-cards-dark.png) | `/learn?view=cards` | 1440 × 900 | 2880 × 1800 px | Dark |
+| [`learn-ledger-light.png`](./learn-ledger-light.png) | `/learn?view=ledger` | 1440 × 900 | 2880 × 1800 px | Light |
+| [`learn-ledger-dark.png`](./learn-ledger-dark.png) | `/learn?view=ledger` | 1440 × 900 | 2880 × 1800 px | Dark |
 ---
 
 ### Detailed Route Artifacts
@@ -78,6 +81,29 @@ All visual evidence artifacts are captured under standardized test environment c
   - Row divider line tokens and hover interaction feedback.
   - Active toggle indicator on `CourseViewToggle` showing "ledger" selection.
   - High-density readability and text contrast under both light and dark modes.
+
+#### 5. My Learning Dashboard — Cards Grid (`/learn?view=cards`)
+
+- **Light Mode**: `learn-cards-light.png` (2880 × 1800 px)
+- **Dark Mode**: `learn-cards-dark.png` (2880 × 1800 px)
+- **Verified Features**:
+  - Enrolled courses rendered in responsive cards grid with surface elevations.
+  - Accessible progress bar with `aria-valuenow`, percent completed, and lesson count summary (`X of Y lessons`).
+  - Direct "Continue Learning" action button deep-linking to the next uncompleted lesson.
+  - Course completion badges (`Completed`, `In Progress`) and next lesson indicator.
+  - Active toggle indicator on `LearnViewToggle` showing "cards" selection.
+  - Consistent DTCG token styling across light and dark color schemes.
+
+#### 6. My Learning Dashboard — Ledger View (`/learn?view=ledger`)
+
+- **Light Mode**: `learn-ledger-light.png` (2880 × 1800 px)
+- **Dark Mode**: `learn-ledger-dark.png` (2880 × 1800 px)
+- **Verified Features**:
+  - Compact tabular list presentation utilizing `LearnerCourseRow`.
+  - Course title, author attribution, inline progress bar, percent, and lesson count.
+  - Direct "Continue Learning" action button deep-linking to next lesson.
+  - Active toggle indicator on `LearnViewToggle` showing "ledger" selection.
+  - High-density readability and token contrast under both light and dark modes.
 
 ---
 
