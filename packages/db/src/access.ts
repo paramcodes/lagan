@@ -92,7 +92,13 @@ export async function hasAccess(
   let tenantId = "";
   let options: HasAccessOptions | undefined;
 
-  if (first && typeof first === "object" && "courseId" in first && "tenantId" in first && !("select" in first)) {
+  if (
+    first &&
+    typeof first === "object" &&
+    "courseId" in first &&
+    "tenantId" in first &&
+    !("select" in first)
+  ) {
     userId = first.userId;
     courseId = first.courseId;
     tenantId = first.tenantId;
@@ -190,7 +196,13 @@ export async function canAccessLesson(
   let tenantId = "";
   let options: HasAccessOptions | undefined;
 
-  if (first && typeof first === "object" && "lessonId" in first && "tenantId" in first && !("select" in first)) {
+  if (
+    first &&
+    typeof first === "object" &&
+    "lessonId" in first &&
+    "tenantId" in first &&
+    !("select" in first)
+  ) {
     userId = first.userId;
     lessonId = first.lessonId;
     tenantId = first.tenantId;
@@ -265,7 +277,13 @@ export async function enrollLearner(
   let tenantId = "";
   let options: EnrollLearnerOptions | undefined;
 
-  if (first && typeof first === "object" && "courseId" in first && "tenantId" in first && !("select" in first || "insert" in first)) {
+  if (
+    first &&
+    typeof first === "object" &&
+    "courseId" in first &&
+    "tenantId" in first &&
+    !("select" in first || "insert" in first)
+  ) {
     userId = first.userId;
     courseId = first.courseId;
     tenantId = first.tenantId;

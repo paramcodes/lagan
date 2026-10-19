@@ -19,8 +19,22 @@ describe("access unit tests with mocked db", () => {
   const COURSE_FREE = "crs_free_1";
   const LESSON_1 = "lsn_lesson_1";
 
-  const mockCourse = { id: COURSE_PAID, authorId: USER_AUTHOR, tenantId: TENANT_A, isFree: false, priceCents: 5000, version: 2 };
-  const mockFreeCourse = { id: COURSE_FREE, authorId: USER_AUTHOR, tenantId: TENANT_A, isFree: true, priceCents: 0, version: 1 };
+  const mockCourse = {
+    id: COURSE_PAID,
+    authorId: USER_AUTHOR,
+    tenantId: TENANT_A,
+    isFree: false,
+    priceCents: 5000,
+    version: 2,
+  };
+  const mockFreeCourse = {
+    id: COURSE_FREE,
+    authorId: USER_AUTHOR,
+    tenantId: TENANT_A,
+    isFree: true,
+    priceCents: 0,
+    version: 1,
+  };
 
   beforeEach(() => {
     setDefaultAccessDb(null);
@@ -31,7 +45,9 @@ describe("access unit tests with mocked db", () => {
       expect(await hasAccess(null, COURSE_PAID, TENANT_A)).toBe(false);
       expect(await hasAccess(undefined, COURSE_PAID, TENANT_A)).toBe(false);
       expect(await hasAccess("", COURSE_PAID, TENANT_A)).toBe(false);
-      expect(await hasAccess({ userId: null, courseId: COURSE_PAID, tenantId: TENANT_A })).toBe(false);
+      expect(await hasAccess({ userId: null, courseId: COURSE_PAID, tenantId: TENANT_A })).toBe(
+        false,
+      );
     });
 
     it("returns false for missing courseId or tenantId", async () => {
@@ -61,7 +77,9 @@ describe("access unit tests with mocked db", () => {
 
     it("returns true if user is the course author", async () => {
       const mockDb = {
-        select: vi.fn(() => ({ from: vi.fn(() => ({ where: vi.fn().mockResolvedValue([mockCourse]) })) })),
+        select: vi.fn(() => ({
+          from: vi.fn(() => ({ where: vi.fn().mockResolvedValue([mockCourse]) })),
+        })),
       } as unknown as AccessDb;
 
       expect(await hasAccess(mockDb, USER_AUTHOR, COURSE_PAID, TENANT_A)).toBe(true);
@@ -130,21 +148,29 @@ describe("access unit tests with mocked db", () => {
         })),
       } as unknown as AccessDb;
 
-      expect(await hasAccess(mockDb, USER_OTHER, COURSE_FREE, TENANT_A, { allowFree: true })).toBe(true);
+      expect(await hasAccess(mockDb, USER_OTHER, COURSE_FREE, TENANT_A, { allowFree: true })).toBe(
+        true,
+      );
     });
 
     it("supports setDefaultAccessDb and options object syntax", async () => {
       const mockDb = {
-        select: vi.fn(() => ({ from: vi.fn(() => ({ where: vi.fn().mockResolvedValue([mockCourse]) })) })),
+        select: vi.fn(() => ({
+          from: vi.fn(() => ({ where: vi.fn().mockResolvedValue([mockCourse]) })),
+        })),
       } as unknown as AccessDb;
 
       setDefaultAccessDb(mockDb);
-      expect(await hasAccess({ userId: USER_AUTHOR, courseId: COURSE_PAID, tenantId: TENANT_A })).toBe(true);
+      expect(
+        await hasAccess({ userId: USER_AUTHOR, courseId: COURSE_PAID, tenantId: TENANT_A }),
+      ).toBe(true);
     });
 
     it("supports db passed as fourth argument", async () => {
       const mockDb = {
-        select: vi.fn(() => ({ from: vi.fn(() => ({ where: vi.fn().mockResolvedValue([mockCourse]) })) })),
+        select: vi.fn(() => ({
+          from: vi.fn(() => ({ where: vi.fn().mockResolvedValue([mockCourse]) })),
+        })),
       } as unknown as AccessDb;
 
       expect(await hasAccess(USER_AUTHOR, COURSE_PAID, TENANT_A, mockDb)).toBe(true);
@@ -163,7 +189,9 @@ describe("access unit tests with mocked db", () => {
       const mockDb = {
         select: vi.fn(() => ({
           from: vi.fn(() => ({
-            innerJoin: vi.fn(() => ({ innerJoin: vi.fn(() => ({ where: vi.fn().mockResolvedValue([]) })) })),
+            innerJoin: vi.fn(() => ({
+              innerJoin: vi.fn(() => ({ where: vi.fn().mockResolvedValue([]) })),
+            })),
           })),
         })),
       } as unknown as AccessDb;
@@ -180,7 +208,9 @@ describe("access unit tests with mocked db", () => {
             if (callIndex === 1) {
               return {
                 innerJoin: vi.fn(() => ({
-                  innerJoin: vi.fn(() => ({ where: vi.fn().mockResolvedValue([{ courseId: COURSE_PAID }]) })),
+                  innerJoin: vi.fn(() => ({
+                    where: vi.fn().mockResolvedValue([{ courseId: COURSE_PAID }]),
+                  })),
                 })),
               };
             }
@@ -196,8 +226,12 @@ describe("access unit tests with mocked db", () => {
   describe("enrollLearner", () => {
     it("validates required parameters and throws descriptive errors", async () => {
       await expect(enrollLearner("", COURSE_PAID, TENANT_A)).rejects.toThrow("userId is required");
-      await expect(enrollLearner(USER_LEARNER, "", TENANT_A)).rejects.toThrow("courseId is required");
-      await expect(enrollLearner(USER_LEARNER, COURSE_PAID, "")).rejects.toThrow("tenantId is required");
+      await expect(enrollLearner(USER_LEARNER, "", TENANT_A)).rejects.toThrow(
+        "courseId is required",
+      );
+      await expect(enrollLearner(USER_LEARNER, COURSE_PAID, "")).rejects.toThrow(
+        "tenantId is required",
+      );
     });
 
     it("throws if course is not found in tenant per ADR-0002", async () => {
@@ -222,15 +256,21 @@ describe("access unit tests with mocked db", () => {
       };
 
       const mockDb = {
-        select: vi.fn(() => ({ from: vi.fn(() => ({ where: vi.fn().mockResolvedValue([mockCourse]) })) })),
+        select: vi.fn(() => ({
+          from: vi.fn(() => ({ where: vi.fn().mockResolvedValue([mockCourse]) })),
+        })),
         insert: vi.fn(() => ({
           values: vi.fn(() => ({
-            onConflictDoNothing: vi.fn(() => ({ returning: vi.fn().mockResolvedValue([mockEnrollment]) })),
+            onConflictDoNothing: vi.fn(() => ({
+              returning: vi.fn().mockResolvedValue([mockEnrollment]),
+            })),
           })),
         })),
       } as unknown as AccessDb;
 
-      const result = await enrollLearner(mockDb, USER_LEARNER, COURSE_PAID, TENANT_A, { stripePaymentId: paymentId });
+      const result = await enrollLearner(mockDb, USER_LEARNER, COURSE_PAID, TENANT_A, {
+        stripePaymentId: paymentId,
+      });
       expect(result.id).toBe("enr_test_1");
       expect(result.isNew).toBe(true);
       expect(result.stripePaymentId).toBe(paymentId);
@@ -241,12 +281,16 @@ describe("access unit tests with mocked db", () => {
       let insertedValues: Record<string, unknown> = {};
 
       const mockDb = {
-        select: vi.fn(() => ({ from: vi.fn(() => ({ where: vi.fn().mockResolvedValue([mockFreeCourse]) })) })),
+        select: vi.fn(() => ({
+          from: vi.fn(() => ({ where: vi.fn().mockResolvedValue([mockFreeCourse]) })),
+        })),
         insert: vi.fn(() => ({
           values: vi.fn((vals: Record<string, unknown>) => {
             insertedValues = vals;
             return {
-              onConflictDoNothing: vi.fn(() => ({ returning: vi.fn().mockResolvedValue([{ ...vals, enrolledAt: new Date() }]) })),
+              onConflictDoNothing: vi.fn(() => ({
+                returning: vi.fn().mockResolvedValue([{ ...vals, enrolledAt: new Date() }]),
+              })),
             };
           }),
         })),
@@ -295,15 +339,25 @@ describe("access unit tests with mocked db", () => {
 
     it("supports string paymentId as fourth argument", async () => {
       const mockDb = {
-        select: vi.fn(() => ({ from: vi.fn(() => ({ where: vi.fn().mockResolvedValue([mockCourse]) })) })),
+        select: vi.fn(() => ({
+          from: vi.fn(() => ({ where: vi.fn().mockResolvedValue([mockCourse]) })),
+        })),
         insert: vi.fn(() => ({
           values: vi.fn((vals: Record<string, unknown>) => ({
-            onConflictDoNothing: vi.fn(() => ({ returning: vi.fn().mockResolvedValue([{ ...vals, enrolledAt: new Date() }]) })),
+            onConflictDoNothing: vi.fn(() => ({
+              returning: vi.fn().mockResolvedValue([{ ...vals, enrolledAt: new Date() }]),
+            })),
           })),
         })),
       } as unknown as AccessDb;
 
-      const result = await enrollLearner(mockDb, USER_LEARNER, COURSE_PAID, TENANT_A, "cs_quick_param");
+      const result = await enrollLearner(
+        mockDb,
+        USER_LEARNER,
+        COURSE_PAID,
+        TENANT_A,
+        "cs_quick_param",
+      );
       expect(result.isNew).toBe(true);
       expect(result.stripePaymentId).toBe("cs_quick_param");
     });
@@ -393,34 +447,68 @@ describe.skipIf(!DATABASE_URL)("access verification against Postgres", () => {
 
   it("evaluates hasAccess accurately across roles and tenancy in Postgres", async () => {
     expect(await hasAccess(db as unknown as AccessDb, null, COURSE_PAID, TENANT_A)).toBe(false);
-    expect(await hasAccess(db as unknown as AccessDb, undefined, COURSE_PAID, TENANT_A)).toBe(false);
+    expect(await hasAccess(db as unknown as AccessDb, undefined, COURSE_PAID, TENANT_A)).toBe(
+      false,
+    );
     expect(await hasAccess(db as unknown as AccessDb, AUTHOR, COURSE_PAID, TENANT_A)).toBe(true);
-    expect(await hasAccess(db as unknown as AccessDb, ENROLLED_LEARNER, COURSE_PAID, TENANT_A)).toBe(true);
-    expect(await hasAccess(db as unknown as AccessDb, UNENROLLED_LEARNER, COURSE_PAID, TENANT_A)).toBe(false);
-    expect(await hasAccess(db as unknown as AccessDb, UNENROLLED_LEARNER, COURSE_FREE, TENANT_A)).toBe(false);
-    expect(await hasAccess(db as unknown as AccessDb, ENROLLED_LEARNER, COURSE_TENANT_B, TENANT_A)).toBe(false);
+    expect(
+      await hasAccess(db as unknown as AccessDb, ENROLLED_LEARNER, COURSE_PAID, TENANT_A),
+    ).toBe(true);
+    expect(
+      await hasAccess(db as unknown as AccessDb, UNENROLLED_LEARNER, COURSE_PAID, TENANT_A),
+    ).toBe(false);
+    expect(
+      await hasAccess(db as unknown as AccessDb, UNENROLLED_LEARNER, COURSE_FREE, TENANT_A),
+    ).toBe(false);
+    expect(
+      await hasAccess(db as unknown as AccessDb, ENROLLED_LEARNER, COURSE_TENANT_B, TENANT_A),
+    ).toBe(false);
   });
 
   it("evaluates canAccessLesson accurately in Postgres", async () => {
-    expect(await canAccessLesson(db as unknown as AccessDb, AUTHOR, LESSON_PAID, TENANT_A)).toBe(true);
-    expect(await canAccessLesson(db as unknown as AccessDb, ENROLLED_LEARNER, LESSON_PAID, TENANT_A)).toBe(true);
-    expect(await canAccessLesson(db as unknown as AccessDb, UNENROLLED_LEARNER, LESSON_PAID, TENANT_A)).toBe(false);
-    expect(await canAccessLesson(db as unknown as AccessDb, null, LESSON_PAID, TENANT_A)).toBe(false);
-    expect(await canAccessLesson(db as unknown as AccessDb, ENROLLED_LEARNER, LESSON_PAID, TENANT_B)).toBe(false);
+    expect(await canAccessLesson(db as unknown as AccessDb, AUTHOR, LESSON_PAID, TENANT_A)).toBe(
+      true,
+    );
+    expect(
+      await canAccessLesson(db as unknown as AccessDb, ENROLLED_LEARNER, LESSON_PAID, TENANT_A),
+    ).toBe(true);
+    expect(
+      await canAccessLesson(db as unknown as AccessDb, UNENROLLED_LEARNER, LESSON_PAID, TENANT_A),
+    ).toBe(false);
+    expect(await canAccessLesson(db as unknown as AccessDb, null, LESSON_PAID, TENANT_A)).toBe(
+      false,
+    );
+    expect(
+      await canAccessLesson(db as unknown as AccessDb, ENROLLED_LEARNER, LESSON_PAID, TENANT_B),
+    ).toBe(false);
   });
 
   it("handles enrollLearner and immediately unlocks hasAccess in Postgres", async () => {
-    expect(await hasAccess(db as unknown as AccessDb, UNENROLLED_LEARNER, COURSE_FREE, TENANT_A)).toBe(false);
+    expect(
+      await hasAccess(db as unknown as AccessDb, UNENROLLED_LEARNER, COURSE_FREE, TENANT_A),
+    ).toBe(false);
 
-    const enrollment = await enrollLearner(db as unknown as AccessDb, UNENROLLED_LEARNER, COURSE_FREE, TENANT_A);
+    const enrollment = await enrollLearner(
+      db as unknown as AccessDb,
+      UNENROLLED_LEARNER,
+      COURSE_FREE,
+      TENANT_A,
+    );
     expect(enrollment.isNew).toBe(true);
     expect(enrollment.userId).toBe(UNENROLLED_LEARNER);
     expect(enrollment.courseId).toBe(COURSE_FREE);
     expect(enrollment.stripePaymentId.startsWith("free_")).toBe(true);
 
-    expect(await hasAccess(db as unknown as AccessDb, UNENROLLED_LEARNER, COURSE_FREE, TENANT_A)).toBe(true);
+    expect(
+      await hasAccess(db as unknown as AccessDb, UNENROLLED_LEARNER, COURSE_FREE, TENANT_A),
+    ).toBe(true);
 
-    const duplicate = await enrollLearner(db as unknown as AccessDb, UNENROLLED_LEARNER, COURSE_FREE, TENANT_A);
+    const duplicate = await enrollLearner(
+      db as unknown as AccessDb,
+      UNENROLLED_LEARNER,
+      COURSE_FREE,
+      TENANT_A,
+    );
     expect(duplicate.isNew).toBe(false);
     expect(duplicate.id).toBe(enrollment.id);
   });
