@@ -42,7 +42,7 @@ Other root files that shape how the repo behaves:
 | `vitest.config.ts` | jsdom environment; includes `packages/**/*.test.ts(x)` and `apps/**/*.test.ts(x)`. |
 | `playwright.config.ts` | `testDir: ./apps/web/e2e`, Chromium, dev server `bun --cwd apps/web dev`. |
 | `bunfig.toml` | `exact = true` for installs. |
-| `.github/` | Issue templates and a PR template. There is no CI workflow yet. |
+| `.github/` | Issue templates, a PR template, and `workflows/ci.yml`. CI runs install, typecheck, test, lint and build on every push to `master` and on every pull request. |
 
 ## How `apps/web` consumes the workspace packages
 

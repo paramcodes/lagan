@@ -63,9 +63,10 @@ Two consequences of that mapping are worth knowing before you reach for a utilit
 2. Run `bun run gen:tokens`.
 3. Commit the JSON and the regenerated `apps/web/app/tokens.css` together.
 
-`contributing.md` states that CI fails when the generated file drifts. Note that no CI
-workflow exists in this repository yet (`.github/` holds issue and PR templates only), so
-the check is currently a convention enforced in review, not by a pipeline.
+`contributing.md` states that CI fails when the generated file drifts. The CI workflow
+(`.github/workflows/ci.yml`) runs install, typecheck, test, lint and build on push to
+`master` and on every pull request, but it never regenerates the tokens or diffs the
+output, so drift is still caught in review rather than by a pipeline.
 
 ## Tokens
 
@@ -245,7 +246,7 @@ because the package is compiled as source inside the app.
 | Check | Command | State |
 |---|---|---|
 | Token regeneration | `bun run gen:tokens` | Manual |
-| Generated-file drift | — | Not enforced: no CI workflow exists |
+| Generated-file drift | — | Not enforced: CI does not regenerate the tokens |
 | Contrast | — | Not enforced in CI; the prototype audit is the source of the measured values |
 | Accessibility | `bun run test:e2e` (Playwright) | Only the home-page smoke test exists; axe is planned ([P7.2 #37](https://github.com/paramcodes/lagan/issues/37)) |
 
