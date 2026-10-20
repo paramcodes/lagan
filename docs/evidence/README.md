@@ -11,7 +11,7 @@ All artifacts are captured under standardised conditions using headless Chromium
 | Parameter | Specification | Notes |
 |---|---|---|
 | **Engine** | Chromium (Playwright Headless) | Sandboxed automated browser |
-| **Viewport** | 1440 × 900 px (screenshots), 1280 × 720 px (recordings) | Desktop layout baseline |
+| **Viewport** | 1440 × 900 px (screenshots), 1280 × 720 px (recordings), 390 × 844 px and 768 × 1024 px (narrow-viewport screenshots) | Desktop layout baseline, plus the narrow viewports the app shell has to work at |
 | **Device Scale Factor** | 2.0 (HiDPI / Retina) | Screenshots render at 2880 × 1800 px |
 | **Color Schemes** | Light & Dark | Explicit `colorScheme` context and `.dark` class toggle |
 | **Font Rendering** | Web font settle synchronisation | Waits for `document.fonts.ready` prior to capture |
@@ -40,6 +40,12 @@ All artifacts are captured under standardised conditions using headless Chromium
 | `teach-analytics-light.png` / `teach-analytics-dark.png` | `/teach/analytics` | author | light / dark |
 | `course-builder-light.png` / `course-builder-dark.png` | `/teach/courses/course_distributed/builder` | author | light / dark |
 | `notifications-light.png` / `notifications-dark.png` | `/courses?view=cards` (bell opened) | author | light / dark |
+| `courses-390-before.png` / `courses-390-after.png` | `/courses` | public | light |
+| `courses-768-after.png` | `/courses` | public | light |
+
+The three narrow-viewport captures were taken by hand rather than by the capture script, and they
+record the app shell below 768 pixels, where the sidebar collapses to a rail and the topbar
+wraps. `courses-390-before.png` is the state that made the catalogue unreadable on a phone.
 
 ### Recordings
 
