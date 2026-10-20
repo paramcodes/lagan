@@ -781,15 +781,25 @@ And the measured cost of the conversation itself. Agents spent as much as 20% of
 communication, within which planning, questioning and updating each took about a third of the
 steps.
 
+One finding from the same paper is the cheapest win available, and it is the paper's own words.
+
+> Second, first-turn planning is the strongest predictor. Having a Plan message in the very first
+> turn nearly halves the conflict rate (29.4% vs 51.5%). This effect is robust across difficulty
+> levels: in 7 out of 8 difficulty buckets, first-turn planning significantly reduces conflicts,
+> with the effect actually stronger for harder tasks (39% reduction at the highest difficulty).
+
 [Anthropic, "Patterns and problems in emerging multiagent systems", 2026-08-13](https://www.anthropic.com/research/multiagent-systems)
 reaches a compatible conclusion from a different direction. Newer models reduced conflicts by
 maintaining very high ownership of each of their files, "reducing the potential for conflict",
-and only the most recent model both shared files and kept PR throughput. The conflict problem
-was solved by not working together.
+and only the most recent model both shared files and kept PR throughput.
 
-One finding from the same paper is the cheapest win available. A planning message in the first
-turn nearly halves the conflict rate, 29.4% against 51.5%, and the effect is larger for harder
-tasks, 39% at the highest difficulty bucket.
+> More recent models (in particular, Opus 4.8 and Mythos Preview) have "solved" this problem, but
+> only by hardly working together at all: the median agent maintained very high ownership of each
+> of its files, reducing the potential for conflict.
+
+The conflict problem was solved by not working together. That article carries no percentages
+and no planning-message finding; the measurement above is CooperBench's, and the two agree on
+the direction rather than sharing a number.
 
 ### I3. The instruction file grows without bound and cannot be pruned by discipline
 
