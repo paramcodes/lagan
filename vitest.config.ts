@@ -53,7 +53,10 @@ export default defineConfig({
         test: {
           name: "node",
           environment: "node",
-          include: ["packages/{config,db,types,email}/**/*.test.{ts,tsx}"],
+          include: [
+            "packages/{config,db,types,email}/**/*.test.{ts,tsx}",
+            "scripts/**/*.test.{ts,tsx}",
+          ],
           exclude: [...configDefaults.exclude, "packages/db/src/access.test.ts"],
         },
       },
