@@ -831,3 +831,274 @@ repositories do it, and the ETH result says it costs 20% more inference for no s
 [Coldtea's field study of the 100 most-starred repositories with an AGENTS.md, 2026-08-21](https://www.coldtea.ai/blog/agents-md-field-study)
 gives the shape of a real file. Median 1,198 words, barbell distributed with 37% past 1,500
 words and one in ten under 150. 90% use must, always or never. 784 explicit don't-bullets
+across the corpus. One verbatim from `koala73/worldmonitor`.
+
+> Do not claim that an interrupted or timed-out test passed
+
+Only 40% of the largest repositories document their monorepo or nested-file structure at all.
+
+### I5. Strong gates did not prevent the damage
+
+[Faros AI, "AI Engineering Report 2026: The Acceleration Whiplash", 2026-04-12](https://www.faros.ai/blog/ai-acceleration-whiplash-takeaways).
+Two years of telemetry, 22,000 developers, 4,000 teams. Vendor telemetry and observational, so
+no causal control, but large n.
+
+- Incidents per pull request: +242.7%. Bugs per developer: +9% to +54% as adoption rises.
+- Median time to first review: +156.6%. Median time in review: +441.5%.
+- Pull requests merged with no review at all: +31.3%.
+- Code churn, lines deleted over lines added on merged code: +861%.
+
+The finding that matters most for this repository, quoted verbatim.
+
+> Strong engineering foundations do not protect you. Two years of telemetry says so.
+> High-performing engineering organizations, those with mature DevOps practices, high DORA
+> metrics scores, and disciplined delivery processes, are experiencing the same downstream
+> deterioration as everyone else. Surveys capture how developers feel about their work.
+> Perception lags reality. Telemetry does not.
+
+This is the strongest published statement that "add more gates" is the wrong response to
+"agents ship wrong code". The missing piece is independent verification, not more gates.
+
+The same report names the review cost, which is the other half of the throughput problem. "The
+senior engineer tax." Catching agent-written defects "requires a reviewer to read carefully,
+reason about intent, and reconstruct the problem the code was meant to solve".
+
+### I6. Dependency-aware partitioning is the measured answer to slow fan-out
+
+[Co-Coder, Yang, Nie, Chandra, Gannutin, Lin, Chaudhuri, UT Austin and Oxford,
+arXiv:2606.00953, 2026-05-31](https://arxiv.org/abs/2606.00953)
+
+It builds dependency graphs from static analysis, isolates structural hub files, partitions the
+graph with community detection, and executes the partition with a dependency-aware scheduler.
+Measured on 28 real-world tasks.
+
+| | DevEval, 10 projects | CodeProjectEval, 18 projects |
+|---|---|---|
+| Pass rate | 56.8% to 68.1% | 20.1% to 34.1% |
+| Wall clock | 1.81x faster | 2.10x faster |
+| API cost | 28% lower | 35% lower |
+
+"The largest gains appear on the most dependency-dense projects." And the scheduling rule that
+matters: files advance from pending to ready once their upstream dependencies complete, with no
+global synchronization barriers.
+
+### I7. Infrastructure configuration moves the score more than the model does
+
+[Anthropic, "Quantifying infrastructure noise in agentic coding evals", 2026-02-05](https://www.anthropic.com/engineering/infrastructure-noise)
+
+> Infrastructure configuration can swing agentic coding benchmarks by several percentage points,
+> sometimes more than the leaderboard gap between top models.
+
+Measured on Terminal-Bench 2.0 across six resource configurations, same model and same task set.
+Infrastructure error rate from 5.8% under strict enforcement to 0.5% uncapped, a lift of 6
+percentage points at p < 0.01.
+
+> Agentic evals are end-to-end system tests by construction, and any component of that system
+> can act as a confounder.
+
+And the reading rule for any comparison. "Leaderboard differences below 3 percentage points
+deserve skepticism until the eval configuration is documented and matched."
+
+This is the published justification for treating a 4-core box as a hard constraint on
+parallelism rather than an incidental detail.
+
+---
+
+## J. Practitioner evidence
+
+Practitioner sources are weaker than the studies in section I. The ones below are reported
+because they carry specifics that the studies do not. Single anonymous comments are leads, not
+findings. Where a claim appears in several independent places it is marked as convergent.
+
+### J1. The collision layers
+
+A synthesis thread of roughly 60 answers on r/ClaudeAI, "A month ago I asked how you stop
+parallel AI agents from colliding in one repo", concluded that most teams solve only the first
+layer.
+
+1. **Code, the working tree.** Worktrees are close to unanimous, and nobody made a serious case
+   against them. A minority prefer a full clone per agent.
+2. **Runtime, ports, services and databases.** This is where the work is. The recipe that
+   converged: every worktree gets its own compose project, its own ports derived from the
+   branch, its own seeded database, never a shared dump, and the teardown is part of the task
+   definition. The acceptance step is a single command whose exit code the agent can read.
+3. **The git index and a shared checkout.** The fix is a git-level one. Commit with `--only
+   <paths>`, never a plain `git commit`, because the index is one shared file and a sibling
+   session staged its own work between the add and the commit.
+4. **Assumptions and shared state.** The one that causes "still wrong" failures. Two agents write
+   non-conflicting diffs to different files that quietly encode incompatible assumptions about
+   the same data model, and git merges it clean because there is no textual conflict to catch.
+   The practitioner fix is not a lock. It is making each agent declare which module and schema
+   it owns before it starts, so a second agent sees the first agent's stated intent and not just
+   its diff.
+5. **Redis, queues and orphaned background workers.** The two everyone forgets. A worker still
+   running from an earlier session will pick up another session's jobs and run them against old
+   code. One practitioner noted that the fix people use is a rule you have to remember, "which
+   means it is not really fixed".
+
+The sentence that ties the layers together, and the cleanest statement of parallelisability in
+the whole corpus.
+
+> If it can't self-verify in isolation, it isn't parallelizable.
+
+### J2. The rule that beats a file-level ownership rule
+
+Convergent across several independent practitioners. Work at package or module granularity, not
+file granularity, and respect the dependency graph, so that a core package and its dependent UI
+package are not worked on at the same time. Declare the out-of-scope files explicitly in the
+brief. And slice by module boundary.
+
+One comment states the failure mode precisely. Two agents wrote non-conflicting diffs to
+different files that encoded incompatible assumptions about the same data model, git merged it
+clean, and nobody noticed until the integration test that touched both paths went red three days
+later.
+
+### J3. Parallel feature work, serialised integration
+
+The step most teams miss, stated as a rule. Feature work runs in parallel. Integration is
+serialised. The checks are run again on the combined tree, not only in each worktree.
+
+This is the step that would have caught two agents in this session that each believed they owned
+the test configuration, and it is the step the repository's own rules did not have.
+
+### J4. The negative results, ranked
+
+1. Two agents on overlapping work is worse than one agent doing both. Measured, section I2.
+2. Agent-to-agent conversation is nearly pure overhead. 20% of steps, 4x the tokens, and
+   Anthropic's coordinating swarm found a comparable yield per token only after restricting its
+   scope. Write contracts instead of chatting.
+3. A gate stack does not protect a team from agent-written defects. Measured, section I5.
+4. Context files generally reduce success and cost more. Measured, section I1.
+5. Agents are too obedient, so an unnecessary rule is a cost, not a free sentence.
+6. Expensive checks belong in CI, not in a pre-commit hook. "Pre-commit hooks should be fast.
+   CI on the other hand can be slower and runs async, it's fire and forget so you can switch
+   tasks."
+7. Nondeterministic AI review should advise and route, not block. "The system is nondeterministic,
+   so it's at odds with the purpose of CI." Deterministic checks block, probabilistic review
+   advises.
+8. Isolation setups are hours of work, hand-fitted, and break when you add a service. Nobody
+   described one that survives a new service.
+9. Isolating the environment can break things that worked for months. One engineering blog
+   documents its own bug where worktree isolation silently removed the shared `node_modules` the
+   whole team had been relying on, and it "had worked locally for months" because locally
+   everyone shared one working directory.
+10. Some teams removed agents from the codebase. A 20-year engineer reported wasting almost a
+    week with Claude Code and Codex on one complex task and going back to autocomplete.
+
+### J5. The counter-evidence
+
+Not everything is negative, and the counter-evidence is worth keeping.
+
+One practitioner split a REST API project across a backend agent, a database agent and a test
+agent, and finished in under 30 minutes against 45 minutes single-agent, with the caveat that
+the first attempt cost 10 minutes of the 30 saved on alignment. The coordination tax is real and
+front-loaded.
+
+One practitioner runs two clones of the same repository committing in a trunk-based way, with a
+throwaway database per test run on a random port, and notes "every tech stack has different ways
+of solving this, but this is not an AI problem at all".
+
+One practitioner argues the opposite of worktree isolation, that agents on a shared tree
+understand each other better and fix conflicts on the fly. It is one anecdote, and it is worth
+knowing.
+
+And Co-Coder's numbers in section I6 are a measured demonstration that parallelism pays when
+partition and scheduling are right.
+
+### J6. What the practitioners changed their file into
+
+Convergent shape across six independent sources. A thin root file, under 100 to 250 lines or
+under 500 tokens, holding only what applies to every session. Everything else in scoped files
+that are read on demand, with one index line each. The file tells the agent what to read, and
+nothing else.
+
+One practitioner reported going from 400k tokens of context to 8k after the restructure. One
+reported that the only thing their file does is tell the agent what to read at session start.
+
+The pruning trigger, and it is not length. It is contradiction. "Rules that fight each other are
+worse than no rule, the model picks a different one each session and you get random behaviour you
+cannot debug." One practitioner asks the agent to read its own file and list rules that overlap
+or contradict, and reports that the list is short and brutal every time.
+
+The ablation protocol. Archive the file, record which mistakes repeat, restore only the lines
+that prevent them, move the rest into scoped files and hooks, and re-run on each model change.
+The independent corroboration is the arXiv work in section I3, which found that comments
+recording the latent reasoning remove 99.3% of the excess growth.
+
+And the caveat on thin-file routing, from a practitioner who tested it. A neat pointer to a
+stale decision is worse than a longer accurate note. The file also has to stay true.
+
+### J7. The check that must be outside the agent's path
+
+The most useful single practitioner finding, from a postmortem of five consecutive failed
+unattended overnight runs.
+
+> I stopped trusting any tool call's return value as proof a side effect actually happened. Every
+> consequential action now needs an independent check afterward, a balance that's actually
+> decremented, a row that's actually visible in a list, before it gets logged as done. The part
+> that took me longest to internalize: this has to apply to the verification step itself, not
+> just the original action. An audit sub-agent reporting "all clear" is exactly as unreliable as
+> the worker agent reporting "task complete". What finally worked was making the check something
+> outside the agent's own execution path entirely, a separate read against real state, not a
+> self-report from the same session that did the work.
+
+And the related point, that a purely in-agent ratification step creates an incentive to forge.
+The fix named there is an out-of-band write, something the agent physically cannot do itself, a
+signed commit from a CI job or a human-generated token.
+
+The two failure classes in this repository map onto that directly. The database layer with no
+executing test needs a CI job that reaches into the real database and asserts the schema and
+the rows, which the agent cannot write, edit or self-report on. The blank catalogue page needs
+an end-to-end assertion that the route renders a non-blank error state.
+
+### J8. Plan before code, in a file, as a checkable artifact
+
+Convergent, and measured in section I2. A planning message in the first turn nearly halves the
+conflict rate. And the review economics from a practitioner thread.
+
+> What actually cut my review time: make the agent produce the plan first, in a file, before
+> code. What's changing, what's out of scope, what should break if it's wrong. Then the diff gets
+> read against that instead of against nothing. Half the time the plan is wrong and I kill it
+> before any code exists, which is the cheapest review there is. Bugbot and coderabbit catch
+> mechanical stuff. They can't catch "this is a correct implementation of the wrong thing", and
+> that's the debt you'll be explaining in six months.
+
+And the gate design that follows. Gate on behaviour, with tests that assert one user cannot
+touch another user's data, and a rule that auth, permissions, migrations and payment paths
+always get a human read. Everything else rides on automated checks.
+
+---
+
+## H. Open questions
+
+- Whether a package-level ownership claim is better enforced by a lock file the agents read, by
+  a CI check on open pull requests, or by a merge queue. The sources do not settle it.
+- How much of the correctness burden should sit in generated artefacts such as spec-kit's
+  `tasks.md`, versus in executable checks. The sources disagree about how much author effort a
+  spec-driven process costs at small change sizes.
+- Whether an incident log is worth its own file, or belongs as a column in the rule table.
+
+---
+
+## Sources
+
+### Primary, measured
+
+- [ETH Zurich SRI Lab, "Evaluating AGENTS.md", arXiv:2602.11988, 2026-02-12, v3 2026-09-29](https://arxiv.org/abs/2602.11988)
+- [CooperBench, Stanford and SAP, arXiv:2601.13295, 2026-01-19](https://arxiv.org/abs/2601.13295)
+- [Chakrabarti, "Why Does CLAUDE.md Keep Growing?", arXiv:2608.11095, 2026-08-11](https://arxiv.org/abs/2608.11095)
+- [dos Santos et al, "Configuration Smells in AGENTS.md Files", SCAM 2026, arXiv:2606.15828](https://arxiv.org/abs/2606.15828)
+- [Co-Coder, UT Austin and Oxford, arXiv:2606.00953, 2026-05-31](https://arxiv.org/abs/2606.00953)
+- [SWE-bench, Jimenez et al, arXiv:2310.06770, 2023-10-10](https://arxiv.org/abs/2310.06770)
+- [SWE-agent, Yang et al, arXiv:2405.15793, 2024-05-06](https://arxiv.org/abs/2405.15793)
+- [OpenHands, Wang et al, arXiv:2407.16741, ICLR 2025](https://arxiv.org/abs/2407.16741)
+- [SWE-Bench+, Aleithan et al, arXiv:2410.06992, 2024-10-09](https://arxiv.org/abs/2410.06992)
+- [UTBoost, arXiv:2506.09289, 2025-06-10](https://arxiv.org/abs/2506.09289)
+- [OpenAI, "Introducing SWE-bench Verified", 2024-08-13](https://openai.com/index/introducing-swe-bench-verified/)
+- [Faros AI, "AI Engineering Report 2026", 2026-04-12](https://www.faros.ai/blog/ai-acceleration-whiplash-takeaways), vendor telemetry, observational, no causal control.
+
+### Tool authors, first party
+
+- [Anthropic, "How we built our multi-agent research system", 2025-06-13](https://www.anthropic.com/engineering/multi-agent-research-system)
+- [Anthropic, "Effective harnesses for long-running agents", 2025-11-26](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
+- [Anthropic, "Building a C compiler with a team of parallel Claudes", 2026-02-05](https://www.anthropic.com/engineering/building-c-compiler)
