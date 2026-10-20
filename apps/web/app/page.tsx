@@ -51,6 +51,18 @@ export default function HomePage() {
             </Link>
 
             <nav className="hidden md:flex items-center gap-6" aria-label="Main Navigation">
+              <a
+                href="#pillars-heading"
+                className="text-sm font-medium text-[var(--color-ink2)] transition-colors hover:text-[var(--color-ink)]"
+              >
+                Architecture
+              </a>
+              <a
+                href="#curriculum-heading"
+                className="text-sm font-medium text-[var(--color-ink2)] transition-colors hover:text-[var(--color-ink)]"
+              >
+                Curriculum
+              </a>
               <Link
                 href="/courses"
                 className="text-sm font-medium text-[var(--color-ink2)] transition-colors hover:text-[var(--color-ink)]"
@@ -142,8 +154,9 @@ export default function HomePage() {
 
         {/* Feature Pillars Section */}
         <section
-          aria-labelledby="pillars-heading"
-          className="border-b border-[var(--color-line)] py-20 sm:py-28"
+          id="pillars-heading"
+          aria-labelledby="pillars-title"
+          className="scroll-mt-16 border-b border-[var(--color-line)] py-20 sm:py-28"
         >
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">
@@ -151,7 +164,7 @@ export default function HomePage() {
                 Core Platform Architecture
               </span>
               <h2
-                id="pillars-heading"
+                id="pillars-title"
                 className="mt-2 text-3xl font-bold tracking-tight text-[var(--color-ink)] sm:text-4xl"
               >
                 Built for Rigorous Engineering
@@ -203,8 +216,9 @@ export default function HomePage() {
 
         {/* Learning Experience Details Section */}
         <section
-          aria-labelledby="curriculum-heading"
-          className="border-b border-[var(--color-line)] py-20 sm:py-28"
+          id="curriculum-heading"
+          aria-labelledby="curriculum-title"
+          className="scroll-mt-16 border-b border-[var(--color-line)] py-20 sm:py-28"
         >
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:items-center">
@@ -213,7 +227,7 @@ export default function HomePage() {
                   Pedagogy & Rigor
                 </span>
                 <h2
-                  id="curriculum-heading"
+                  id="curriculum-title"
                   className="mt-2 text-3xl font-bold tracking-tight text-[var(--color-ink)] sm:text-4xl"
                 >
                   No Toy Implementations. Real Systems Code.
