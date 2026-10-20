@@ -9,6 +9,12 @@ pre-commit:
       run: bunx biome lint {staged_files}
     size-guard:
       run: |
+        # A merge commit's staged diff is everything the other branch brought in,
+        # not a logical change, so the guard would measure the wrong quantity
+        # and block every merge that carries more than the limit.
+        if git rev-parse --verify -q MERGE_HEAD >/dev/null; then
+          exit 0
+        fi
         diff=$(git diff --cached -- . ':(exclude)*.lock' ':(exclude)bun.lock' ':(exclude)*_snapshot.json')
         tokens=$(printf '%s' "$diff" | wc -c | awk '{print int($1/4)}')
         if [ "$tokens" -gt 5000 ]; then
