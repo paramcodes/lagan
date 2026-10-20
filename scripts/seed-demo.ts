@@ -8,7 +8,21 @@
  * ships with, the e2e fixtures and any real user data untouched.
  */
 import { createHash, scrypt } from "node:crypto";
+import { getTableColumns, getTableName } from "drizzle-orm";
+import type { PgTable } from "drizzle-orm/pg-core";
 import { Client } from "pg";
+import {
+  account,
+  courseEvent,
+  courses,
+  enrollments,
+  lessonProgress,
+  lessons,
+  modules,
+  notifications,
+  profiles,
+  user,
+} from "../packages/db/src/schema";
 import {
   atHour,
   buildCourseEvents,
@@ -40,7 +54,7 @@ export type SeedReport = Record<string, WriteCounts>;
 export type CleanReport = Record<string, number>;
 
 interface UpsertSpec {
-  table: string;
+  table: PgTable;
   columns: string[];
   rows: unknown[][];
   updateColumns: string[];
@@ -50,12 +64,21 @@ interface UpsertSpec {
 /**
  * Writes rows by primary key.
  *
- * `xmax = 0` distinguishes a freshly inserted row from a row the conflict
- * clause updated, so the summary can report what the run actually changed.
+ * The table and the column names come from the Drizzle schema, so the SQL
+ * cannot name a column the database does not have. `xmax = 0` distinguishes a
+ * freshly inserted row from a row the conflict clause updated, so the summary
+ * can report what the run actually changed.
  */
 async function upsert(client: Client, spec: UpsertSpec): Promise<WriteCounts> {
   if (spec.rows.length === 0) {
     return { created: 0, updated: 0 };
+  }
+
+  const schemaColumns = Object.values(getTableColumns(spec.table));
+  for (const column of spec.columns) {
+    if (!schemaColumns.some((schemaColumn) => schemaColumn.name === column)) {
+      throw new Error(`Unknown column "${column}" on table "${getTableName(spec.table)}"`);
+    }
   }
 
   const values: string[] = [];
@@ -77,7 +100,7 @@ async function upsert(client: Client, spec: UpsertSpec): Promise<WriteCounts> {
   const columns = spec.columns.map((column) => `"${column}"`).join(", ");
 
   const result = await client.query<{ inserted: boolean }>(
-    `INSERT INTO "${spec.table}" (${columns})
+    `INSERT INTO "${getTableName(spec.table)}" (${columns})
      VALUES ${values.join(", ")}
      ON CONFLICT (id) DO UPDATE SET ${updates}
      RETURNING (xmax = 0) AS inserted`,
@@ -280,14 +303,14 @@ export async function seedDemoData(client: Client, options: SeedOptions = {}): P
 
   try {
     report.user = await upsert(client, {
-      table: "user",
+      table: user,
       columns: ["id", "name", "email", "email_verified", "image", "created_at", "updated_at"],
       rows: userRows,
       updateColumns: ["name", "email", "email_verified", "image", "updated_at"],
     });
 
     report.account = await upsert(client, {
-      table: "account",
+      table: account,
       columns: [
         "id",
         "account_id",
@@ -302,7 +325,7 @@ export async function seedDemoData(client: Client, options: SeedOptions = {}): P
     });
 
     report.profiles = await upsert(client, {
-      table: "profiles",
+      table: profiles,
       columns: [
         "id",
         "user_id",
@@ -325,7 +348,7 @@ export async function seedDemoData(client: Client, options: SeedOptions = {}): P
     });
 
     report.courses = await upsert(client, {
-      table: "courses",
+      table: courses,
       columns: [
         "id",
         "tenant_id",
@@ -357,14 +380,14 @@ export async function seedDemoData(client: Client, options: SeedOptions = {}): P
     });
 
     report.modules = await upsert(client, {
-      table: "modules",
+      table: modules,
       columns: ["id", "course_id", "title", "position"],
       rows: moduleRows,
       updateColumns: ["course_id", "title", "position"],
     });
 
     report.lessons = await upsert(client, {
-      table: "lessons",
+      table: lessons,
       columns: [
         "id",
         "module_id",
@@ -395,7 +418,7 @@ export async function seedDemoData(client: Client, options: SeedOptions = {}): P
     });
 
     report.enrollments = await upsert(client, {
-      table: "enrollments",
+      table: enrollments,
       columns: [
         "id",
         "user_id",
@@ -409,7 +432,7 @@ export async function seedDemoData(client: Client, options: SeedOptions = {}): P
     });
 
     report.lesson_progress = await upsert(client, {
-      table: "lesson_progress",
+      table: lessonProgress,
       columns: [
         "id",
         "tenant_id",
@@ -435,7 +458,7 @@ export async function seedDemoData(client: Client, options: SeedOptions = {}): P
     });
 
     report.notifications = await upsert(client, {
-      table: "notifications",
+      table: notifications,
       columns: ["id", "tenant_id", "user_id", "type", "payload", "read_at", "created_at"],
       rows: notificationRows,
       updateColumns: ["tenant_id", "user_id", "type", "payload", "read_at"],
@@ -443,7 +466,7 @@ export async function seedDemoData(client: Client, options: SeedOptions = {}): P
     });
 
     report.course_event = await upsert(client, {
-      table: "course_event",
+      table: courseEvent,
       columns: [
         "id",
         "tenant_id",
@@ -476,16 +499,16 @@ export async function seedDemoData(client: Client, options: SeedOptions = {}): P
 }
 
 const CLEAN_ORDER = [
-  "course_event",
-  "lesson_progress",
-  "notifications",
-  "enrollments",
-  "lessons",
-  "modules",
-  "courses",
-  "profiles",
-  "account",
-  "user",
+  courseEvent,
+  lessonProgress,
+  notifications,
+  enrollments,
+  lessons,
+  modules,
+  courses,
+  profiles,
+  account,
+  user,
 ];
 
 /**
@@ -501,10 +524,11 @@ export async function cleanDemoData(client: Client): Promise<CleanReport> {
 
   try {
     for (const table of CLEAN_ORDER) {
-      const result = await client.query(`DELETE FROM "${table}" WHERE starts_with(id, $1)`, [
+      const name = getTableName(table);
+      const result = await client.query(`DELETE FROM "${name}" WHERE starts_with(id, $1)`, [
         DEMO_ID_PREFIX,
       ]);
-      report[table] = result.rowCount ?? 0;
+      report[name] = result.rowCount ?? 0;
     }
     await client.query("COMMIT");
   } catch (error) {
