@@ -68,6 +68,9 @@ jobs:
       - name: Build
         run: bun run build
 
+      - name: Shared package classes reach the production CSS
+        run: bun scripts/check-shared-classes.ts
+
   a11y-e2e:
     name: E2E and accessibility (axe WCAG 2.2 AA)
     runs-on: ubuntu-latest
