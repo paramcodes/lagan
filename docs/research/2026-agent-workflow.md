@@ -228,16 +228,20 @@ app and look at the change" becomes a command rather than an instruction.
 
 ### The measured size of the problem
 
-Reported by [Specstory](https://specstory.com/learning/verification/ai-generated-code-testing),
-which cites the underlying studies. These are the source's figures, not reproduced here.
+These are the sources' figures, not reproduced here.
 
-- 2026 study of 86,156 changes to test files by five coding agents. 80.2% had weak or no
-  explicit oracle signals. Many of those tests ran code while checking little or nothing about
-  its output.
-- 2026 study of 33,596 pull requests opened by coding agents. Failing CI or tests was the most
-  common code-level reason for rejection, 17.6% of rejected pull requests analysed.
-- Stack Overflow 2025 survey. 66% of the developers who answered had hit AI output that was
-  almost right but still wrong.
+- 2026 study of 86,156 changes to test files by five coding agents, reported by
+  [Specstory](https://specstory.com/learning/verification/ai-generated-code-testing). 80.2% had
+  weak or no explicit oracle signals. Many of those tests ran code while checking little or
+  nothing about its output.
+- 2026 study of 33,596 pull requests opened by coding agents, reported by
+  [Specstory](https://specstory.com/learning/debugging/agents-break-working-features) from
+  [the underlying paper, "Where Do AI Coding Agents Fail?", arXiv:2601.15195,
+  2026-01-21](https://arxiv.org/abs/2601.15195). Failing CI or tests was the most common
+  code-level reason for rejection, 17.6% of rejected pull requests analysed.
+- Stack Overflow 2025 survey, reported by
+  [Specstory](https://specstory.com/learning/verification/ai-generated-code-testing). 66% of the
+  developers who answered had hit AI output that was almost right but still wrong.
 
 Caveat worth stating. Most of the advice in this section is a rule, not a measurement. The
 sources say so directly: "The sources contain no measurements of the effect: only rules and
@@ -259,9 +263,12 @@ repository root to the current working directory. In each directory Codex reads
 Files concatenate from the root down, so the closest file wins. The combined size stops at
 `project_doc_max_bytes`, 32 KiB by default.
 
-The same page records scope as the unit rather than the file, and points at nesting an
-`AGENTS.md` per package in a large monorepo. The widely repeated figure of 88 nested files in
-one large repository is `UNVERIFIED:` the site names no repository, and the count could not be
+The same page records scope as the unit rather than the file: Codex stops searching at the
+current working directory, tells you to split instructions across nested directories when the
+cap is hit, and puts overrides in the directory that owns the rule. The nesting advice itself
+comes from the open format's own site, which points at one `AGENTS.md` per package in a large
+monorepo. The widely repeated figure of 88 nested files in one large repository is
+`UNVERIFIED:` neither page carries it, no repository is named for it, and the count could not be
 reproduced across the public OpenAI repositories on 2026-10-20. The mechanism is verified. The
 number is not.
 
@@ -299,8 +306,10 @@ individual test or line.
 
 ### The rule that decides what stays out
 
-[charlielabs, AGENTS.md instructions](https://docs.charlielabs.ai/llms-full.txt) states the
-inclusion test and the pruning discipline.
+[charlielabs, AGENTS.md instructions](https://web.archive.org/web/20260930020741/https://docs.charlielabs.ai/llms-full.txt)
+states the inclusion test and the pruning discipline. The link is an archive copy on purpose:
+the live `llms-full.txt` no longer serves this page, and the archived snapshot is the copy that
+carries the text quoted below.
 
 > Add content when at least one of these tests is met: it has demonstrated behavioral value, or
 > its absence has caused observable mistakes or wasted work. It defines a historically
@@ -358,14 +367,21 @@ a completeness loop an agent can run without a human, and it is the closest thin
 answer for "the agent said it was done and it was not".
 
 [GitHub's blog post on Spec Kit, 2025-09-02](https://github.blog/ai-and-ml/generative-ai/spec-driven-development-with-ai-get-started-with-a-new-open-source-toolkit/)
-describes the change in reviewer role. The reviewer stops reading code dumps and starts
-validating artifacts, at each phase, before the next one starts.
+describes the change in reviewer role. Instead of reviewing thousand-line code dumps, the
+developer reviews focused changes that solve specific problems, and the role shifts from
+steering to verifying, at each phase.
 
 [Microsoft's walkthrough, 2025-09-15](https://developer.microsoft.com/blog/spec-driven-development-spec-kit/)
+gives the walkthrough of the command sequence. `/specify` outlines the what and the why and
+excludes technical decisions, `/plan` outlines the how, `/tasks` breaks the two down into
+phased chunks, and the commands are used in that order. The constitution is the file that
+holds the non-negotiable principles every later phase is checked against.
+
+[Spec Kit's own agentic SDD reference](https://github.github.io/spec-kit/reference/agentic-sdd.html)
 adds the phasing rule that maps directly onto parallel work. Setup, then Foundational as
 blocking prerequisites, then one phase per user story in priority order, then Polish for
-cross-cutting concerns. Tasks inside a story phase are marked for parallel execution where
-possible.
+cross-cutting concerns. Tests are generated inside a story's phase rather than as a phase of
+their own, and tasks inside a story phase are marked for parallel execution where possible.
 
 ---
 
@@ -522,7 +538,8 @@ The source also names the property that matters for a rule set.
 ### E5. The benchmark contract
 
 [OpenAI, "Introducing SWE-bench Verified", 2024-08-13](https://openai.com/index/introducing-swe-bench-verified/)
-defines the grading contract every harness in this space borrows.
+defines the grading contract every harness in this space borrows. The benchmark underneath it is
+[SWE-bench, Jimenez et al, arXiv:2310.06770, 2023-10-10](https://arxiv.org/abs/2310.06770).
 
 > These unit tests fail before the solution code in the PR is added, but pass afterwards, and
 > are therefore called FAIL_TO_PASS tests. Each sample also has associated PASS_TO_PASS tests,
@@ -582,8 +599,8 @@ write-heavy workflows.
 
 Both tool authors have since shipped write-heavy parallel agents, which changes the shape of the
 argument. Anthropic's C compiler, with file locks and an external oracle.
-[Cognition's "Manage Devins", 2026-03-19](https://cognition.ai/blog/manage-devins), where each
-managed Devin runs in its own isolated virtual machine and the main session acts as a
+[Cognition, "Devin can now Manage Devins", 2026-03-19](https://cognition.com/blog/devin-can-now-manage-devins),
+where each managed Devin runs in its own isolated virtual machine and the main session acts as a
 coordinator that scopes the work, assigns pieces, monitors progress, resolves conflicts, and
 compiles the results. Cognition's stated reason is that a single agent handling too much
 accumulates context and degrades focus, so each managed Devin gets a clean slate and a narrow
@@ -619,11 +636,12 @@ on one will not hold. And the check moves to after the merge, not before it.
 
 ### E9. Phasing
 
-[Microsoft's walkthrough, 2025-09-15](https://developer.microsoft.com/blog/spec-driven-development-spec-kit/)
+[Spec Kit's agentic SDD reference](https://github.github.io/spec-kit/reference/agentic-sdd.html)
 adds the phasing rule that maps directly onto parallel work. Setup, then Foundational as
 blocking prerequisites, then one phase per user story in priority order, then Polish for
 cross-cutting concerns. Tasks inside a story phase are marked for parallel execution where
-possible.
+possible. The rule it encodes is that the phases are the dependency order, and the markers
+are the parallelism, so the two never have to be guessed.
 
 ---
 
@@ -916,8 +934,9 @@ global synchronization barriers.
 > sometimes more than the leaderboard gap between top models.
 
 Measured on Terminal-Bench 2.0 across six resource configurations, same model and same task set.
-Infrastructure error rate from 5.8% under strict enforcement to 0.5% uncapped, a lift of 6
-percentage points at p < 0.01.
+The infrastructure error rate fell from 5.8% under strict enforcement to 0.5% uncapped, and the
+success rate lifted by 6 percentage points over that range at p < 0.01. Two numbers, not one:
+the error rate is the mechanism, the 6 points is the result.
 
 > Agentic evals are end-to-end system tests by construction, and any component of that system
 > can act as a confounder.
@@ -934,7 +953,8 @@ parallelism rather than an incidental detail.
 
 Practitioner sources are weaker than the studies in section I. The ones below are reported
 because they carry specifics that the studies do not. Single anonymous comments are leads, not
-findings. Where a claim appears in several independent places it is marked as convergent.
+findings. Where a claim appears in several independent places it is marked as convergent. The
+corpus they come from is described in the practitioner paragraph at the end of this document.
 
 ### J1. The collision layers
 
@@ -990,9 +1010,12 @@ the test configuration, and it is the step the repository's own rules did not ha
 ### J4. The negative results, ranked
 
 1. Two agents on overlapping work is worse than one agent doing both. Measured, section I2.
-2. Agent-to-agent conversation is nearly pure overhead. 20% of steps, 4x the tokens, and
-   Anthropic's coordinating swarm found a comparable yield per token only after restricting its
-   scope. Write contracts instead of chatting.
+2. Agent-to-agent conversation is nearly pure overhead. CooperBench measures up to 20% of all
+   steps spent on communication. Anthropic's multi-agent research system burns about 4x the
+   tokens of a chat interaction, and 15x for the whole multi-agent system, and its BrowseComp
+   analysis found that token usage by itself explains 80% of the performance variance, so the
+   swarm buys its result with tokens rather than with coordination. Write contracts instead of
+   chatting.
 3. A gate stack does not protect a team from agent-written defects. Measured, section I5.
 4. Context files generally reduce success and cost more. Measured, section I1.
 5. Agents are too obedient, so an unnecessary rule is a cost, not a free sentence.
@@ -1004,10 +1027,12 @@ the test configuration, and it is the step the repository's own rules did not ha
    advises.
 8. Isolation setups are hours of work, hand-fitted, and break when you add a service. Nobody
    described one that survives a new service.
-9. Isolating the environment can break things that worked for months. One engineering blog
+9. Isolating the environment can break things that worked for months.
+   [baro, "How We Run a Fleet of AI Agents on One Repo Without Chaos"](https://www.baro.rs/blog/how-we-run-a-fleet-of-ai-agents-on-one-repo)
    documents its own bug where worktree isolation silently removed the shared `node_modules` the
    whole team had been relying on, and it "had worked locally for months" because locally
-   everyone shared one working directory.
+   everyone shared one working directory. Its fix is to share the dependency directory on
+   purpose rather than by accident.
 10. Some teams removed agents from the codebase. A 20-year engineer reported wasting almost a
     week with Claude Code and Codex on one complex task and going back to autocomplete.
 
@@ -1033,10 +1058,20 @@ partition and scheduling are right.
 
 ### J6. What the practitioners changed their file into
 
-Convergent shape across six independent sources. A thin root file, under 100 to 250 lines or
-under 500 tokens, holding only what applies to every session. Everything else in scoped files
-that are read on demand, with one index line each. The file tells the agent what to read, and
-nothing else.
+Convergent shape across six independent sources, and the shape the tool vendors now document
+themselves. A thin root file, under 100 to 250 lines or under 500 tokens, holding only what
+applies to every session. Everything else in scoped files that are read on demand, with one
+index line each. The file tells the agent what to read, and nothing else.
+
+Anthropic's own guidance is the first-party version of the same rule. The
+[Claude Code memory documentation](https://code.claude.com/docs/en/memory) sets the size
+target, "under 200 lines per CLAUDE.md file", because longer files consume more context and
+reduce adherence, and it moves the overflow into path-scoped rules that load only when Claude
+works with matching files. The
+[Claude Code best practices](https://code.claude.com/docs/en/best-practices) give the reason
+and the test: only include what applies to every session, and ask of every line whether
+removing it would cause mistakes, because bloated instruction files cause Claude to ignore the
+instructions that are in them.
 
 One practitioner reported going from 400k tokens of context to 8k after the restructure. One
 reported that the only thing their file does is tell the agent what to read at session start.
@@ -1076,6 +1111,15 @@ The two failure classes in this repository map onto that directly. The database 
 executing test needs a CI job that reaches into the real database and asserts the schema and
 the rows, which the agent cannot write, edit or self-report on. The blank catalogue page needs
 an end-to-end assertion that the route renders a non-blank error state.
+
+The other way to satisfy this is to put a second model in the gate itself, and one vendor does
+exactly that. [Cloudflare, "Orchestrating AI Code Review at scale",
+2026-04-20](https://blog.cloudflare.com/ai-code-review/) runs specialist reviewers managed by a
+coordinator agent, across tens of thousands of merge requests, and it "actively blocks merges
+when it finds genuine, serious problems or security vulnerabilities". That is a different
+placement from the one above. The check is no longer outside the agent's path, it is another
+model in the pipeline, and it carries the risk named in J4 number 7, a nondeterministic check
+sitting in the position of a deterministic one.
 
 ### J8. Plan before code, in a file, as a checkable artifact
 
