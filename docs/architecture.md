@@ -39,7 +39,7 @@ Other root files that shape how the repo behaves:
 | `apps/web/tsconfig.json` | The app's own config (does not extend the base): `jsx: react-jsx`, path alias `@/*` → `./*`. |
 | `biome.json` | Lint and format, 2-space indent, 100 columns. |
 | `lefthook.yml` | Pre-commit: format, lint, and a 5000-token diff size guard. CI runs typecheck, test, lint and build on every pull request. |
-| `vitest.config.ts` | jsdom environment; includes `packages/**/*.test.ts(x)` and `apps/**/*.test.ts(x)`. |
+| `vitest.config.ts` | Two Vitest projects. A node project for the pure-Node packages, a jsdom project for the packages that render. The root `.env` is loaded into the test environment, so the integration suites run against a real database instead of skipping. |
 | `playwright.config.ts` | `testDir: ./apps/web/e2e`, Chromium, dev server `bun --cwd apps/web dev`. |
 | `bunfig.toml` | `exact = true` for installs. |
 | `.github/` | Issue templates, a PR template, and `workflows/ci.yml`. CI runs install, typecheck, test, lint and build on every push to `master` and on every pull request. |
