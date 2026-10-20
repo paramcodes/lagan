@@ -6,6 +6,14 @@
  * `seed-demo.ts` can remove exactly those rows and leave the courses the app
  * ships with, the e2e fixtures and any real user data untouched.
  */
+import type {
+  CourseEventType,
+  CourseStatus,
+  LessonContent,
+  LessonStatus,
+  LessonType,
+  NotificationType,
+} from "../packages/db/src/schema";
 
 export const DEMO_ID_PREFIX = "demo_";
 export const DEMO_TENANT_ID = "default";
@@ -13,6 +21,9 @@ export const DEMO_PASSWORD = "lagan-demo-2026";
 export const DEMO_LEARNER_EMAIL = "ada@demo.lagan.dev";
 
 type TipTapNode = Record<string, unknown>;
+
+/** The TiPTap document the lesson column stores, with the duration beside it. */
+export type DemoLessonContent = LessonContent & { duration: string };
 
 function paragraph(text: string): TipTapNode {
   return { type: "paragraph", content: [{ type: "text", text }] };
@@ -45,23 +56,23 @@ interface LessonSection {
  * A TiPTap document for a text lesson. `duration` sits next to the document
  * node because the syllabus reads it from the same jsonb column.
  */
-export function lessonDoc(section: LessonSection, duration: string): string {
+export function lessonDoc(section: LessonSection, duration: string): DemoLessonContent {
   const content: TipTapNode[] = [heading(section.heading)];
   for (const text of section.paragraphs) content.push(paragraph(text));
   if (section.bullets) content.push(bulletList(section.bullets));
   if (section.code) content.push(codeBlock(section.code, section.language ?? "text"));
-  return JSON.stringify({ type: "doc", duration, content });
+  return { type: "doc", duration, content };
 }
 
-export function quizDoc(questions: string[], duration: string): string {
-  return JSON.stringify({
+export function quizDoc(questions: string[], duration: string): DemoLessonContent {
+  return {
     type: "doc",
     duration,
     content: [
       heading("Checkpoint questions"),
       ...questions.map((question, index) => paragraph(`${index + 1}. ${question}`)),
     ],
-  });
+  };
 }
 
 export interface DemoUser {
@@ -145,7 +156,8 @@ export const DEMO_USERS: DemoUser[] = [
   },
 ];
 
-type DemoCourseStatus = "draft" | "published";
+/** The demo only ships courses the schema can store, and never an archived one. */
+type DemoCourseStatus = Extract<CourseStatus, "draft" | "published">;
 
 export interface DemoCourse {
   id: string;
@@ -292,8 +304,9 @@ export const DEMO_MODULES: DemoModule[] = [
   },
 ];
 
-type DemoLessonType = "video" | "text" | "quiz";
-type DemoLessonStatus = "draft" | "published";
+/** The lesson kinds the demo ships, all of them kinds the schema allows. */
+type DemoLessonType = Extract<LessonType, "video" | "text" | "quiz">;
+type DemoLessonStatus = Extract<LessonStatus, "draft" | "published">;
 
 export interface DemoLesson {
   id: string;
@@ -303,7 +316,7 @@ export interface DemoLesson {
   position: number;
   status: DemoLessonStatus;
   muxPlaybackId: string | null;
-  contentJson: string | null;
+  contentJson: DemoLessonContent | null;
 }
 
 export const DEMO_LESSONS: DemoLesson[] = [
@@ -1047,7 +1060,7 @@ export const DEMO_PROGRESS: DemoProgress[] = [
 export interface DemoNotification {
   id: string;
   userKey: string;
-  type: string;
+  type: NotificationType;
   title: string;
   courseId: string;
   courseTitle: string;
@@ -1256,7 +1269,8 @@ export const DEMO_ACTIVITY: DemoCourseActivity[] = [
   },
 ];
 
-type DemoEventType = "view" | "progress" | "complete" | "drop";
+/** The event kinds the demo records, all of them kinds the schema allows. */
+type DemoEventType = Extract<CourseEventType, "view" | "progress" | "complete" | "drop">;
 
 export interface DemoEvent {
   id: string;
