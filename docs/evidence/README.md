@@ -42,10 +42,19 @@ All artifacts are captured under standardised conditions using headless Chromium
 | `notifications-light.png` / `notifications-dark.png` | `/courses?view=cards` (bell opened) | author | light / dark |
 | `courses-390-before.png` / `courses-390-after.png` | `/courses` | public | light |
 | `courses-768-after.png` | `/courses` | public | light |
+| `issue-119-courses-1440-before.png` / `-after.png` | `/courses` | public | light |
+| `issue-119-courses-1440-diff.png` | `/courses` | public | light |
 
 The three narrow-viewport captures were taken by hand rather than by the capture script, and they
 record the app shell below 768 pixels, where the sidebar collapses to a rail and the topbar
 wraps. `courses-390-before.png` is the state that made the catalogue unreadable on a phone.
+
+The `issue-119-*` set records the shared-package Tailwind regression. The two 1440 captures are
+pixel-identical, because the missing classes only show on a card row with mixed heights, which
+that capture does not have. The difference is in the sidebar transition, recorded in the two GIFs:
+before, the browser animated every property with the default easing, because the transition
+properties themselves were never emitted. After, it animates the width with the intended curve.
+The `issue-119-sidebar-toggle-before.gif` and `-after.gif` are the two states.
 
 ### Recordings
 

@@ -68,6 +68,9 @@ jobs:
       - name: Build
         run: bun run build
 
+      - name: Shared package classes reach the production CSS
+        run: bun scripts/check-shared-classes.ts
+
   agent-rules:
     name: Agent rules
     runs-on: ubuntu-latest
