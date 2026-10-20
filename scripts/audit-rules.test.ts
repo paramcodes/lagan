@@ -17,6 +17,39 @@ failure: |
 owner: "@paramcodes"
 `;
 
+const CI_WORKFLOW = `name: CI
+
+jobs:
+  verify:
+    name: Typecheck, test, lint, build
+    steps:
+      - name: Test
+        run: bun run test
+
+  a11y-e2e:
+    name: E2E and accessibility
+    env:
+      DATABASE_URL: postgres://lagan@localhost:5432/lagan
+    steps:
+      - name: Run E2E
+        run: bun run test:e2e
+`;
+
+const SCOPED_RULE = `id: scoped-rule
+title: The verify job runs the database backed tests.
+layer: ci
+enforced_by:
+  - path: .github/workflows/ci.yml
+    match:
+      - "  verify:"
+      - "DATABASE_URL"
+artifact:
+  - path: .github/workflows/ci.yml
+failure: |
+  2026-10-20. The verify job had no database, so the integration tests skipped.
+owner: "@paramcodes"
+`;
+
 describe("runAudit", () => {
   let root: string;
 
@@ -247,6 +280,67 @@ owner: "@paramcodes"
 
     expect(codes(result)).not.toContain("contradiction");
     expect(result.ok).toBe(true);
+  });
+
+  it("fails when a marker in the list is missing", () => {
+    write("src/guard.ts", "export const guard = true;\n");
+    write("src/guard.test.ts", "it('guards', () => {});\n");
+    writeRule(
+      "sample-rule",
+      VALID_RULE.replace(
+        "    match: 'export const guard = true'",
+        "    match:\n      - 'export const guard = true'\n      - 'export const other = true'",
+      ),
+    );
+
+    const result = runAudit(root);
+
+    expect(result.ok).toBe(false);
+    expect(codes(result)).toContain("enforcement-marker-missing");
+  });
+
+  it("fails when a list marker is not a string", () => {
+    write("src/guard.ts", "export const guard = true;\n");
+    write("src/guard.test.ts", "it('guards', () => {});\n");
+    writeRule(
+      "sample-rule",
+      VALID_RULE.replace(
+        "    match: 'export const guard = true'",
+        "    match:\n      - 'export const guard = true'\n      - 42",
+      ),
+    );
+
+    const result = runAudit(root);
+
+    expect(result.ok).toBe(false);
+    expect(codes(result)).toContain("schema");
+  });
+
+  it("fails when a scoped marker sits in another job", () => {
+    write(".github/workflows/ci.yml", CI_WORKFLOW);
+    writeRule("scoped-rule", SCOPED_RULE);
+
+    const result = runAudit(root);
+
+    expect(result.ok).toBe(false);
+    expect(codes(result)).toContain("enforcement-marker-missing");
+    expect(result.findings[0]?.message).toContain('not in the block opened by "  verify:"');
+  });
+
+  it("passes when every scoped marker sits in the block the first marker opens", () => {
+    write(
+      ".github/workflows/ci.yml",
+      CI_WORKFLOW.replace(
+        "  verify:\n    name: Typecheck, test, lint, build",
+        "  verify:\n    name: Typecheck, test, lint, build\n    env:\n      DATABASE_URL: postgres://lagan@localhost:5432/lagan",
+      ),
+    );
+    writeRule("scoped-rule", SCOPED_RULE);
+
+    const result = runAudit(root);
+
+    expect(result.ok).toBe(true);
+    expect(result.findings).toEqual([]);
   });
 
   it("fails when the protected paths table is missing", () => {
