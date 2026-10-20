@@ -1,0 +1,249 @@
+# The catalogue for a Next.js app on Bun.
+#
+# A catalogue is a list of derivations, not a list of rules. Each derivation says: if these
+# facts hold about the repository, then this rule applies. A bootstrap resolves the
+# derivations against the facts it detects and writes only the rules that apply.
+#
+# The format and the full fact set are documented in packages/rules/README.md.
+
+id: nextjs-bun
+title: Next.js on Bun in a Bun workspace
+applies_to: >
+  A Bun workspace with the Next.js app under apps/web and the shared packages under packages/*.
+
+stack:
+  framework: next
+  package_manager: bun
+
+rules:
+  - id: style-enforced-by-linter
+    title: Style is enforced by {linter}, not by prose.
+    derive:
+      - fact: linter_config_exists
+        value: biome.json
+    layer: lint
+    enforced_by:
+      - path: biome.json
+    note: |
+      A rule that restates a linter is lint leakage. SCAM 2026 found it in 62 percent of real
+      repositories, and the ETH Zurich study measured that context files cost more than 20
+      percent extra inference for no gain.
+
+  - id: the-gates-run-in-ci
+    title: The gates run in CI on every pull request.
+    derive:
+      - fact: ci_workflow_exists
+        value: .github/workflows/ci.yml
+    layer: ci
+    enforced_by:
+      - path: .github/workflows/ci.yml
+        match: bun run test
+    note: |
+      2026-10-20. The full suite costs 404 seconds on this box, and three agents running it at
+      the same time pushed the load average to 25, so the suite moved to CI and the local runs
+      were scoped to the files that changed. The workflow is the mechanism, so a rule that names
+      a command without naming the workflow is a wish.
+
+  - id: the-build-runs-from-the-workspace-root
+    title: The build runs from the workspace root.
+    derive:
+      - fact: build_script_exists
+    layer: ci
+    enforced_by:
+      - path: package.json
+        match: '"build"'
+    note: |
+      2026-10-20. The build is the gate that catches the class of defect a test cannot see,
+      because a module that no longer compiles still passes a mocked unit test. The root script
+      is the one that resolves the workspace packages, so a build run inside a package is not
+      the same check.
+
+  - id: the-tests-run-from-the-workspace-root
+    title: The tests run from the workspace root.
+    derive:
+      - fact: test_script_exists
+    layer: test
+    enforced_by:
+      - path: package.json
+        match: '"test"'
+    note: |
+      2026-10-20. A unit test that mocked its own query asserted that the mock was rendered,
+      so the oracle was the agent that wrote the test and the real query ran in no test at all.
+      The suite runs from the root so the include patterns cover every workspace package.
+
+  - id: the-typecheck-runs-from-the-workspace-root
+    title: The typecheck runs from the workspace root.
+    derive:
+      - fact: typecheck_script_exists
+    layer: type
+    enforced_by:
+      - path: package.json
+        match: '"typecheck"'
+    note: |
+      2026-10-20. The root tsconfig sets exactOptionalPropertyTypes and noUncheckedIndexedAccess,
+      which is where most of the real type errors live, and a package-level invocation reads a
+      different configuration. The type layer is the cheapest reliable place to catch a wrong
+      shape, so the check that produces it belongs at the root.
+
+  - id: the-format-runs-from-the-workspace-root
+    title: The format runs from the workspace root.
+    derive:
+      - fact: format_script_exists
+    layer: lint
+    enforced_by:
+      - path: package.json
+        match: '"format"'
+    note: |
+      2026-10-20. The pre-commit hook formats the staged files, so an unformatted file that
+      never reaches the hook stays unformatted. The root script is what covers the files the
+      hook never sees.
+
+  - id: the-lint-runs-from-the-workspace-root
+    title: The lint runs from the workspace root.
+    derive:
+      - fact: lint_script_exists
+    layer: lint
+    enforced_by:
+      - path: package.json
+        match: '"lint"'
+    note: |
+      2026-10-20. The lint command names the linter, so a rule that restates the linter's own
+      findings adds an instruction the agent follows without any new information. The command
+      is worth naming because the answer to "what does this repository check" is a command, not
+      a paragraph.
+
+  - id: the-framework-version-is-pinned
+    title: The framework is pinned to {version}, and the documentation bundled with the install is the reference.
+    derive:
+      - fact: framework_version
+        value: next
+    layer: runtime
+    enforced_by:
+      - path: apps/web/package.json
+        match: '"next"'
+      - path: apps/web/AGENTS.md
+        match: node_modules/next/dist/docs/
+    note: |
+      2026-10-20. The installed framework has breaking changes to its APIs, its conventions and
+      its file structure, so code written from an older version of the framework produces
+      defects that no test in the repository asserts against. The version in the manifest and
+      the documentation that ships inside the install are the two places the answer lives.
+
+  - id: the-environment-is-declared-in-one-file
+    title: Every environment variable the app needs is declared in one file, and a missing value fails the start.
+    derive:
+      - fact: framework_version
+        value: next
+    layer: runtime
+    enforced_by:
+      - path: .env.example
+    note: |
+      2026-10-20. The configuration was read from more than one place, and the fallback pointed
+      at a plausible host, so a missing variable produced a wrong target rather than a failed
+      start. Anthropic measured that infrastructure configuration moves an agentic benchmark by
+      several percentage points, sometimes more than the gap between the top models, so a silent
+      default is scored as a wrong answer.
+
+  - id: the-lockfile-is-committed-and-installed-frozen
+    title: The lockfile is committed, and CI installs from it frozen.
+    derive:
+      - fact: has_lockfile
+      - fact: ci_workflow_exists
+    layer: ci
+    enforced_by:
+      - path: .github/workflows/ci.yml
+        match: --frozen-lockfile
+    note: |
+      2026-10-20. A resolved install drifts from the committed dependency graph, so the build
+      that passes locally is not the build that passes in CI. The frozen install is the mechanism
+      that makes the committed lockfile mean anything, so the rule names both.
+
+  - id: a-route-change-is-driven-in-a-browser
+    title: A route change is driven in a browser before the pull request is opened.
+    derive:
+      - fact: e2e_suite_exists
+    layer: test
+    enforced_by:
+      - path: playwright.config.ts
+        match: webServer
+    note: |
+      2026-10-20. The shell was unusable below 768 pixels and every DOM assertion passed,
+      because a DOM assertion says the element exists and says nothing about whether a human can
+      read it. The browser suite starts the app itself, so it is the check that runs the
+      software rather than a check that reads the code.
+
+  - id: the-pre-commit-hook-runs-the-fast-checks
+    title: The pre-commit hook runs the fast checks, and the expensive gate lives in CI.
+    derive:
+      - fact: precommit_hook_exists
+    layer: lint
+    enforced_by:
+      - path: lefthook.yml
+        match: pre-commit
+    note: |
+      2026-10-20. The suite costs 404 seconds, and a hook that runs it on every commit is a
+      hook nobody keeps installed. The hook holds the format, the lint and the diff size guard,
+      and the size guard held on every commit while still splitting a 1914-line seed script
+      into six commits that told a reviewer nothing. Enforcement can be mechanically correct
+      and still work against the goal, which is why the expensive gate stays in CI.
+
+  - id: the-shared-commands-live-in-the-root-manifest
+    title: The shared commands live in the root manifest, because the workspace root is what resolves the packages.
+    derive:
+      - fact: monorepo_with_packages
+    layer: primitive
+    enforced_by:
+      - path: package.json
+        match: workspaces
+    note: |
+      2026-10-20. A command run from inside a package resolved a different dependency graph and
+      a different set of test files than the command CI runs, so a green local run did not mean
+      the same thing as a green CI run. Co-Coder measured dependency-aware partitioning as the
+      answer to slow fan-out, and that only works if the dependency graph is the one the
+      commands see.
+
+policies:
+  - id: one-issue-one-worktree-one-owner
+    title: One issue is worked in one worktree, and one package has one owner at a time.
+    layer: prose
+    note: |
+      2026-10-20. Two agents edited the same file and one had to be aborted after the fact.
+      CooperBench measured 25 percent for two-agent cooperation against roughly 50 percent for
+      one agent doing both, and Anthropic's multi-agent study cut the conflict rate by keeping
+      file ownership high rather than by adding coordination. The worktree is the mechanism, so
+      the rule names the worktree and the owner rather than asking for care.
+
+  - id: the-rule-table-is-the-source-of-truth
+    title: The rule table is the source of truth, and the projected files are generated from it.
+    layer: prose
+    enforced_by:
+      - path: scripts/sync-agent-rules.ts
+    note: |
+      2026-10-20. The rules lived as prose in an instruction file, and the measured result is
+      that a context file does not improve task success and costs more than 20 percent extra
+      inference, because the agent follows what it is given. Chakrabarti measured 247,694
+      instruction lifetimes across 1,867 repositories and found the file regrows to 91.5 percent
+      of its old size within ten commits, and that a comment recording the failure behind each
+      instruction removes 99.3 percent of that growth. The rule table is that comment, made
+      machine-readable.
+
+  - id: never-commit-to-the-default-branch
+    title: Nothing is committed directly to the default branch.
+    layer: prose
+    note: |
+      2026-10-20. A queue-file update was pushed straight to master and had to be rebased after
+      a concurrent push landed, and a branch cut from a stale local master diverged from the
+      remote and had to be reconciled by hand. The branch and the pull request are the
+      mechanism, so the rule names them.
+
+  - id: done-when-the-surface-was-observed
+    title: A change is done when the surface it touched has been observed in the running application.
+    layer: prose
+    note: |
+      2026-10-20. The app shell was unreadable below 768 pixels, every DOM assertion passed,
+      and only a screenshot showed the page as a human sees it. One developer audited 516 such
+      claims and found no passing test run behind 65 to 69 percent of them, and the failure is
+      structural rather than a matter of care: a route is observed in a browser and captured as
+      a screenshot, a query is observed against the real database, and a configuration change is
+      observed in a process started with the new value. The evidence has to live outside the
+      change, because a check the agent can edit is a check the agent can pass.
