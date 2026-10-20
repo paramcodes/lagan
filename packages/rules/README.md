@@ -8,11 +8,46 @@ derivations against them, and writes only the rules that apply.
 | --- | --- |
 | `packages/rules/catalogues/*.yaml` | The catalogues. One file per stack. |
 | `packages/rules/resolve.ts` | The resolver. It reads a catalogue and a repository and writes the rules. |
+| `packages/rules/bin/rules.ts` | The command line. It bootstraps a project and keeps its table honest. |
+| `packages/rules/templates/` | The copies a project owns: the auditor, the projector and the orientation file. |
+| `packages/rules/skills/agent-rules/SKILL.md` | The judgement work: writing a rule, reviewing a table, explaining a finding. |
+| `packages/rules/commands/` | The opencode commands that reach the skill. |
 | `packages/rules/README.md` | This file. The format, the fact set and the contract with the bootstrap. |
 
 The catalogues are the input to a bootstrap, not the rule table. The rule table is written in
 the repository, one YAML file per rule, in the format documented in `docs/ai/README.md`, and the
 bootstrap is what carries the applicable derivations across.
+
+## The package
+
+The package is the tooling that creates the project-local copies. It is **not** a runtime
+dependency of the project it bootstraps.
+
+```bash
+bun packages/rules/bin/rules.ts init --root /path/to/project
+bun packages/rules/bin/rules.ts audit --root /path/to/project
+bun packages/rules/bin/rules.ts sync --root /path/to/project
+bun packages/rules/bin/rules.ts new --root /path/to/project
+bun packages/rules/bin/rules.ts upgrade --root /path/to/project
+```
+
+| Command | What it does |
+| --- | --- |
+| `init` | Detects the facts, resolves the catalogue, asks the four questions the detector cannot answer, writes the project-local files, breaks a rule on purpose to show the check failing, restores it, and reports. |
+| `audit` | Runs the project's own auditor. It does not run the package's copy, because that would check the package instead of the project. |
+| `sync` | Runs the project's own projector. `--check` fails when a projection is stale. |
+| `new` | Walks a human through one rule, after a failure class repeats, and writes the file. |
+| `upgrade` | Compares the catalogue with the project's table and reports the difference. It writes nothing, because a change to the rules needs a human who owns them. |
+
+`init` copies the auditor, the projector, the orientation file, the skill and the commands into
+the project, and the project then owns them. The package is needed to create them and to deliver
+new catalogue entries, and not at run time. Three things follow: CI does not change when the
+package is updated, a compromised package cannot change a build, and a project can fork the
+scripts and the package never touches it again.
+
+The four questions `init` asks are the ones no detector can answer: who owns the rule table,
+which commands count as heavy on this machine, whether there is a rule from the project's history
+that the detector cannot see, and which of the detected candidates become rules.
 
 ## Why this is not a list of rules
 

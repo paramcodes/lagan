@@ -1,5 +1,5 @@
 <!-- GENERATED FILE. DO NOT EDIT BY HAND. -->
-<!-- Regenerate with: bun scripts/sync-agent-rules.ts -->
+<!-- Regenerate with: bun run rules:sync -->
 
 # Lagan
 
@@ -111,7 +111,7 @@ The operating rules live in `docs/ai/rules/`, one YAML file per rule. There are 
 
 - `docs/ai/README.md` documents the format, the layers and how to add a rule.
 - `docs/ai/protected-paths.md` lists the guarded paths and what enforces each one.
-- `bun scripts/audit-rules.ts` checks the table.
+- `bun run rules:audit` checks the table.
 
 Read the rule file when a rule is in question. This file routes to the table and does not
 restate it, because a restatement is a second copy that drifts.

@@ -1,8 +1,8 @@
 #!/usr/bin/env bun
 import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { createRequire } from "node:module";
 import { join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parse } from "yaml";
 
 export const RULE_LAYERS = ["type", "primitive", "runtime", "test", "lint", "ci", "prose"] as const;
 
@@ -163,6 +163,21 @@ const WINDOW = 3;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * The YAML parser.
+ *
+ * The copy in a project runs under Bun and needs nothing installed, so it uses the parser
+ * Bun has built in. The fallback is for the one place the copy runs under Node, which is
+ * the test suite of the package that ships it.
+ */
+export function parseYaml(source: string): unknown {
+  const runtime = (globalThis as { Bun?: { YAML?: { parse(source: string): unknown } } }).Bun;
+  if (runtime?.YAML) return runtime.YAML.parse(source);
+  const require = createRequire(import.meta.url);
+  const { parse } = require("yaml") as { parse(source: string): unknown };
+  return parse(source);
 }
 
 function isNonEmptyString(value: unknown): value is string {
@@ -380,7 +395,7 @@ export function parseRuleDocument(
   const fileId = fileName.replace(/\.ya?ml$/, "");
   let raw: unknown;
   try {
-    raw = parse(source);
+    raw = parseYaml(source);
   } catch (error) {
     findings.push(
       finding(

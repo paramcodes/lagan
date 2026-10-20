@@ -71,6 +71,25 @@ jobs:
       - name: Shared package classes reach the production CSS
         run: bun scripts/check-shared-classes.ts
 
+  agent-rules:
+    name: Agent rules
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Audit the rule table
+        run: bun run rules:audit
+
+      - name: Check the projections
+        run: bun run rules:sync:check
+
   a11y-e2e:
     name: E2E and accessibility (axe WCAG 2.2 AA)
     runs-on: ubuntu-latest

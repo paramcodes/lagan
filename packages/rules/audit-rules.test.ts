@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { runAudit, titlesContradict, type AuditResult } from "./audit-rules";
+import { runAudit, titlesContradict, type AuditResult } from "./templates/audit-rules";
 
 const VALID_RULE = `id: sample-rule
 title: The sample rule holds.
