@@ -1,7 +1,9 @@
 #!/usr/bin/env bun
-import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
-import { parse } from "yaml";
+import { execFileSync } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { parse, stringify } from "yaml";
 
 export const CATALOGUE_DIR = "packages/rules/catalogues";
 export const RULES_DIR = "docs/ai/rules";
@@ -80,6 +82,27 @@ export interface Catalogue {
   stack: Stack;
   rules: Derivation[];
   policies: Derivation[];
+}
+
+export interface ResolvedRule {
+  id: string;
+  document: string;
+  enforced_by: Enforcement[];
+  artifact: ArtifactRef[];
+  protects: ProtectedPath[];
+}
+
+export interface Skipped {
+  id: string;
+  reason: string;
+}
+
+export interface Resolution {
+  catalogue: string;
+  rules: ResolvedRule[];
+  skipped: Skipped[];
+  derived: number;
+  policies: number;
 }
 
 export type Facts = Partial<Record<Fact, string>>;
@@ -552,4 +575,250 @@ export function detectFacts(root: string, stack: Stack): Facts {
   }
 
   return facts;
+}
+
+function factMatches(condition: FactCondition, facts: Facts): boolean {
+  const detected = facts[condition.fact];
+  if (detected === undefined) return false;
+  if (condition.value === undefined) return true;
+  if (condition.fact === "framework_version") {
+    return detected === condition.value || detected.startsWith(`${condition.value}@`);
+  }
+  return detected === condition.value;
+}
+
+function pathMatches(condition: PathCondition, root: string): boolean {
+  const target = join(root, condition.path);
+  if (!existsSync(target)) return false;
+  if (condition.match === undefined) return true;
+  return readText(target).includes(condition.match);
+}
+
+export function fillTitle(title: string, facts: Facts): string {
+  const framework = facts.framework_version ?? "";
+  const separator = framework.indexOf("@");
+  const name = separator === -1 ? framework : framework.slice(0, separator);
+  const version = separator === -1 ? "" : framework.slice(separator + 1);
+  return title
+    .replaceAll("{linter}", facts.linter_config_exists ?? "")
+    .replaceAll("{framework}", name)
+    .replaceAll("{version}", version)
+    .replaceAll("{value}", framework);
+}
+
+export function detectOwner(root: string): string {
+  try {
+    const remote = execFileSync("git", ["remote", "get-url", "origin"], {
+      cwd: root,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+    const match = remote.match(/[:/]([^/:]+)\/[^/]+?(?:\.git)?$/);
+    const owner = match?.[1];
+    return owner ? `@${owner}` : "";
+  } catch {
+    return "";
+  }
+}
+
+function artifactsFor(derivation: Derivation, mechanisms: Enforcement[]): ArtifactRef[] {
+  if (derivation.artifact.length > 0) return derivation.artifact;
+  if (mechanisms.length > 0) return mechanisms.map((mechanism) => ({ path: mechanism.path }));
+  return [{ path: PR_COMMENT }];
+}
+
+function protectsFor(derivation: Derivation, mechanisms: Enforcement[]): ProtectedPath[] {
+  if (derivation.protects.length > 0) return derivation.protects;
+  return mechanisms.map((mechanism) => ({ path: mechanism.path }));
+}
+
+export function ruleDocument(
+  derivation: Derivation,
+  mechanisms: Enforcement[],
+  artifacts: ArtifactRef[],
+  protects: ProtectedPath[],
+  owner: string,
+  facts: Facts,
+): string {
+  const document: Record<string, unknown> = {
+    id: derivation.id,
+    title: fillTitle(derivation.title, facts),
+    layer: derivation.layer,
+  };
+  if (mechanisms.length > 0) document.enforced_by = mechanisms;
+  document.artifact = artifacts;
+  document.failure = derivation.note;
+  document.owner = owner;
+  if (protects.length > 0) document.protects = protects;
+  return stringify(document, { lineWidth: 0 });
+}
+
+export interface ResolveOptions {
+  root: string;
+  facts: Facts;
+  owner: string;
+}
+
+function conditionFailure(condition: Condition, facts: Facts, root: string): string | undefined {
+  if ("fact" in condition) {
+    if (factMatches(condition, facts)) return undefined;
+    return `the fact ${condition.fact} does not hold`;
+  }
+  if (pathMatches(condition, root)) return undefined;
+  return `the path ${condition.path} is not in the repository`;
+}
+
+export function resolveCatalogue(catalogue: Catalogue, options: ResolveOptions): Resolution {
+  const rules: ResolvedRule[] = [];
+  const skipped: Skipped[] = [];
+  let derived = 0;
+  let policies = 0;
+
+  for (const [index, derivation] of [...catalogue.rules, ...catalogue.policies].entries()) {
+    const isPolicy = index >= catalogue.rules.length;
+    if (!isPolicy) {
+      let failure: string | undefined;
+      for (const condition of derivation.derive) {
+        failure = conditionFailure(condition, options.facts, options.root);
+        if (failure) break;
+      }
+      if (failure) {
+        skipped.push({ id: derivation.id, reason: failure });
+        continue;
+      }
+    }
+
+    const mechanisms = survivingMechanisms(derivation, options.root);
+    if (mechanisms.length === 0 && derivation.layer !== "prose") {
+      skipped.push({ id: derivation.id, reason: "no mechanism survives in the repository" });
+      continue;
+    }
+
+    const artifacts = artifactsFor(derivation, mechanisms);
+    const protects = protectsFor(derivation, mechanisms);
+    const owner = derivation.owner || options.owner;
+
+    rules.push({
+      id: derivation.id,
+      document: ruleDocument(derivation, mechanisms, artifacts, protects, owner, options.facts),
+      enforced_by: mechanisms,
+      artifact: artifacts,
+      protects,
+    });
+    if (isPolicy) policies += 1;
+    else derived += 1;
+  }
+
+  return { catalogue: catalogue.id, rules, skipped, derived, policies };
+}
+
+function survivingMechanisms(derivation: Derivation, root: string): Enforcement[] {
+  return derivation.enforced_by.filter((entry) => pathMatches(entry, root));
+}
+
+export function writeRules(rules: ResolvedRule[], directory: string): string[] {
+  const written: string[] = [];
+  for (const rule of rules) {
+    const path = join(directory, `${rule.id}.yaml`);
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, rule.document, "utf8");
+    written.push(path);
+  }
+  return written;
+}
+
+export function cataloguePaths(root: string): string[] {
+  return cataloguePathsIn(join(root, CATALOGUE_DIR));
+}
+
+export function cataloguePathsIn(directory: string): string[] {
+  if (!existsSync(directory)) return [];
+  return readdirSync(directory)
+    .filter((name) => name.endsWith(".yaml") || name.endsWith(".yml"))
+    .sort()
+    .map((name) => join(directory, name));
+}
+
+export function defaultCataloguePaths(): string[] {
+  return cataloguePathsIn(join(dirname(fileURLToPath(import.meta.url)), "catalogues"));
+}
+
+export interface CliOptions {
+  root: string;
+  catalogue: string | undefined;
+  write: string | undefined;
+  owner: string | undefined;
+  verbose: boolean;
+}
+
+export function parseArgs(argv: string[]): CliOptions {
+  const options: CliOptions = {
+    root: process.cwd(),
+    catalogue: undefined,
+    write: undefined,
+    owner: undefined,
+    verbose: false,
+  };
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index];
+    const next = argv[index + 1];
+    if (argument === "--root" && next) {
+      options.root = next;
+      index += 1;
+    } else if (argument === "--catalogue" && next) {
+      options.catalogue = next;
+      index += 1;
+    } else if (argument === "--write" && next) {
+      options.write = next;
+      index += 1;
+    } else if (argument === "--owner" && next) {
+      options.owner = next.startsWith("@") ? next : `@${next}`;
+      index += 1;
+    } else if (argument === "--verbose") {
+      options.verbose = true;
+    }
+  }
+  return options;
+}
+
+export function main(argv: string[]): number {
+  const options = parseArgs(argv);
+  const owner = options.owner || detectOwner(options.root);
+  const paths = options.catalogue ? [options.catalogue] : defaultCataloguePaths();
+  if (paths.length === 0) {
+    console.error(`No catalogue was found in ${join(CATALOGUE_DIR, ".")}.`);
+    return 1;
+  }
+
+  for (const path of paths) {
+    const catalogue = loadCatalogue(path);
+    const facts = detectFacts(options.root, catalogue.stack);
+    const resolution = resolveCatalogue(catalogue, { root: options.root, facts, owner });
+    console.log(`${catalogue.id} against ${options.root}`);
+    console.log(
+      `  derived ${resolution.derived}  policies ${resolution.policies}  total ${resolution.rules.length}`,
+    );
+    for (const rule of resolution.rules) {
+      if (!options.verbose) continue;
+      console.log(`  applied ${rule.id}`);
+    }
+    for (const entry of resolution.skipped) {
+      console.log(`  skipped ${entry.id}: ${entry.reason}`);
+    }
+    if (options.write) {
+      const written = writeRules(resolution.rules, options.write);
+      console.log(`  wrote ${written.length} rule files to ${options.write}`);
+    }
+  }
+  return 0;
+}
+
+function isMainModule(): boolean {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  return join(entry) === fileURLToPath(import.meta.url);
+}
+
+if (isMainModule()) {
+  process.exit(main(process.argv.slice(2)));
 }
