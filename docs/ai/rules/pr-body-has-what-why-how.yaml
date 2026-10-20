@@ -1,0 +1,10 @@
+id: pr-body-has-what-why-how
+title: A pull request body carries What, Why and How.
+layer: prose
+artifact:
+  - path: .github/PULL_REQUEST_TEMPLATE.md
+    note: The template the reviewer reads.
+failure: |
+  2026-10-20. No pull request has been rejected for a missing section, and the rule holds
+  because the sections are the first thing a reviewer reads.
+owner: "@paramcodes"

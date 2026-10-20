@@ -1,0 +1,16 @@
+id: full-suite-before-pr
+title: The full suite runs once before the pull request is opened.
+layer: ci
+enforced_by:
+  - path: .github/workflows/ci.yml
+    match: bun run test
+artifact:
+  - path: ci:job
+    note: The verify job runs the whole suite on every pull request.
+failure: |
+  2026-10-20. The suite costs 404 seconds, and three agents running it at the same time is
+  what caused the load problem recorded in the machine budget rule.
+owner: "@paramcodes"
+protects:
+  - path: .github/workflows/ci.yml
+    protection: The verify job is where the full suite runs for every pull request.

@@ -1,0 +1,16 @@
+id: scoped-tests-while-iterating
+title: While iterating, run only the tests for the files that changed.
+layer: test
+enforced_by:
+  - path: vitest.config.ts
+    match: include
+artifact:
+  - path: vitest.config.ts
+    note: The include patterns that make a scoped run possible.
+failure: |
+  2026-10-20. The full suite takes 404 seconds, and three agents running it concurrently is
+  what pushed the load average to 25 in the machine budget rule.
+owner: "@paramcodes"
+protects:
+  - path: vitest.config.ts
+    protection: The include patterns are what make a scoped run cheap.

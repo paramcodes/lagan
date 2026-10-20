@@ -1,0 +1,18 @@
+id: app-error-boundary
+title: The app route group renders a usable error state, never a blank page.
+layer: runtime
+enforced_by:
+  - path: apps/web/app/(app)/error.tsx
+    match: 'role="alert"'
+artifact:
+  - path: apps/web/app/(app)/error.test.tsx
+    note: The unit test that asserts the alert region and the way back.
+  - path: apps/web/e2e/core-journeys.spec.ts
+    note: The browser journey that drives the app shell.
+failure: |
+  2026-10-20. The app route group had no error boundary, so a failing query rendered Next's
+  generic error page: a near-blank white screen with no app chrome and no way back.
+owner: "@paramcodes"
+protects:
+  - path: apps/web/app/(app)/error.tsx
+    protection: The error boundary is the mechanism behind the usable error state.
