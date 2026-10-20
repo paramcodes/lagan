@@ -1,0 +1,36 @@
+# The facts about this repository that an agent needs in order to act correctly.
+#
+# The rule table in docs/ai/rules/ holds the constraints: the things that must hold and that
+# something checks. This file holds the orientation: the facts that are not constraints, that
+# an agent gets wrong without being told, and that no check holds on its own.
+#
+# The projector renders this into AGENTS.md, so an edit here changes what every agent reads.
+# Keep one section per topic and keep every line a fact about the repository. A fact belongs
+# here. A constraint with a failure behind it belongs in the rule table.
+
+sections:
+  - title: The stack
+    body: |
+      - The framework is {{framework}} {{version}}, and the package manager is {{package_manager}}.
+      - The lockfile is {{lockfile}}.
+      - The gates run from the workspace root, because the root is what resolves the shared packages.
+
+  - title: Machine budget
+    body: |
+      - The heavy commands on this machine are: {{heavy_commands}}.
+      - At most one heavy command runs at a time. The rest of the work keeps editing while it runs.
+
+  - title: Workflow
+    body: |
+      - Cut a branch from the default branch of the remote and open a pull request. Nothing lands
+        on the default branch directly.
+      - One logical change per commit, with a conventional commit message.
+      - Edit this section with the facts only this repository knows: the branch to cut from, the
+        merge policy, and where the queue of work lives.
+
+  - title: Where the rules live
+    body: |
+      - The rule table is `docs/ai/rules/`, one YAML file per rule, and the file name is the rule id.
+      - `{{owner}}` owns the table and the code owners file.
+      - `bun run rules:audit` checks the table, and `bun run rules:sync` writes the projections.
+      - A rule that names no mechanism is a wish. The auditor counts them, and the count is the signal.
