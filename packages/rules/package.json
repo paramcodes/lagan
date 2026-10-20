@@ -1,0 +1,11 @@
+{
+  "name": "@lagan/rules",
+  "version": "0.1.0",
+  "private": true,
+  "bin": {
+    "rules": "./bin/rules.ts"
+  },
+  "dependencies": {
+    "yaml": "2.9.1"
+  }
+}

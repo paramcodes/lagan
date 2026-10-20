@@ -73,6 +73,16 @@
         "vitest": "5.0.5",
       },
     },
+    "packages/rules": {
+      "name": "@lagan/rules",
+      "version": "0.1.0",
+      "bin": {
+        "rules": "./bin/rules.ts",
+      },
+      "dependencies": {
+        "yaml": "2.9.1",
+      },
+    },
     "packages/types": {
       "name": "@lagan/types",
       "version": "0.0.0",
@@ -321,6 +331,8 @@
     "@lagan/db": ["@lagan/db@workspace:packages/db"],
 
     "@lagan/email": ["@lagan/email@workspace:packages/email"],
+
+    "@lagan/rules": ["@lagan/rules@workspace:packages/rules"],
 
     "@lagan/types": ["@lagan/types@workspace:packages/types"],
 
