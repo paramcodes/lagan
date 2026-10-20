@@ -78,6 +78,29 @@ and say which one you used.
 
 ---
 
+## What actually protects the rules here, and what does not
+
+This repository has one GitHub account. The agent and the human are the same identity, so the
+owner of the rules is also whoever pushed the change.
+
+That has two consequences you must know before you touch anything.
+
+**There is no identity-based gate, and there cannot be one.** The ruleset on `master` requires a
+pull request, green CI, no force pushes, and resolved conversations. It deliberately does not
+require an approving review, because there is nobody who can give one that the pusher cannot
+give. A gate every merge has to bypass with `--admin` is worse than no gate, because it teaches
+the bypass.
+
+**The real protection is the content check.** `bun scripts/audit-rules.ts` fails when a rule's
+enforcing path or marker is gone. That works regardless of who is pushing, because it looks at
+the repository, not at the identity. It is why the rules cannot be quietly deleted: deleting the
+error boundary removes the marker, and the audit goes red.
+
+So when a change touches the rules, the enforcement is the audit. Make sure it still passes. Do
+not assume the platform is holding the line for you.
+
+---
+
 ## Reporting
 
 Report these, and nothing else:
