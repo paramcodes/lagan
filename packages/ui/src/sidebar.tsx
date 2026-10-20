@@ -101,6 +101,7 @@ export function Sidebar({
               {!collapsed && <span className="truncate text-sm">{item.label}</span>}
             </>
           );
+          const iconOnlyLabel = collapsed ? item.label : undefined;
           const itemClassName = [
             "flex items-center gap-3 rounded-md px-2 py-2 text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-100",
             item.active ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100" : "",
@@ -114,6 +115,8 @@ export function Sidebar({
                 key={`${item.label}-${item.href ?? ""}`}
                 href={item.href}
                 aria-current={item.active ? "page" : undefined}
+                aria-label={iconOnlyLabel}
+                title={iconOnlyLabel}
                 className={itemClassName}
                 onClick={item.onClick}
               >
@@ -128,6 +131,8 @@ export function Sidebar({
               type="button"
               onClick={item.onClick}
               aria-current={item.active ? "page" : undefined}
+              aria-label={iconOnlyLabel}
+              title={iconOnlyLabel}
               className={itemClassName}
             >
               {content}
