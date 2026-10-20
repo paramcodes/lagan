@@ -558,3 +558,276 @@ passes it, which proves the task is solvable and the grader is configured correc
 
 Cognition's [argument against multi-agents](https://cognition.ai/blog/dont-build-multi-agents),
 2025-06-12, rests on two principles. Share context and share full agent traces, not just
+individual messages. And actions carry implicit decisions, and conflicting decisions carry bad
+results.
+
+[LangChain, 2025-06-16](https://www.langchain.com/blog/how-and-when-to-build-multi-agent-systems)
+splits the disagreement usefully. Multi-agent systems that primarily read are easier than those
+that write, because read actions are inherently more parallelizable and write actions need
+context shared and outputs merged coherently.
+
+[OpenAI, "A practical guide to building agents", 2025-04](https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf)
+says to maximize a single agent first, and gives the two split criteria. Complex logic, and
+tool overload, which it defines as similarity between tools rather than their number.
+
+[Codex subagents documentation](https://developers.openai.com/codex/subagents) makes the
+distinction operational. Use parallel agents for read-heavy tasks, be more careful with parallel
+write-heavy workflows.
+
+Both tool authors have since shipped write-heavy parallel agents, which changes the shape of the
+argument. Anthropic's C compiler, with file locks and an external oracle.
+[Cognition's "Manage Devins", 2026-03-19](https://cognition.ai/blog/manage-devins), where each
+managed Devin runs in its own isolated virtual machine and the main session acts as a
+coordinator that scopes the work, assigns pieces, monitors progress, resolves conflicts, and
+compiles the results. Cognition's stated reason is that a single agent handling too much
+accumulates context and degrades focus, so each managed Devin gets a clean slate and a narrow
+focus.
+
+What the disagreement turns on is whether the shared decision surface is one codebase whose
+artifacts must be mutually consistent, or a set of independent units with an external
+reference. Anthropic converted the first into the second with a known-good oracle. Cognition
+re-centralises the decisions in a coordinator. Neither claim is independently measured.
+
+The rule that follows for a repository. Parallelise read-heavy and independent-direction work
+freely. Parallelise write-heavy work only when the units are genuinely independent and
+verified against a reference no agent produced.
+
+### E8. Merge queues do not survive agent scale
+
+[Anthropic, "Redesigning source control at Anthropic", 2026-10-13](https://www.anthropic.com/engineering/redesigning-source-control)
+reports the scale. Around 2,500 code changes merged per day in May 2026, over 30,000 per day
+by September, and on the order of 25 million code checkouts per day for CI. Replacing git with
+Scion made checkouts two orders of magnitude faster, and CI alone realised a 25% CPU capacity
+win.
+
+The part that matters for a fan-out rule.
+
+> A proper merge queue, for example, doesn't make much sense at agent scale. What does CI even
+> mean when hundreds or even thousands of changes can merge while tests are running? [...] so
+> instead, we've invested in post-merge and pre-deploy automated testing. This does mean that
+> concurrent changes can conflict, but Claude can typically fix these conflicts faster than
+> humans can even identify them.
+
+Two takeaways. A merge queue is a poor coordination mechanism at agent scale, so a rule built
+on one will not hold. And the check moves to after the merge, not before it.
+
+### E9. Phasing
+
+[Microsoft's walkthrough, 2025-09-15](https://developer.microsoft.com/blog/spec-driven-development-spec-kit/)
+adds the phasing rule that maps directly onto parallel work. Setup, then Foundational as
+blocking prerequisites, then one phase per user story in priority order, then Polish for
+cross-cutting concerns. Tasks inside a story phase are marked for parallel execution where
+possible.
+
+---
+
+## F. Local audit of the current rules
+
+Every rule in this repository's `AGENTS.md`, scored against what actually happened.
+
+| Rule | Layer | Artifact that proves it | Verdict |
+|---|---|---|---|
+| Main agent coordinates, does not implement | Prose | None | Low value for small changes, no way to check |
+| One issue and one worktree per subagent | Prose plus a real worktree | The worktree path | Held |
+| Branch from `origin/master` | Convention | The branch's merge base | Held |
+| Commit under 5000 tokens of diff | **Lint, mechanical** | The size guard output | Held, and made the history worse |
+| No comments except where required | Prose | None | Held, low stakes |
+| Run install, typecheck, test, lint | **Sensor, unscoped** | The gate output | Cost 30 min of contention, caught nothing |
+| PR body has What, Why, How | Artefact | The PR body | Held |
+| Reviewer re-runs gates, then squash-merges | Prose plus a role | The merge commit | Duplicated the gate cost |
+| Keep at least three subagents in flight | Prose | **None** | Caused the oversubscription, no way to check |
+| Never two agents on the same file or package | Prose | **None** | Held only because the coordinator wrote an explicit per-item file manifest |
+| Never force-push, never commit to master | Prose | None | Was broken once for a coordination file, at no cost |
+| Every change carries tests | Prose | The test file | **False compliance.** Four test files existed and skipped |
+| Visual changes need a screenshot | Artefact, checked at review | The PR comment | Highest-value rule in the file |
+| Perf changes need measured numbers | Artefact, checked at review | The PR comment | Held |
+
+The pattern is consistent. Every rule that produced value was tied to an artefact that a
+reviewer could look at. Every rule that produced nothing was tied to a process state, and a
+process state has no artefact, so there is nothing to check.
+
+**A rule that produces no artifact cannot be enforced and cannot be audited.** The fix is to
+give every surviving rule an artefact column.
+
+---
+
+## G. What to do differently
+
+### G1. Give every rule an artefact column
+
+A rule table with four columns. The rule, the layer that enforces it, the artefact that proves it
+was followed, and the observed failure that caused it to exist. A rule that cannot fill the
+artefact and the failure columns is a preference, and belongs in a design document, not in
+`AGENTS.md`.
+
+### G2. Enforce at the earliest reliable layer
+
+The escalation ladder, applied in order. A database URL that must be present becomes a
+primitive that throws, not a README line. A page that must not render blank becomes an error
+boundary, not a review reminder. A repeated structural mistake becomes a lint rule, not a third
+prose paragraph.
+
+### G3. Make every check able to fail
+
+A test that skips must be visible. Options that work: fail the build when the expected number of
+tests ran, print a loud summary line naming the skipped files, or run a strict mode in CI where
+a skip is a failure. The rule is that a sensor reports its own coverage, and a silent skip is a
+defect in the sensor.
+
+### G4. One canonical configuration source
+
+One file, one loader, used by the dev server, the build, the production server, the test runner
+and every script. No silent defaults that point at a plausible host. When the value is missing,
+fail at startup with a message that names the file and the variable.
+
+### G5. Scope validation to the change
+
+Replace the flat gate list with a ladder. A documentation change needs lint. A change inside one
+package runs that package's tests. A change to a shared package runs the full suite. A change to
+a route runs the browser journey for that route. The current flat rule made every small change
+pay the 6.7-minute floor.
+
+### G6. Make ownership machine-readable
+
+The current rule names files, and it held in this session only because the coordinator wrote an
+explicit per-item file manifest into every brief. That manifest was the enforcement, not the
+rule.
+
+Replace the rule with three things. A package-level ownership claim that the tooling reads. A
+CI check on each pull request that reports files or packages touched by another open pull
+request, so a collision is caught before merge rather than during. And an explicit serialised
+list for the shared seams that every change touches, the barrel files, the migration folder, the
+lockfile, the token source.
+
+### G7. Budget the machine, not the agent count
+
+Replace "keep at least three subagents in flight" with a resource rule. Name the heavy gates,
+the full test suite, a production build, a browser run. Say that at most one runs at a time on a
+four-core machine, and that the other agents keep editing. Say that worktrees and dependency
+installs are prepared before dispatch, so three agents do not compete on the install.
+
+### G8. Define done against the running artifact
+
+A change is not done because a test passed. It is done when the surface it touched has been
+observed in the running application. A route change means the route was driven in a browser. A
+query change means the query ran against the real database. A configuration change means the
+deployed process was started with it. This is the check the current repository was missing, and
+it is the one that would have caught the blank catalogue page.
+
+### G9. Keep an incident log
+
+Every near miss and every "the gate passed and it was still wrong" gets an entry. Each entry
+either produces a rule with a layer and an artefact, or is closed as not worth a rule. The
+three-strikes counter lives here. Without this log the instruction file can only grow.
+
+---
+
+## I. The measured evidence
+
+This section carries the studies that quantify the claims in the sections above. Everything here
+is either peer-reviewed, benchmarked, or large-n telemetry. Sources that are opinion pieces or
+single anecdotes are excluded here and handled in section J.
+
+### I1. Instruction files do not improve success, and they cost
+
+[ETH Zurich SRI Lab, "Evaluating AGENTS.md: Are Repository-Level Context Files Helpful for Coding
+Agents?", arXiv:2602.11988, v1 2026-02-12, v3 2026-09-29](https://arxiv.org/abs/2602.11988)
+
+> we find that providing context files does not generally improve task success rates, while
+> increasing inference cost by over 20% on average. This observation holds across different
+> LLMs, coding agents, and for both LLM-generated and developer-committed context files.
+> Specifically, we find that while instructions in the context files are well followed by coding
+> agents, repository overviews, although popular and recommended by model providers, are not
+> helpful.
+
+This is the finding that reframes the whole question, and it is worth stating the logic
+explicitly, because the instinct it contradicts is strong.
+
+The failure mode is not disobedience. The agents follow the instructions. The failure mode is
+that the instruction is the wrong place for the rule. Obedience to an unnecessary rule is not
+free. It is a commitment to extra agent steps, and the paper measures the cost of those steps.
+
+The companion reading of the same study, by [Daniel Vaughan, "The AGENTS.md Bloat Problem",
+2026-03-27](https://codex.danielvaughan.com/2026/03/27/agents-md-bloat-problem/), puts the
+consequence in one phrase. "Coding agents are too obedient." An instruction that says "run the
+full test suite before each commit" is followed religiously, even on a task where running tests
+is entirely irrelevant.
+
+The practitioner convergence is the same finding in a postmortem. From r/ClaudeAI, "What's the
+one line in your CLAUDE.md that made the biggest difference?", 1.4k votes, 185 comments:
+
+> The biggest difference for me came from moving a line out of it. A "never run rm -rf, never
+> force push" line is a request, and when I replayed two months of my sessions the agent had
+> still tried rm -rf 117 times. What actually holds for the never-list is a PreToolUse hook: a
+> small script that checks the Bash command before it runs and exits 2 on a match. Claude can't
+> talk its way past exit 2, and CLAUDE.md goes back to being about style and taste, which is what
+> it's actually good at.
+
+117 attempts. The prose was ignored, and the mechanism holds.
+
+### I2. Two agents on overlapping work is worse than one agent doing both
+
+[CooperBench, "Why Coding Agents Cannot be Your Teammates Yet", Khatua, Zhu, Yang, Stanford and
+SAP, arXiv:2601.13295, 2026-01-19](https://arxiv.org/abs/2601.13295)
+
+> leading agents achieve only 25% with two-agent cooperation on CooperBench, which is around 50%
+> lower than a "Solo" baseline which uses one agent to implement both features.
+
+Three failure classes, all of which this repository has exhibited. Expectation failures, where
+the work overlaps and overwrites silently. Commitment failures, where one agent makes an
+unverifiable claim. Communication failures.
+
+And the measured cost of the conversation itself. Agents spent as much as 20% of their steps in
+communication, within which planning, questioning and updating each took about a third of the
+steps.
+
+[Anthropic, "Patterns and problems in emerging multiagent systems", 2026-08-13](https://www.anthropic.com/research/multiagent-systems)
+reaches a compatible conclusion from a different direction. Newer models reduced conflicts by
+maintaining very high ownership of each of their files, "reducing the potential for conflict",
+and only the most recent model both shared files and kept PR throughput. The conflict problem
+was solved by not working together.
+
+One finding from the same paper is the cheapest win available. A planning message in the first
+turn nearly halves the conflict rate, 29.4% against 51.5%, and the effect is larger for harder
+tasks, 39% at the highest difficulty bucket.
+
+### I3. The instruction file grows without bound and cannot be pruned by discipline
+
+[Chakrabarti, "Why Does CLAUDE.md Keep Growing? Catastrophic Remembering in Agentic Coding",
+arXiv:2608.11095, 2026-08-11](https://arxiv.org/abs/2608.11095). 247,694 instruction lifetimes
+across 1,867 public repositories.
+
+- Median instructions per file, final snapshot: 39. 90th percentile: 131.
+- Lifetime growth in instruction count: +226%. Net +4.9 instructions per commit.
+- After a wholesale rewrite the file regrows to 91.5% of its previous size within 10 commits,
+  and regrows faster than before the rewrite.
+- Deletion hazard: log slope −0.032 per commit. Older instructions are *less* likely to be
+  deleted, not more, which rules out staleness as the driver.
+
+The mechanism explains the deletion hazard. Every instruction carries latent reasoning, the
+failure that motivated it, the hypothesis, the outcome. At write time that reasoning is free. At
+read time, months later, recovering it is exponentially costly, so deletion feels unsafe.
+
+The measured fix. An HTML comment on each instruction recording the failure history, the
+hypothesis and the outcome removes 99.3% of excess instruction growth, taking +211.3% down to
++1.4%, and improves real-world agentic instruction following by up to 23.1%. The comment is
+invisible to the model. It exists so a human can decide, weeks later, whether the rule still
+earns its place.
+
+The paper's closing line. "If English is the new code, why don't we have comments yet?"
+
+### I4. The most common configuration smell is restating the linter
+
+[dos Santos, Costa, Montandon, Silva, Valente, "Configuration Smells in AGENTS.md Files",
+SCAM 2026, arXiv:2606.15828, v5 2026-07-30](https://arxiv.org/abs/2606.15828). Peer reviewed,
+validated on 100 popular repositories.
+
+> configuration smells are widespread. Lint Leakage was the most common smell, affecting 62% of
+> the files, followed by Context Bloat (42%) and Skill Leakage (35%).
+
+Lint Leakage is the config file restating what a linter already enforces. 62% of real
+repositories do it, and the ETH result says it costs 20% more inference for no success gain.
+
+[Coldtea's field study of the 100 most-starred repositories with an AGENTS.md, 2026-08-21](https://www.coldtea.ai/blog/agents-md-field-study)
+gives the shape of a real file. Median 1,198 words, barbell distributed with 37% past 1,500
+words and one in ten under 150. 90% use must, always or never. 784 explicit don't-bullets
