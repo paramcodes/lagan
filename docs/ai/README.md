@@ -89,9 +89,11 @@ enforced_by:
       - "DATABASE_URL"
 ```
 
-The job key anchors the block, and `DATABASE_URL` has to be inside it. A marker can also hold a
-newline. The generated table escapes a newline and a pipe, so a multi-line marker stays one
-row.
+The job key anchors the block, and `DATABASE_URL` has to be inside it.
+
+A marker can hold a newline, and it can end with one. A marker that ends with a newline pins
+the end of a line, so `run: bun run test` is not a prefix of `run: bun run test:e2e`. The
+generated table escapes a newline and a pipe, so a multi-line marker stays one row.
 
 `artifact` is where the reviewer looks, and it is what makes a rule checkable. A `path` that
 starts with `pr:`, `ci:` or `git:` is a locator for evidence that lives outside the repository,

@@ -215,10 +215,9 @@ function codeSpan(value: string): string {
  * per line and one group per marker. A newline inside a cell would end the table row.
  */
 function renderMarker(marker: string): string {
-  return marker
-    .split("\n")
-    .map((line) => codeSpan(line))
-    .join("<br>");
+  const lines = marker.split("\n");
+  while (lines.length > 1 && lines[lines.length - 1] === "") lines.pop();
+  return lines.map((line) => codeSpan(line)).join("<br>");
 }
 
 function renderMarkers(markers: string | string[]): string {

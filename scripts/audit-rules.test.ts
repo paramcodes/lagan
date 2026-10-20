@@ -325,6 +325,75 @@ owner: "@paramcodes"
     expect(result.ok).toBe(false);
     expect(codes(result)).toContain("enforcement-marker-missing");
     expect(result.findings[0]?.message).toContain('not in the block opened by "  verify:"');
+    expect(result.findings[0]?.message).toContain('The marker "DATABASE_URL"');
+  });
+
+  it("fails when a command marker is only a prefix of the command that runs", () => {
+    write(
+      ".github/workflows/ci.yml",
+      `jobs:
+  verify:
+    steps:
+      - name: Test
+        run: bun run test:e2e
+`,
+    );
+    writeRule(
+      "prefix-rule",
+      `id: prefix-rule
+title: The verify job runs the full suite.
+layer: ci
+enforced_by:
+  - path: .github/workflows/ci.yml
+    match:
+      - "  verify:"
+      - "      - name: Test\\n        run: bun run test\\n"
+artifact:
+  - path: .github/workflows/ci.yml
+failure: |
+  2026-10-20. The verify job ran the end to end suite instead of the full suite.
+owner: "@paramcodes"
+`,
+    );
+
+    const result = runAudit(root);
+
+    expect(result.ok).toBe(false);
+    expect(codes(result)).toContain("enforcement-marker-missing");
+  });
+
+  it("passes when a command marker ends the line that runs it", () => {
+    write(
+      ".github/workflows/ci.yml",
+      `jobs:
+  verify:
+    steps:
+      - name: Test
+        run: bun run test
+`,
+    );
+    writeRule(
+      "prefix-rule",
+      `id: prefix-rule
+title: The verify job runs the full suite.
+layer: ci
+enforced_by:
+  - path: .github/workflows/ci.yml
+    match:
+      - "  verify:"
+      - "      - name: Test\\n        run: bun run test\\n"
+artifact:
+  - path: .github/workflows/ci.yml
+failure: |
+  2026-10-20. The verify job ran the end to end suite instead of the full suite.
+owner: "@paramcodes"
+`,
+    );
+
+    const result = runAudit(root);
+
+    expect(result.ok).toBe(true);
+    expect(result.findings).toEqual([]);
   });
 
   it("passes when every scoped marker sits in the block the first marker opens", () => {

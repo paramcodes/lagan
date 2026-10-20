@@ -521,7 +521,8 @@ export function loadRuleTable(root: string): { rules: Rule[]; findings: Finding[
  *
  * A marker on an indented line opens the block under it: the lines from that line to the next
  * line indented no further. A marker at the left margin has no block to open, so its scope is
- * the whole file.
+ * the whole file. A block ends with a line break, so a marker that ends with one can pin the
+ * end of a line.
  */
 export function markerScopes(contents: string, anchor: string): string[] {
   const lines = contents.split("\n");
@@ -543,9 +544,13 @@ export function markerScopes(contents: string, anchor: string): string[] {
       if (candidate.length - candidate.trimStart().length <= indent) break;
       end += 1;
     }
-    scopes.push(lines.slice(index, end).join("\n"));
+    scopes.push(`${lines.slice(index, end).join("\n")}\n`);
   }
   return scopes;
+}
+
+function showMarker(marker: string): string {
+  return marker.replace(/\n/g, "\\n");
 }
 
 /**
@@ -558,17 +563,27 @@ export function markerScopes(contents: string, anchor: string): string[] {
 export function markerFailure(contents: string, markers: string[], path: string): string | null {
   const anchor = markers[0] as string;
   if (markers.length === 1) {
-    return contents.includes(anchor) ? null : `The marker "${anchor}" is no longer in "${path}".`;
+    return contents.includes(anchor)
+      ? null
+      : `The marker "${showMarker(anchor)}" is no longer in "${path}".`;
   }
   const scopes = markerScopes(contents, anchor);
-  if (scopes.length === 0) return `The marker "${anchor}" is no longer in "${path}".`;
+  if (scopes.length === 0) return `The marker "${showMarker(anchor)}" is no longer in "${path}".`;
   const rest = markers.slice(1);
   for (const scope of scopes) {
     if (rest.every((marker) => scope.includes(marker))) return null;
   }
-  const missing = rest.find((marker) => !contents.includes(marker));
-  if (missing) return `The marker "${missing}" is no longer in "${path}".`;
-  return `The marker "${rest[0]}" is not in the block opened by "${anchor}" in "${path}".`;
+  const gone = rest.find((marker) => !contents.includes(marker));
+  if (gone) return `The marker "${showMarker(gone)}" is no longer in "${path}".`;
+  const outside = rest.find((marker) => scopes.every((scope) => !scope.includes(marker)));
+  if (outside) {
+    return `The marker "${showMarker(outside)}" is not in the block opened by "${showMarker(
+      anchor,
+    )}" in "${path}".`;
+  }
+  return `The markers ${rest
+    .map((marker) => `"${showMarker(marker)}"`)
+    .join(", ")} are not all in the block opened by "${showMarker(anchor)}" in "${path}".`;
 }
 
 export function runAudit(root: string): AuditResult {
