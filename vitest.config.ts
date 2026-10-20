@@ -1,42 +1,22 @@
-import { readFileSync } from "node:fs";
 import react from "@vitejs/plugin-react";
 import { configDefaults, defineConfig } from "vitest/config";
+import { resolveDatabaseUrl } from "./apps/web/lib/env";
 
 /**
- * Minimal `.env` reader. `vite` is not resolvable from the repository root, so
- * `loadEnv` is unavailable; CI has no `.env` file and takes `DATABASE_URL`
- * from the job environment instead.
+ * The suite resolves the database target through the same resolver the app
+ * uses, so the tests and the app cannot drift onto different databases. Only
+ * `DATABASE_URL` reaches the test environment: the rest of the `.env`
+ * configures the dev server, exposing it changes the behaviour under test and
+ * would hand real Stripe and Mux credentials to the suite. A machine with no
+ * `DATABASE_URL` anywhere gets none, and the integration suites skip.
  */
-function readDotEnv(path: string): Record<string, string> {
-  let contents: string;
+function testEnv(): Record<string, string> {
   try {
-    contents = readFileSync(path, "utf8");
+    return { DATABASE_URL: resolveDatabaseUrl({ defaultUrl: null }).url };
   } catch {
     return {};
   }
-  const env: Record<string, string> = {};
-  for (const line of contents.split("\n")) {
-    const entry = line.trim();
-    if (!entry || entry.startsWith("#")) continue;
-    const separator = entry.indexOf("=");
-    if (separator === -1) continue;
-    const key = entry.slice(0, separator).trim();
-    const value = entry
-      .slice(separator + 1)
-      .trim()
-      .replace(/^["']|["']$/g, "");
-    if (key) env[key] = value;
-  }
-  return env;
 }
-
-/**
- * Only `DATABASE_URL` reaches the test environment. The rest of the `.env`
- * configures the dev server: exposing it changes the behaviour under test and
- * would hand real Stripe and Mux credentials to the suite.
- */
-const dotEnv = readDotEnv(".env");
-const testEnv = dotEnv.DATABASE_URL ? { DATABASE_URL: dotEnv.DATABASE_URL } : {};
 
 export default defineConfig({
   // tsconfig.base.json sets `jsx: "preserve"` for Next.js, so the test
@@ -46,7 +26,7 @@ export default defineConfig({
     globals: true,
     testTimeout: 15_000,
     setupFiles: ["./vitest.setup.ts"],
-    env: testEnv,
+    env: testEnv(),
     projects: [
       {
         extends: true,
