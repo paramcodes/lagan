@@ -88,8 +88,12 @@ Rule: keep >=3 in flight; refill the moment one finishes.
 | In flight | Issue | Worktree | Depends on |
 |---|---|---|---|
 | [x] | All 49 MVP issues complete & merged | — | — |
-| [x] | #96 demo seed and clean command (`bun run seed:demo`, `bun run seed:demo:clean`) | — | — |
-| [x] | #98 cut the local gate cost and serialize the heavy gates | — | — |
+| [x] | #96 (PR #100) demo seed and clean command (`bun run seed:demo`, `bun run seed:demo:clean`) | — | — |
+| [x] | #98 (PR #103) cut the local gate cost and serialize the heavy gates | — | — |
+| [ ] | #95 (PR #102) app error boundary and shell fallback | `/home/param/Work/lagan-wt/issue-95` (`fix/issue-95-error-boundary`) | — |
+| [ ] | #97 (PR #101) smooth in-page scrolling on the landing page | `/home/param/Work/lagan-wt/issue-97` (`feat/issue-97-smooth-scroll`) | — |
+| [ ] | #99 vitest environment split and Postgres test coverage | `/home/param/Work/lagan-wt/issue-99` (`perf/issue-99-vitest-envs`) | — |
+| [ ] | #104 app shell usable below 768px | `/home/param/Work/lagan-wt/issue-104` (`fix/issue-104-responsive-shell`) | — |
 
 Merged: P0.1-P0.8, P1.1-P1.9, P2.1-P2.10, P3.1-P3.8, P4.1-P4.5, P5.1-P5.4, P6.1-P6.5, P7.1-P7.4, D0-D7, #96, #98.
 
