@@ -24,7 +24,8 @@ sections:
          What, Why and How, and ends with `Closes #<issue>`.
       6. A separate reviewer subagent inspects the diff, re-runs the gates on the rebased
          branch, then squash-merges with `gh pr merge <n> --squash` and deletes the remote
-         branch.
+         branch. Docs-only changes (only files under `docs/`) skip heavy gates: run only
+         `bun run format` and `bun run lint`, not build, test, or typecheck.
       7. After the merge, a reconciler subagent fast-forwards the local `master` to
          `origin/master` and updates `todos.md`.
 
