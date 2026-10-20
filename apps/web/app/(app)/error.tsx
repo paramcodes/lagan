@@ -9,7 +9,9 @@ interface AppErrorProps {
 }
 
 export default function AppError({ error, reset }: AppErrorProps) {
-  const message = error?.message?.trim();
+  const rawMessage = error?.message?.trim() ?? "";
+  const isFrameworkPlaceholder = rawMessage.startsWith("Minified React error");
+  const message = isFrameworkPlaceholder ? "" : rawMessage;
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col items-center justify-center p-6">
