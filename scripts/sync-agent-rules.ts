@@ -137,7 +137,40 @@ export function buildCodeowners(rules: Rule[], existing: string): string {
 }
 
 function escapeCell(value: string): string {
-  return value.replace(/\|/g, "\\|");
+  return value.replace(/\|/g, "\\|").replace(/\r?\n/g, "<br>");
+}
+
+/**
+ * A code span that survives a markdown table.
+ *
+ * A pipe ends a cell even inside a code span, so it is escaped. A backtick in the content
+ * would close the span, so the fence grows to be longer than the longest run of backticks.
+ */
+function codeSpan(value: string): string {
+  const escaped = value.replace(/\|/g, "\\|");
+  const runs = escaped.match(/`+/g) ?? [];
+  const longest = runs.reduce((max, run) => Math.max(max, run.length), 0);
+  const fence = "`".repeat(longest + 1);
+  const pad = escaped.startsWith("`") || escaped.endsWith("`") ? " " : "";
+  return `${fence}${pad}${escaped}${pad}${fence}`;
+}
+
+/**
+ * A marker in a table cell.
+ *
+ * A marker can be a list, and a marker can hold a newline, so the cell holds one code span
+ * per line and one group per marker. A newline inside a cell would end the table row.
+ */
+function renderMarker(marker: string): string {
+  return marker
+    .split("\n")
+    .map((line) => codeSpan(line))
+    .join("<br>");
+}
+
+function renderMarkers(markers: string | string[]): string {
+  const list = Array.isArray(markers) ? markers : [markers];
+  return list.map(renderMarker).join(", ");
 }
 
 function evidenceFor(rule: Rule): string {
@@ -146,7 +179,7 @@ function evidenceFor(rule: Rule): string {
   const mechanisms = rule.enforced_by.map((enforcement) =>
     enforcement.match === undefined
       ? `\`${enforcement.path}\``
-      : `\`${enforcement.path}\` (\`${enforcement.match}\`)`,
+      : `\`${enforcement.path}\` (${renderMarkers(enforcement.match)})`,
   );
   return [ruleFile, ...mechanisms].join("; ");
 }

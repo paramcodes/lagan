@@ -10,7 +10,7 @@ The paths the rule table guards, and the evidence that guards each one.
 
 | Path pattern | Protection | Controlling evidence | Kind |
 | --- | --- | --- | --- |
-| `.github/PULL_REQUEST_TEMPLATE.md` | The template is the mechanism behind the pull request body. | `docs/ai/rules/pr-body-has-what-why-how.yaml`; `.github/PULL_REQUEST_TEMPLATE.md` (`## What,## Why,## How`) | repository-enforced |
+| `.github/PULL_REQUEST_TEMPLATE.md` | The template is the mechanism behind the pull request body. | `docs/ai/rules/pr-body-has-what-why-how.yaml`; `.github/PULL_REQUEST_TEMPLATE.md` (`## What`, `## Why`, `## How`) | repository-enforced |
 | `.github/workflows/ci.yml` | The verify job is where the full suite runs for every pull request. | `docs/ai/rules/full-suite-before-pr.yaml`; `.github/workflows/ci.yml` (`bun run test`); `.github/workflows/ci.yml` (`- name: Test`) | repository-enforced |
 | `.github/workflows/ci.yml` | The database service and its DATABASE_URL are what keep the integration tests from skipping. | `docs/ai/rules/no-silent-test-skip.yaml` | documented |
 | `apps/web/app/(app)/error.tsx` | The error boundary is the mechanism behind the usable error state. | `docs/ai/rules/app-error-boundary.yaml`; `apps/web/app/(app)/error.tsx` (`role="alert"`) | repository-enforced |

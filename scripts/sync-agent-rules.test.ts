@@ -40,6 +40,24 @@ protects:
     protection: The guard is the mechanism behind the sample rule.
 `;
 
+const MULTILINE_RULE = `id: multiline-rule
+title: The multiline rule holds.
+layer: runtime
+enforced_by:
+  - path: src/guard.ts
+    match: |
+      export const guard = true;
+      export const other = true;
+artifact:
+  - path: src/guard.test.ts
+failure: |
+  2026-10-20. The guard was missing, so the sample broke.
+owner: "@paramcodes"
+protects:
+  - path: src/guard.ts
+    protection: The multiline guard is the mechanism behind the sample rule.
+`;
+
 describe("syncAgentRules", () => {
   let root: string;
 
@@ -137,4 +155,32 @@ describe("syncAgentRules", () => {
     expect(() => syncAgentRules({ root, check: false })).toThrow(/does not parse/);
     expect(() => read("AGENTS.md")).toThrow();
   });
+
+  it("keeps a multi-line marker in one valid table row", () => {
+    write("src/guard.ts", "export const guard = true;\nexport const other = true;\n");
+    write("docs/ai/rules/multiline-rule.yaml", MULTILINE_RULE);
+
+    syncAgentRules({ root, check: false });
+
+    const table = read("docs/ai/protected-paths.md");
+    const rows = tableRows(table);
+    expect(rows.every((row) => row.length === 4)).toBe(true);
+    expect(table).toContain("`export const guard = true;`<br>`export const other = true;`");
+    expect(
+      table.split("\n").filter((line) => line.includes("export const guard = true;`<br>")),
+    ).toHaveLength(1);
+  });
 });
+
+function tableRows(markdown: string): string[][] {
+  return markdown
+    .split("\n")
+    .filter((line) => line.trim().startsWith("|"))
+    .map((line) =>
+      line
+        .trim()
+        .split(/(?<!\\)\|/)
+        .slice(1, -1)
+        .map((cell) => cell.trim()),
+    );
+}
