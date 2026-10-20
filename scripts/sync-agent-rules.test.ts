@@ -24,6 +24,13 @@ bun run test
 \`\`\`
 `;
 
+const CONTEXT = `sections:
+  - title: Workflow per issue
+    body: |
+      1. Cut a branch from \`origin/master\`.
+      2. A separate reviewer subagent squash-merges it.
+`;
+
 const RULE = `id: sample-rule
 title: The sample rule holds.
 layer: runtime
@@ -64,6 +71,7 @@ describe("syncAgentRules", () => {
   beforeEach(() => {
     root = mkdtempSync(join(tmpdir(), "lagan-sync-"));
     write("README.md", README);
+    write("docs/ai/context.yaml", CONTEXT);
     write("docs/ai/rules/sample-rule.yaml", RULE);
   });
 
@@ -154,6 +162,21 @@ describe("syncAgentRules", () => {
 
     expect(() => syncAgentRules({ root, check: false })).toThrow(/does not parse/);
     expect(() => read("AGENTS.md")).toThrow();
+  });
+
+  it("renders the context facts into the routing file", () => {
+    syncAgentRules({ root, check: false });
+
+    const agents = read("AGENTS.md");
+    expect(agents).toContain("## Workflow per issue");
+    expect(agents).toContain("Cut a branch from `origin/master`.");
+    expect(agents).toContain("A separate reviewer subagent squash-merges it.");
+  });
+
+  it("refuses to project without a context file", () => {
+    rmSync(join(root, "docs/ai/context.yaml"), { force: true });
+
+    expect(() => syncAgentRules({ root, check: false })).toThrow(/context\.yaml/);
   });
 
   it("keeps a multi-line marker in one valid table row", () => {
