@@ -118,6 +118,7 @@ rules:
     derive:
       - fact: framework_version
         value: next
+      - path: apps/web/package.json
     layer: runtime
     enforced_by:
       - path: apps/web/package.json
@@ -135,6 +136,7 @@ rules:
     derive:
       - fact: framework_version
         value: next
+      - path: .env.example
     layer: runtime
     enforced_by:
       - path: .env.example
