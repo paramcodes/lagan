@@ -28,8 +28,8 @@ import { StaticPrompter, TerminalPrompter, type Choice, type Prompter } from "./
 export interface InitOptions {
   root: string;
   yes: boolean;
-  owner?: string;
-  cataloguePaths?: string[];
+  owner?: string | undefined;
+  cataloguePaths?: string[] | undefined;
 }
 
 export interface Answers {
