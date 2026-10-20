@@ -19,10 +19,12 @@ const zeroRect = (): DOMRect =>
     toJSON: () => ({}),
   }) as DOMRect;
 
-if (!Range.prototype.getClientRects) {
-  Range.prototype.getClientRects = () => [] as unknown as DOMRectList;
-}
+if (typeof Range !== "undefined") {
+  if (!Range.prototype.getClientRects) {
+    Range.prototype.getClientRects = () => [] as unknown as DOMRectList;
+  }
 
-if (!Range.prototype.getBoundingClientRect) {
-  Range.prototype.getBoundingClientRect = zeroRect;
+  if (!Range.prototype.getBoundingClientRect) {
+    Range.prototype.getBoundingClientRect = zeroRect;
+  }
 }

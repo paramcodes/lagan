@@ -12,7 +12,7 @@ export const ARTIFACT_LOCATORS = ["pr:", "ci:", "git:"] as const;
 
 export interface Enforcement {
   path: string;
-  match?: string;
+  match?: string | string[];
 }
 
 export interface ArtifactRef {
@@ -269,6 +269,25 @@ function finding(code: string, severity: FindingSeverity, rule: string, message:
   return { code, severity, rule, message };
 }
 
+function parseMarkers(value: unknown): { markers: string[]; error: string | null } {
+  if (typeof value === "string") {
+    if (!isNonEmptyString(value)) return { markers: [], error: "match must be a non-empty string" };
+    return { markers: [value], error: null };
+  }
+  if (Array.isArray(value)) {
+    const markers: string[] = [];
+    for (const [index, item] of value.entries()) {
+      if (!isNonEmptyString(item)) {
+        return { markers: [], error: `match[${index}] must be a non-empty string` };
+      }
+      markers.push(item);
+    }
+    if (markers.length === 0) return { markers: [], error: "match must hold at least one marker" };
+    return { markers, error: null };
+  }
+  return { markers: [], error: "match must be a string or a list of strings" };
+}
+
 function parseEnforcement(value: unknown): { entries: Enforcement[]; errors: string[] } {
   if (value === undefined || value === null) return { entries: [], errors: [] };
   if (!Array.isArray(value)) return { entries: [], errors: ["enforced_by must be a list"] };
@@ -285,11 +304,12 @@ function parseEnforcement(value: unknown): { entries: Enforcement[]; errors: str
     }
     const entry: Enforcement = { path: item.path };
     if (item.match !== undefined) {
-      if (!isNonEmptyString(item.match)) {
-        errors.push(`enforced_by[${index}].match must be a non-empty string`);
+      const { markers, error } = parseMarkers(item.match);
+      if (error) {
+        errors.push(`enforced_by[${index}].${error}`);
         continue;
       }
-      entry.match = item.match;
+      entry.match = markers.length === 1 ? (markers[0] as string) : markers;
     }
     entries.push(entry);
   }
@@ -496,6 +516,76 @@ export function loadRuleTable(root: string): { rules: Rule[]; findings: Finding[
   return { rules, findings };
 }
 
+/**
+ * The blocks a marker opens.
+ *
+ * A marker on an indented line opens the block under it: the lines from that line to the next
+ * line indented no further. A marker at the left margin has no block to open, so its scope is
+ * the whole file. A block ends with a line break, so a marker that ends with one can pin the
+ * end of a line.
+ */
+export function markerScopes(contents: string, anchor: string): string[] {
+  const lines = contents.split("\n");
+  const scopes: string[] = [];
+  for (const [index, line] of lines.entries()) {
+    if (!line.includes(anchor)) continue;
+    const indent = line.length - line.trimStart().length;
+    if (indent === 0) {
+      scopes.push(contents);
+      continue;
+    }
+    let end = index + 1;
+    while (end < lines.length) {
+      const candidate = lines[end] ?? "";
+      if (candidate.trim().length === 0) {
+        end += 1;
+        continue;
+      }
+      if (candidate.length - candidate.trimStart().length <= indent) break;
+      end += 1;
+    }
+    scopes.push(`${lines.slice(index, end).join("\n")}\n`);
+  }
+  return scopes;
+}
+
+function showMarker(marker: string): string {
+  return marker.replace(/\n/g, "\\n");
+}
+
+/**
+ * The message for a marker that is no longer there, or null when every marker is.
+ *
+ * A single marker has to appear in the file. A list has to appear in the block the first
+ * marker opens, which is how a mechanism is pinned to one job instead of to any occurrence
+ * of the same word in the file.
+ */
+export function markerFailure(contents: string, markers: string[], path: string): string | null {
+  const anchor = markers[0] as string;
+  if (markers.length === 1) {
+    return contents.includes(anchor)
+      ? null
+      : `The marker "${showMarker(anchor)}" is no longer in "${path}".`;
+  }
+  const scopes = markerScopes(contents, anchor);
+  if (scopes.length === 0) return `The marker "${showMarker(anchor)}" is no longer in "${path}".`;
+  const rest = markers.slice(1);
+  for (const scope of scopes) {
+    if (rest.every((marker) => scope.includes(marker))) return null;
+  }
+  const gone = rest.find((marker) => !contents.includes(marker));
+  if (gone) return `The marker "${showMarker(gone)}" is no longer in "${path}".`;
+  const outside = rest.find((marker) => scopes.every((scope) => !scope.includes(marker)));
+  if (outside) {
+    return `The marker "${showMarker(outside)}" is not in the block opened by "${showMarker(
+      anchor,
+    )}" in "${path}".`;
+  }
+  return `The markers ${rest
+    .map((marker) => `"${showMarker(marker)}"`)
+    .join(", ")} are not all in the block opened by "${showMarker(anchor)}" in "${path}".`;
+}
+
 export function runAudit(root: string): AuditResult {
   const { rules, findings } = loadRuleTable(root);
 
@@ -515,15 +605,10 @@ export function runAudit(root: string): AuditResult {
       }
       if (enforcement.match === undefined) continue;
       const contents = readFileSync(target, "utf8");
-      if (!contents.includes(enforcement.match)) {
-        findings.push(
-          finding(
-            "enforcement-marker-missing",
-            "error",
-            rule.id,
-            `The marker "${enforcement.match}" is no longer in "${enforcement.path}".`,
-          ),
-        );
+      const markers = Array.isArray(enforcement.match) ? enforcement.match : [enforcement.match];
+      const message = markerFailure(contents, markers, enforcement.path);
+      if (message) {
+        findings.push(finding("enforcement-marker-missing", "error", rule.id, message));
       }
     }
 
@@ -577,7 +662,16 @@ export function runAudit(root: string): AuditResult {
   findings.push(...findContradictions(rules));
 
   const protectedCells = readProtectedPathCells(root);
-  if (protectedCells !== null) {
+  if (protectedCells === null) {
+    findings.push(
+      finding(
+        "protected-paths-missing",
+        "error",
+        "-",
+        `${PROTECTED_PATHS_FILE} does not exist, so the protected paths cannot be checked.`,
+      ),
+    );
+  } else {
     for (const rule of rules) {
       for (const protectedPath of rule.protects) {
         if (!protectedCells.includes(protectedPath.path)) {

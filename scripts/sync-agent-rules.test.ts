@@ -24,6 +24,13 @@ bun run test
 \`\`\`
 `;
 
+const CONTEXT = `sections:
+  - title: Workflow per issue
+    body: |
+      1. Cut a branch from \`origin/master\`.
+      2. A separate reviewer subagent squash-merges it.
+`;
+
 const RULE = `id: sample-rule
 title: The sample rule holds.
 layer: runtime
@@ -40,12 +47,31 @@ protects:
     protection: The guard is the mechanism behind the sample rule.
 `;
 
+const MULTILINE_RULE = `id: multiline-rule
+title: The multiline rule holds.
+layer: runtime
+enforced_by:
+  - path: src/guard.ts
+    match: |
+      export const guard = true;
+      export const other = true;
+artifact:
+  - path: src/guard.test.ts
+failure: |
+  2026-10-20. The guard was missing, so the sample broke.
+owner: "@paramcodes"
+protects:
+  - path: src/guard.ts
+    protection: The multiline guard is the mechanism behind the sample rule.
+`;
+
 describe("syncAgentRules", () => {
   let root: string;
 
   beforeEach(() => {
     root = mkdtempSync(join(tmpdir(), "lagan-sync-"));
     write("README.md", README);
+    write("docs/ai/context.yaml", CONTEXT);
     write("docs/ai/rules/sample-rule.yaml", RULE);
   });
 
@@ -137,4 +163,47 @@ describe("syncAgentRules", () => {
     expect(() => syncAgentRules({ root, check: false })).toThrow(/does not parse/);
     expect(() => read("AGENTS.md")).toThrow();
   });
+
+  it("renders the context facts into the routing file", () => {
+    syncAgentRules({ root, check: false });
+
+    const agents = read("AGENTS.md");
+    expect(agents).toContain("## Workflow per issue");
+    expect(agents).toContain("Cut a branch from `origin/master`.");
+    expect(agents).toContain("A separate reviewer subagent squash-merges it.");
+  });
+
+  it("refuses to project without a context file", () => {
+    rmSync(join(root, "docs/ai/context.yaml"), { force: true });
+
+    expect(() => syncAgentRules({ root, check: false })).toThrow(/context\.yaml/);
+  });
+
+  it("keeps a multi-line marker in one valid table row", () => {
+    write("src/guard.ts", "export const guard = true;\nexport const other = true;\n");
+    write("docs/ai/rules/multiline-rule.yaml", MULTILINE_RULE);
+
+    syncAgentRules({ root, check: false });
+
+    const table = read("docs/ai/protected-paths.md");
+    const rows = tableRows(table);
+    expect(rows.every((row) => row.length === 4)).toBe(true);
+    expect(table).toContain("`export const guard = true;`<br>`export const other = true;`");
+    expect(
+      table.split("\n").filter((line) => line.includes("export const guard = true;`<br>")),
+    ).toHaveLength(1);
+  });
 });
+
+function tableRows(markdown: string): string[][] {
+  return markdown
+    .split("\n")
+    .filter((line) => line.trim().startsWith("|"))
+    .map((line) =>
+      line
+        .trim()
+        .split(/(?<!\\)\|/)
+        .slice(1, -1)
+        .map((cell) => cell.trim()),
+    );
+}

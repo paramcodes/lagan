@@ -57,6 +57,9 @@ describe.skipIf(!DATABASE_URL)("ordering against Postgres", () => {
   const db = drizzle(pool as Pool);
 
   beforeAll(async () => {
+    if (!pool) return;
+    const { rows } = await pool.query<{ search_path: string }>("show search_path");
+    expect(rows[0]?.search_path).toBe(SCHEMA);
     await db.execute(sql.raw(`create schema if not exists ${SCHEMA}`));
     for (const statement of DDL) {
       await db.execute(sql.raw(statement));
