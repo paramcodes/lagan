@@ -82,3 +82,5 @@ Reference:
 - `research/` — background research:
   - [`research/2026-stack.md`](research/2026-stack.md) — 2026 full-stack technology research.
   - [`research/2026-tooling.md`](research/2026-tooling.md) — 2026 runtime, build, and test tooling research.
+  - [`research/2026-agent-workflow.md`](research/2026-agent-workflow.md) — how to structure rules and checks so parallel agents do not ship wrong code.
+  - [`research/2026-agent-workflow-recommendation.md`](research/2026-agent-workflow-recommendation.md) — the setup checklist to apply before the first agent runs.

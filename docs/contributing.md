@@ -51,4 +51,4 @@
 ## Commits
 
 - Conventional-ish messages seen in history: `feat(scope): ...`, `chore: ...`, `test: ...`.
-- Hooks (lefthook) run format, lint, typecheck, size guard on commit; tests on push.
+- Hooks (lefthook) run format, lint and the size guard on commit; CI runs typecheck, test, lint and build.
