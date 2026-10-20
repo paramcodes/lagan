@@ -99,8 +99,9 @@ Rule: keep >=3 in flight; refill the moment one finishes.
 | [x] | #104 (PR #109) app shell usable below 768px | — | — |
 | [x] | #115 (PR #118) fix the agent workflow research citations | — | — |
 | [x] | #119 (PR #124) scan the shared UI package so its Tailwind classes reach production | — | — |
+| [x] | #117 (PR #121) prune the rule table, close two auditor gaps, keep the workflow rules | — | — |
 
-Merged: P0.1-P0.8, P1.1-P1.9, P2.1-P2.10, P3.1-P3.8, P4.1-P4.5, P5.1-P5.4, P6.1-P6.5, P7.1-P7.4, D0-D7, #95, #96, #97, #98, #99, #104, #105, #106, #108, #115, #119.
+Merged: P0.1-P0.8, P1.1-P1.9, P2.1-P2.10, P3.1-P3.8, P4.1-P4.5, P5.1-P5.4, P6.1-P6.5, P7.1-P7.4, D0-D7, #95, #96, #97, #98, #99, #104, #105, #106, #108, #115, #117, #119.
 
 ### Status
 **100% MVP Complete across all phases.** All quality gates, accessibility audits, security audits, and E2E core journeys are passing green on main.
