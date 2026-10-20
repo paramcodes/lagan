@@ -23,6 +23,16 @@ import {
   profiles,
   user,
 } from "../packages/db/src/schema";
+import type {
+  NewCourse,
+  NewCourseEvent,
+  NewEnrollment,
+  NewLesson,
+  NewLessonProgress,
+  NewModule,
+  NewNotification,
+  NewProfile,
+} from "../packages/db/src/schema";
 import {
   atHour,
   buildCourseEvents,
@@ -39,6 +49,9 @@ import {
   DEMO_USERS,
 } from "./seed-demo-data";
 
+type NewUser = typeof user.$inferInsert;
+type NewAccount = typeof account.$inferInsert;
+
 /** Deterministic salt so the seeded credential hashes are reproducible. */
 export function demoPasswordSalt(userId: string): string {
   return createHash("sha256").update(`${userId}:${DEMO_PASSWORD}`).digest("hex").slice(0, 32);
@@ -53,11 +66,11 @@ export type SeedReport = Record<string, WriteCounts>;
 
 export type CleanReport = Record<string, number>;
 
-interface UpsertSpec {
+interface UpsertSpec<Row extends Record<string, unknown>> {
   table: PgTable;
-  columns: string[];
-  rows: unknown[][];
-  updateColumns: string[];
+  fields: readonly (keyof Row & string)[];
+  rows: readonly Row[];
+  updateColumns: readonly (keyof Row & string)[];
   casts?: Record<string, string>;
 }
 
@@ -65,39 +78,43 @@ interface UpsertSpec {
  * Writes rows by primary key.
  *
  * The table and the column names come from the Drizzle schema, so the SQL
- * cannot name a column the database does not have. `xmax = 0` distinguishes a
- * freshly inserted row from a row the conflict clause updated, so the summary
- * can report what the run actually changed.
+ * cannot drift away from the columns the database actually has. `xmax = 0`
+ * distinguishes a freshly inserted row from a row the conflict clause updated,
+ * so the summary can report what the run actually changed.
  */
-async function upsert(client: Client, spec: UpsertSpec): Promise<WriteCounts> {
+async function upsert<Row extends Record<string, unknown>>(
+  client: Client,
+  spec: UpsertSpec<Row>,
+): Promise<WriteCounts> {
   if (spec.rows.length === 0) {
     return { created: 0, updated: 0 };
   }
 
-  const schemaColumns = Object.values(getTableColumns(spec.table));
-  for (const column of spec.columns) {
-    if (!schemaColumns.some((schemaColumn) => schemaColumn.name === column)) {
-      throw new Error(`Unknown column "${column}" on table "${getTableName(spec.table)}"`);
+  const schemaColumns = getTableColumns(spec.table);
+  const columnName = (field: string): string => {
+    const column = schemaColumns[field];
+    if (!column) {
+      throw new Error(`Unknown column "${field}" on table "${getTableName(spec.table)}"`);
     }
-  }
+    return column.name;
+  };
 
   const values: string[] = [];
   const params: unknown[] = [];
 
   for (const row of spec.rows) {
-    const placeholders = row.map((value, index) => {
-      params.push(value);
-      const column = spec.columns[index] ?? "";
-      const cast = spec.casts?.[column];
+    const placeholders = spec.fields.map((field) => {
+      params.push(row[field]);
+      const cast = spec.casts?.[field];
       return cast ? `$${params.length}::${cast}` : `$${params.length}`;
     });
     values.push(`(${placeholders.join(", ")})`);
   }
 
   const updates = spec.updateColumns
-    .map((column) => `"${column}" = EXCLUDED."${column}"`)
+    .map((field) => `"${columnName(field)}" = EXCLUDED."${columnName(field)}"`)
     .join(", ");
-  const columns = spec.columns.map((column) => `"${column}"`).join(", ");
+  const columns = spec.fields.map((field) => `"${columnName(field)}"`).join(", ");
 
   const result = await client.query<{ inserted: boolean }>(
     `INSERT INTO "${getTableName(spec.table)}" (${columns})
@@ -154,338 +171,328 @@ export async function seedDemoData(client: Client, options: SeedOptions = {}): P
   const now = options.now ?? new Date();
   const report: SeedReport = {};
 
-  const userRows: unknown[][] = [];
-  const accountRows: unknown[][] = [];
-  const profileRows: unknown[][] = [];
+  const userRows: NewUser[] = DEMO_USERS.map((person) => {
+    const createdAt = atHour(now, person.createdDaysAgo, 10);
+    return {
+      id: `${DEMO_ID_PREFIX}user_${person.key}`,
+      name: person.name,
+      email: person.email,
+      emailVerified: true,
+      image: null,
+      createdAt,
+      updatedAt: createdAt,
+    };
+  });
 
-  for (const user of DEMO_USERS) {
-    const userId = `${DEMO_ID_PREFIX}user_${user.key}`;
-    const createdAt = atHour(now, user.createdDaysAgo, 10);
-    userRows.push([userId, user.name, user.email, true, null, createdAt, createdAt]);
-    profileRows.push([
-      `${DEMO_ID_PREFIX}profile_${user.key}`,
+  const profileRows: NewProfile[] = DEMO_USERS.map((person) => {
+    const createdAt = atHour(now, person.createdDaysAgo, 10);
+    return {
+      id: `${DEMO_ID_PREFIX}profile_${person.key}`,
+      userId: `${DEMO_ID_PREFIX}user_${person.key}`,
+      bio: person.bio,
+      websiteUrl: person.websiteUrl,
+      socialLinksJson: JSON.stringify(person.socialLinks),
+      avatarUrl: null,
+      createdAt,
+      updatedAt: createdAt,
+    };
+  });
+
+  const accountRows: NewAccount[] = [];
+  for (const person of DEMO_USERS) {
+    if (!person.hasLogin) continue;
+    const userId = `${DEMO_ID_PREFIX}user_${person.key}`;
+    const createdAt = atHour(now, person.createdDaysAgo, 10);
+    accountRows.push({
+      id: `${DEMO_ID_PREFIX}account_${person.key}`,
+      accountId: userId,
+      providerId: "credential",
       userId,
-      user.bio,
-      user.websiteUrl,
-      JSON.stringify(user.socialLinks),
-      null,
+      password: await hashDemoPassword(DEMO_PASSWORD, demoPasswordSalt(userId)),
       createdAt,
-      createdAt,
-    ]);
-    if (user.hasLogin) {
-      const password = await hashDemoPassword(DEMO_PASSWORD, demoPasswordSalt(userId));
-      accountRows.push([
-        `${DEMO_ID_PREFIX}account_${user.key}`,
-        userId,
-        "credential",
-        userId,
-        password,
-        createdAt,
-        createdAt,
-      ]);
-    }
+      updatedAt: createdAt,
+    });
   }
 
   const courseById = new Map(DEMO_COURSES.map((course) => [course.id, course]));
-  const courseRows = DEMO_COURSES.map((course) => {
+  const courseRows: NewCourse[] = DEMO_COURSES.map((course) => {
     const createdAt = atHour(now, course.createdDaysAgo, 9);
     const publishedAt =
       course.publishedDaysAgo === null ? null : atHour(now, course.publishedDaysAgo, 9);
-    return [
-      course.id,
-      DEMO_TENANT_ID,
-      `${DEMO_ID_PREFIX}user_${course.authorKey}`,
-      course.title,
-      course.description,
-      course.priceCents,
-      course.discountPercent,
-      course.isFree,
-      course.status,
-      1,
+    return {
+      id: course.id,
+      tenantId: DEMO_TENANT_ID,
+      authorId: `${DEMO_ID_PREFIX}user_${course.authorKey}`,
+      title: course.title,
+      description: course.description,
+      priceCents: course.priceCents,
+      discountPercent: course.discountPercent,
+      isFree: course.isFree,
+      status: course.status,
+      version: 1,
       publishedAt,
       createdAt,
-      createdAt,
-    ];
+      updatedAt: createdAt,
+    };
   });
 
-  const moduleRows = DEMO_MODULES.map((module) => [
-    module.id,
-    module.courseId,
-    module.title,
-    module.position,
-  ]);
+  const moduleRows: NewModule[] = DEMO_MODULES.map((module) => ({
+    id: module.id,
+    courseId: module.courseId,
+    title: module.title,
+    position: module.position,
+  }));
 
   const courseByModule = new Map(
     DEMO_MODULES.map((module) => [module.id, courseById.get(module.courseId)]),
   );
 
-  const lessonRows = DEMO_LESSONS.map((lesson) => {
+  const lessonRows: NewLesson[] = DEMO_LESSONS.map((lesson) => {
     const course = courseByModule.get(lesson.moduleId);
     const updatedAt =
       course?.publishedDaysAgo === null || course?.publishedDaysAgo === undefined
         ? atHour(now, course?.createdDaysAgo ?? 7, 12)
         : atHour(now, course.publishedDaysAgo, 12);
-    return [
-      lesson.id,
-      lesson.moduleId,
-      lesson.type,
-      lesson.title,
-      lesson.position,
-      lesson.status,
-      lesson.muxPlaybackId,
-      lesson.contentJson,
-      null,
-      null,
+    return {
+      id: lesson.id,
+      moduleId: lesson.moduleId,
+      type: lesson.type,
+      title: lesson.title,
+      position: lesson.position,
+      status: lesson.status,
+      muxPlaybackId: lesson.muxPlaybackId,
+      contentJson: lesson.contentJson,
+      externalUrl: null,
+      fileKey: null,
       updatedAt,
-    ];
-  });
-
-  const enrollmentRows = DEMO_ENROLLMENTS.map((enrollment) => [
-    enrollment.id,
-    `${DEMO_ID_PREFIX}user_${enrollment.userKey}`,
-    enrollment.courseId,
-    enrollment.stripePaymentId,
-    atHour(now, enrollment.enrolledDaysAgo, 12),
-    1,
-  ]);
-
-  const progressRows = DEMO_PROGRESS.map((progress) => {
-    const lastSeenAt = atHour(now, progress.daysAgo, 19);
-    return [
-      progress.id,
-      DEMO_TENANT_ID,
-      `${DEMO_ID_PREFIX}user_${progress.userKey}`,
-      progress.lessonId,
-      progress.courseId,
-      progress.completed,
-      progress.completed ? lastSeenAt : null,
-      progress.positionSeconds,
-      lastSeenAt,
-    ];
-  });
-
-  const notificationRows = DEMO_NOTIFICATIONS.map((notification) => {
-    const createdAt = atHour(now, notification.createdDaysAgo, 12);
-    const payload = {
-      title: notification.title,
-      courseId: notification.courseId,
-      courseTitle: notification.courseTitle,
-      lessonId: notification.lessonId,
-      summary: notification.summary,
-      message: notification.summary,
-      url: notification.lessonId
-        ? `/courses/${notification.courseId}/lessons/${notification.lessonId}`
-        : `/courses/${notification.courseId}`,
     };
-    return [
-      notification.id,
-      DEMO_TENANT_ID,
-      `${DEMO_ID_PREFIX}user_${notification.userKey}`,
-      notification.type,
-      JSON.stringify(payload),
-      notification.read ? atHour(now, Math.max(0, notification.createdDaysAgo - 1), 12) : null,
-      createdAt,
-    ];
   });
 
-  const eventRows = buildCourseEvents(now).map((event) => [
-    event.id,
-    DEMO_TENANT_ID,
-    `${DEMO_ID_PREFIX}user_${event.userKey}`,
-    event.courseId,
-    event.lessonId,
-    event.type,
-    event.positionSeconds,
-    event.createdAt,
-  ]);
+  const enrollmentRows: NewEnrollment[] = DEMO_ENROLLMENTS.map((enrollment) => ({
+    id: enrollment.id,
+    userId: `${DEMO_ID_PREFIX}user_${enrollment.userKey}`,
+    courseId: enrollment.courseId,
+    stripePaymentId: enrollment.stripePaymentId,
+    enrolledAt: atHour(now, enrollment.enrolledDaysAgo, 12),
+    courseVersionSeen: 1,
+  }));
+
+  const progressRows: NewLessonProgress[] = DEMO_PROGRESS.map((progress) => {
+    const lastSeenAt = atHour(now, progress.daysAgo, 19);
+    return {
+      id: progress.id,
+      tenantId: DEMO_TENANT_ID,
+      userId: `${DEMO_ID_PREFIX}user_${progress.userKey}`,
+      lessonId: progress.lessonId,
+      courseId: progress.courseId,
+      completed: progress.completed,
+      completedAt: progress.completed ? lastSeenAt : null,
+      positionSeconds: progress.positionSeconds,
+      lastSeenAt,
+    };
+  });
+
+  const notificationRows: NewNotification[] = DEMO_NOTIFICATIONS.map((notification) => {
+    const createdAt = atHour(now, notification.createdDaysAgo, 12);
+    return {
+      id: notification.id,
+      tenantId: DEMO_TENANT_ID,
+      userId: `${DEMO_ID_PREFIX}user_${notification.userKey}`,
+      type: notification.type,
+      payload: {
+        title: notification.title,
+        courseId: notification.courseId,
+        courseTitle: notification.courseTitle,
+        lessonId: notification.lessonId,
+        summary: notification.summary,
+        message: notification.summary,
+        url: notification.lessonId
+          ? `/courses/${notification.courseId}/lessons/${notification.lessonId}`
+          : `/courses/${notification.courseId}`,
+      },
+      readAt: notification.read
+        ? atHour(now, Math.max(0, notification.createdDaysAgo - 1), 12)
+        : null,
+      createdAt,
+    };
+  });
+
+  const eventRows: NewCourseEvent[] = buildCourseEvents(now).map((event) => ({
+    id: event.id,
+    tenantId: DEMO_TENANT_ID,
+    userId: `${DEMO_ID_PREFIX}user_${event.userKey}`,
+    courseId: event.courseId,
+    lessonId: event.lessonId,
+    type: event.type,
+    positionSeconds: event.positionSeconds,
+    createdAt: event.createdAt,
+  }));
 
   await client.query("BEGIN");
 
   try {
     report.user = await upsert(client, {
       table: user,
-      columns: ["id", "name", "email", "email_verified", "image", "created_at", "updated_at"],
+      fields: ["id", "name", "email", "emailVerified", "image", "createdAt", "updatedAt"],
       rows: userRows,
-      updateColumns: ["name", "email", "email_verified", "image", "updated_at"],
+      updateColumns: ["name", "email", "emailVerified", "image", "updatedAt"],
     });
 
     report.account = await upsert(client, {
       table: account,
-      columns: [
-        "id",
-        "account_id",
-        "provider_id",
-        "user_id",
-        "password",
-        "created_at",
-        "updated_at",
-      ],
+      fields: ["id", "accountId", "providerId", "userId", "password", "createdAt", "updatedAt"],
       rows: accountRows,
-      updateColumns: ["account_id", "provider_id", "user_id", "password", "updated_at"],
+      updateColumns: ["accountId", "providerId", "userId", "password", "updatedAt"],
     });
 
     report.profiles = await upsert(client, {
       table: profiles,
-      columns: [
+      fields: [
         "id",
-        "user_id",
+        "userId",
         "bio",
-        "website_url",
-        "social_links_json",
-        "avatar_url",
-        "created_at",
-        "updated_at",
+        "websiteUrl",
+        "socialLinksJson",
+        "avatarUrl",
+        "createdAt",
+        "updatedAt",
       ],
       rows: profileRows,
-      updateColumns: [
-        "user_id",
-        "bio",
-        "website_url",
-        "social_links_json",
-        "avatar_url",
-        "updated_at",
-      ],
+      updateColumns: ["userId", "bio", "websiteUrl", "socialLinksJson", "avatarUrl", "updatedAt"],
     });
 
     report.courses = await upsert(client, {
       table: courses,
-      columns: [
+      fields: [
         "id",
-        "tenant_id",
-        "author_id",
+        "tenantId",
+        "authorId",
         "title",
         "description",
-        "price_cents",
-        "discount_percent",
-        "is_free",
+        "priceCents",
+        "discountPercent",
+        "isFree",
         "status",
         "version",
-        "published_at",
-        "created_at",
-        "updated_at",
+        "publishedAt",
+        "createdAt",
+        "updatedAt",
       ],
       rows: courseRows,
       updateColumns: [
-        "tenant_id",
-        "author_id",
+        "tenantId",
+        "authorId",
         "title",
         "description",
-        "price_cents",
-        "discount_percent",
-        "is_free",
+        "priceCents",
+        "discountPercent",
+        "isFree",
         "status",
-        "published_at",
-        "updated_at",
+        "publishedAt",
+        "updatedAt",
       ],
     });
 
     report.modules = await upsert(client, {
       table: modules,
-      columns: ["id", "course_id", "title", "position"],
+      fields: ["id", "courseId", "title", "position"],
       rows: moduleRows,
-      updateColumns: ["course_id", "title", "position"],
+      updateColumns: ["courseId", "title", "position"],
     });
 
     report.lessons = await upsert(client, {
       table: lessons,
-      columns: [
+      fields: [
         "id",
-        "module_id",
+        "moduleId",
         "type",
         "title",
         "position",
         "status",
-        "mux_playback_id",
-        "content_json",
-        "external_url",
-        "file_key",
-        "updated_at",
+        "muxPlaybackId",
+        "contentJson",
+        "externalUrl",
+        "fileKey",
+        "updatedAt",
       ],
       rows: lessonRows,
       updateColumns: [
-        "module_id",
+        "moduleId",
         "type",
         "title",
         "position",
         "status",
-        "mux_playback_id",
-        "content_json",
-        "external_url",
-        "file_key",
-        "updated_at",
+        "muxPlaybackId",
+        "contentJson",
+        "externalUrl",
+        "fileKey",
+        "updatedAt",
       ],
-      casts: { content_json: "jsonb" },
+      casts: { contentJson: "jsonb" },
     });
 
     report.enrollments = await upsert(client, {
       table: enrollments,
-      columns: [
-        "id",
-        "user_id",
-        "course_id",
-        "stripe_payment_id",
-        "enrolled_at",
-        "course_version_seen",
-      ],
+      fields: ["id", "userId", "courseId", "stripePaymentId", "enrolledAt", "courseVersionSeen"],
       rows: enrollmentRows,
-      updateColumns: ["user_id", "course_id", "stripe_payment_id", "enrolled_at"],
+      updateColumns: ["userId", "courseId", "stripePaymentId", "enrolledAt"],
     });
 
     report.lesson_progress = await upsert(client, {
       table: lessonProgress,
-      columns: [
+      fields: [
         "id",
-        "tenant_id",
-        "user_id",
-        "lesson_id",
-        "course_id",
+        "tenantId",
+        "userId",
+        "lessonId",
+        "courseId",
         "completed",
-        "completed_at",
-        "position_seconds",
-        "last_seen_at",
+        "completedAt",
+        "positionSeconds",
+        "lastSeenAt",
       ],
       rows: progressRows,
       updateColumns: [
-        "tenant_id",
-        "user_id",
-        "lesson_id",
-        "course_id",
+        "tenantId",
+        "userId",
+        "lessonId",
+        "courseId",
         "completed",
-        "completed_at",
-        "position_seconds",
-        "last_seen_at",
+        "completedAt",
+        "positionSeconds",
+        "lastSeenAt",
       ],
     });
 
     report.notifications = await upsert(client, {
       table: notifications,
-      columns: ["id", "tenant_id", "user_id", "type", "payload", "read_at", "created_at"],
+      fields: ["id", "tenantId", "userId", "type", "payload", "readAt", "createdAt"],
       rows: notificationRows,
-      updateColumns: ["tenant_id", "user_id", "type", "payload", "read_at"],
+      updateColumns: ["tenantId", "userId", "type", "payload", "readAt"],
       casts: { payload: "jsonb" },
     });
 
     report.course_event = await upsert(client, {
       table: courseEvent,
-      columns: [
+      fields: [
         "id",
-        "tenant_id",
-        "user_id",
-        "course_id",
-        "lesson_id",
+        "tenantId",
+        "userId",
+        "courseId",
+        "lessonId",
         "type",
-        "position_seconds",
-        "created_at",
+        "positionSeconds",
+        "createdAt",
       ],
       rows: eventRows,
       updateColumns: [
-        "tenant_id",
-        "user_id",
-        "course_id",
-        "lesson_id",
+        "tenantId",
+        "userId",
+        "courseId",
+        "lessonId",
         "type",
-        "position_seconds",
-        "created_at",
+        "positionSeconds",
+        "createdAt",
       ],
     });
 
