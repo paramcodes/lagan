@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { syncAgentRules } from "./sync-agent-rules";
+import { syncAgentRules } from "./templates/sync-agent-rules";
 
 const README = `# Lagan
 

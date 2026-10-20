@@ -3,8 +3,8 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { loadRuleTable, runAudit, type AuditResult } from "../../scripts/audit-rules";
-import { buildProtectedPaths } from "../../scripts/sync-agent-rules";
+import { loadRuleTable, runAudit, type AuditResult } from "./templates/audit-rules";
+import { buildProtectedPaths } from "./templates/sync-agent-rules";
 import {
   detectFacts,
   detectOwner,
