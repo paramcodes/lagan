@@ -109,6 +109,33 @@ describe("staleDeployDirs", () => {
   });
 });
 
+describe("isDeployDirInUse", () => {
+  it("is false when the directory has no marker", () => {
+    const dir = mkdtempSync(join(tmpdir(), "deploy-test-"));
+    const webDir = join(dir, "apps", "web");
+    mkdirSync(join(webDir, ".next-deploy-x"), { recursive: true });
+    expect(isDeployDirInUse(".next-deploy-x", webDir)).toBe(false);
+  });
+
+  it("is true when the marker names a process that is alive", () => {
+    const dir = mkdtempSync(join(tmpdir(), "deploy-test-"));
+    const webDir = join(dir, "apps", "web");
+    const deployDir = join(webDir, ".next-deploy-x");
+    mkdirSync(deployDir, { recursive: true });
+    writeFileSync(join(deployDir, ".lagan-deploy.json"), JSON.stringify({ pid: process.pid }));
+    expect(isDeployDirInUse(".next-deploy-x", webDir)).toBe(true);
+  });
+
+  it("is false when the marker names a process that is gone", () => {
+    const dir = mkdtempSync(join(tmpdir(), "deploy-test-"));
+    const webDir = join(dir, "apps", "web");
+    const deployDir = join(webDir, ".next-deploy-x");
+    mkdirSync(deployDir, { recursive: true });
+    writeFileSync(join(deployDir, ".lagan-deploy.json"), JSON.stringify({ pid: 2_147_483_646 }));
+    expect(isDeployDirInUse(".next-deploy-x", webDir)).toBe(false);
+  });
+});
+
 describe("responseIsHealthy", () => {
   it("accepts a page that carries the expected content", () => {
     expect(responseIsHealthy(200, "<p>7 published courses</p>", "published courses")).toBe(true);
