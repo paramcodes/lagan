@@ -207,6 +207,7 @@ rules:
     title: The database connection string comes from one canonical resolver.
     derive:
       - fact: database_configured
+      - path: apps/web/lib/env.ts
     layer: runtime
     enforced_by:
       - path: apps/web/lib/env.ts
@@ -221,6 +222,7 @@ rules:
     title: A missing database target fails the start, naming the variable and the file.
     derive:
       - fact: database_configured
+      - path: apps/web/lib/env.ts
     layer: runtime
     enforced_by:
       - path: apps/web/lib/env.ts
@@ -236,6 +238,7 @@ rules:
     title: The schema is applied by the migration script, and the migration folder is the schema.
     derive:
       - fact: database_configured
+      - path: package.json
     layer: ci
     enforced_by:
       - path: package.json
@@ -250,6 +253,7 @@ rules:
     title: The database tests run against a real database, and a skipped test is a failed test.
     derive:
       - fact: database_configured
+      - path: .github/workflows/ci.yml
     layer: ci
     enforced_by:
       - path: .github/workflows/ci.yml
@@ -265,6 +269,12 @@ policies:
   - id: one-issue-one-worktree-one-owner
     title: One issue is worked in one worktree, and one package has one owner at a time.
     layer: prose
+    artifact:
+      - path: pr:comment
+        note: The brief names the issue number, the worktree path and the files the change owns.
+    protects:
+      - path: packages/
+        protection: The shared packages have one owner at a time, so a change to one of them waits for its owner.
     note: |
       2026-10-20. Two agents edited the same file and one had to be aborted after the fact.
       CooperBench measured 25 percent for two-agent cooperation against roughly 50 percent for
@@ -277,6 +287,12 @@ policies:
     layer: prose
     enforced_by:
       - path: scripts/sync-agent-rules.ts
+    artifact:
+      - path: pr:comment
+        note: The pull request carries the change, and the rule table carries the rule.
+    protects:
+      - path: docs/ai/rules/
+        protection: The rule table is the source of truth, and the projected files are generated from it.
     note: |
       2026-10-20. The rules lived as prose in an instruction file, and the measured result is
       that a context file does not improve task success and costs more than 20 percent extra
@@ -289,6 +305,9 @@ policies:
   - id: never-commit-to-the-default-branch
     title: Nothing is committed directly to the default branch.
     layer: prose
+    artifact:
+      - path: pr:comment
+        note: The pull request carries the change instead of a direct push.
     note: |
       2026-10-20. A queue-file update was pushed straight to master and had to be rebased after
       a concurrent push landed, and a branch cut from a stale local master diverged from the
@@ -298,6 +317,12 @@ policies:
   - id: done-when-the-surface-was-observed
     title: A change is done when the surface it touched has been observed in the running application.
     layer: prose
+    artifact:
+      - path: pr:comment
+        note: The evidence comment carries the observation of the surface the change touched.
+    protects:
+      - path: docs/evidence/
+        protection: The recorded evidence is regenerated from the running app, never hand-edited.
     note: |
       2026-10-20. The app shell was unreadable below 768 pixels, every DOM assertion passed,
       and only a screenshot showed the page as a human sees it. One developer audited 516 such
