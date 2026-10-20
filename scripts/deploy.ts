@@ -33,6 +33,7 @@ import { describeDatabaseTarget, resolveDatabaseUrl } from "../apps/web/lib/env"
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const WEB_DIR = join(REPO_ROOT, "apps", "web");
 const DEPLOY_DIR_PREFIX = ".next-deploy-";
+const DEPLOY_MARKER = ".lagan-deploy.json";
 
 /**
  * Text that only appears when a page failed to render. A process that is up
@@ -119,9 +120,13 @@ export function commitHash(cwd: string = REPO_ROOT): string {
   return hash;
 }
 
-/** The directory a commit builds into, so two deployments never share one. */
-export function distDirFor(commit: string): string {
-  return `${DEPLOY_DIR_PREFIX}${commit.slice(0, 12)}`;
+/**
+ * The directory a build attempt goes into. The attempt id is part of the name
+ * so a failed build never writes into the directory the running server is
+ * serving from, even when the source has not changed since the last build.
+ */
+export function distDirFor(commit: string, attemptId: string): string {
+  return `${DEPLOY_DIR_PREFIX}${commit.slice(0, 12)}-${attemptId}`;
 }
 
 export function readBuildId(distDir: string, cwd: string = REPO_ROOT): string | null {
@@ -201,6 +206,31 @@ export function staleDeployDirs(keep: string[], cwd: string = REPO_ROOT): string
   );
 }
 
+/** True when a process is still running. */
+export function isAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * A deploy directory is only safe to remove when no server is serving from
+ * it. The marker inside the directory names that server's pid.
+ */
+export function isDeployDirInUse(dir: string, webDir: string): boolean {
+  const marker = join(webDir, dir, DEPLOY_MARKER);
+  if (!existsSync(marker)) return false;
+  try {
+    const parsed = JSON.parse(readFileSync(marker, "utf8")) as { pid?: number };
+    return typeof parsed.pid === "number" && isAlive(parsed.pid);
+  } catch {
+    return false;
+  }
+}
+
 function runBuild(commit: string, distDir: string): boolean {
   console.log(`[deploy] building ${commit} into ${distDir}`);
   const result = spawnSync("bun", ["run", "build"], {
@@ -266,6 +296,10 @@ function startServer(
   if (child.pid === undefined) return null;
   const running: RunningServer = { pid: child.pid, commit, distDir, port: options.port };
   writeFileSync(pidFilePath(options.logPath), `${JSON.stringify(running, null, 2)}\n`);
+  writeFileSync(
+    join(WEB_DIR, distDir, DEPLOY_MARKER),
+    `${JSON.stringify({ pid: child.pid, commit, port: options.port }, null, 2)}\n`,
+  );
   return child.pid;
 }
 
@@ -301,7 +335,7 @@ async function main(): Promise<void> {
     console.log(`[deploy] reusing the existing build ${commit} in ${distDir}`);
   } else {
     commit = commitHash();
-    distDir = distDirFor(commit);
+    distDir = distDirFor(commit, Date.now().toString(36));
     if (!runBuild(commit, distDir)) {
       console.error(
         "[deploy] the build failed, so the running server was left alone. It is still serving from " +
@@ -337,6 +371,10 @@ async function main(): Promise<void> {
   }
 
   for (const stale of staleDeployDirs([distDir, previous?.distDir ?? ""])) {
+    if (isDeployDirInUse(stale, WEB_DIR)) {
+      console.log(`[deploy] kept the build directory ${stale}, a server is still serving from it`);
+      continue;
+    }
     rmSync(join(WEB_DIR, stale), { recursive: true, force: true });
     console.log(`[deploy] removed the build directory ${stale}`);
   }

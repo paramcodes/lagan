@@ -6,6 +6,7 @@ import {
   pidFilePath,
   readRunningServer,
   responseIsHealthy,
+  isDeployDirInUse,
   staleDeployDirs,
 } from "./deploy";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
@@ -47,12 +48,12 @@ describe("parseArgs", () => {
 });
 
 describe("distDirFor", () => {
-  it("gives each commit its own directory", () => {
-    expect(distDirFor("abcdef1234567890")).toBe(".next-deploy-abcdef123456");
+  it("gives each build attempt its own directory", () => {
+    expect(distDirFor("abcdef1234567890", "m0")).toBe(".next-deploy-abcdef123456-m0");
   });
 
-  it("gives two commits different directories", () => {
-    expect(distDirFor("aaaa1111")).not.toBe(distDirFor("bbbb2222"));
+  it("gives two attempts at the same commit different directories", () => {
+    expect(distDirFor("aaaa1111", "one")).not.toBe(distDirFor("aaaa1111", "two"));
   });
 });
 
