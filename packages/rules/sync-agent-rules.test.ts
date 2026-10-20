@@ -151,10 +151,27 @@ describe("syncAgentRules", () => {
     syncAgentRules({ root, check: false });
 
     const agents = read("AGENTS.md");
-    expect(agents).toContain("bun scripts/sync-agent-rules.ts");
+    expect(agents).toContain("bun run rules:sync");
     expect(agents).toContain("docs/ai/rules/");
     expect(agents).toContain("There are 1 rules");
     expect(agents).not.toContain("The sample rule holds.");
+  });
+
+  it("names the project from the readme and not from the template", () => {
+    write("README.md", README.replace("# Lagan", "# Acme Warehouse"));
+
+    syncAgentRules({ root, check: false });
+
+    expect(read("AGENTS.md")).toContain("# Acme Warehouse");
+    expect(read("AGENTS.md")).not.toContain("# Lagan");
+  });
+
+  it("gives a human the rule table and the code owners file", () => {
+    syncAgentRules({ root, check: false });
+
+    const codeowners = read(".github/CODEOWNERS");
+    expect(codeowners).toContain("docs/ai/rules/ @paramcodes");
+    expect(codeowners).toContain(".github/CODEOWNERS @paramcodes");
   });
 
   it("refuses to project a table that does not parse", () => {
