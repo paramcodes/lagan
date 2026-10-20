@@ -88,8 +88,9 @@ Rule: keep >=3 in flight; refill the moment one finishes.
 | In flight | Issue | Worktree | Depends on |
 |---|---|---|---|
 | [x] | All 49 MVP issues complete & merged | — | — |
+| [x] | #96 demo seed and clean command (`bun run seed:demo`, `bun run seed:demo:clean`) | — | — |
 
-Merged: P0.1-P0.8, P1.1-P1.9, P2.1-P2.10, P3.1-P3.8, P4.1-P4.5, P5.1-P5.4, P6.1-P6.5, P7.1-P7.4, D0-D7.
+Merged: P0.1-P0.8, P1.1-P1.9, P2.1-P2.10, P3.1-P3.8, P4.1-P4.5, P5.1-P5.4, P6.1-P6.5, P7.1-P7.4, D0-D7, #96.
 
 ### Status
 **100% MVP Complete across all phases.** All quality gates, accessibility audits, security audits, and E2E core journeys are passing green on main.
