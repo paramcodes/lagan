@@ -6,9 +6,10 @@ artifact:
     note: The coordinator states which heavy gate is running.
 failure: |
   2026-10-20. On this four-core box, three agents running the full test suite and a
-  production build at the same time pushed the load average to 25, and a 48 minute critical
-  path spent 30 minutes of it waiting. The rule now also says that at most one heavy gate
-  runs at a time, and that worktrees and dependency installs are prepared before dispatch.
+  production build at the same time pushed the load average to between 17 and 24, and a
+  48 minute critical path spent most of it waiting. The rule now also says that at most one
+  heavy gate runs at a time, and that worktrees and dependency installs are prepared before
+  dispatch.
 owner: "@paramcodes"
 protects:
   - path: package.json

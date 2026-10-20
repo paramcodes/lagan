@@ -1,12 +1,16 @@
 id: no-silent-test-skip
-title: The Postgres integration job runs against a real database.
+title: Every change carries a test that runs, or it says why it cannot.
 layer: prose
 artifact:
   - path: ci:job
     note: The CI job that would give the integration tests a database.
+  - path: pr:comment
+    note: The pull request states which test covers the change.
 failure: |
   2026-10-20. The CI job that ran the four Postgres integration test files had no database,
-  so every one of them skipped and the suite reported success while covering nothing.
+  so every one of them skipped and the suite reported success while covering the one layer
+  that broke. The rule "every change carries a test" recorded this same incident, so the two
+  are one rule and not two files.
 owner: "@paramcodes"
 protects:
   - path: .github/workflows/ci.yml

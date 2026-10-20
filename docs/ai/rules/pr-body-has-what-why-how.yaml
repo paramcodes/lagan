@@ -1,10 +1,22 @@
 id: pr-body-has-what-why-how
 title: A pull request body carries What, Why and How.
 layer: prose
+enforced_by:
+  - path: .github/PULL_REQUEST_TEMPLATE.md
+    match:
+      - "## What"
+      - "## Why"
+      - "## How"
 artifact:
   - path: .github/PULL_REQUEST_TEMPLATE.md
     note: The template the reviewer reads.
 failure: |
-  2026-10-20. No pull request has been rejected for a missing section, and the rule holds
-  because the sections are the first thing a reviewer reads.
+  2026-10-20. No pull request has been turned away for a missing section, so the rule is not
+  there to catch a mistake in an author. It is there because the template is the mechanism:
+  GitHub inserts it into every new pull request, and until this rule named the template,
+  nothing checked that the three sections were still in it. A section removed from the
+  template now fails the audit.
 owner: "@paramcodes"
+protects:
+  - path: .github/PULL_REQUEST_TEMPLATE.md
+    protection: The template is the mechanism behind the pull request body.
