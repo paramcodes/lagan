@@ -45,7 +45,10 @@ export async function askForRule(prompter: Prompter, root: string): Promise<NewR
     "Which path and marker enforce it? Empty when nothing does.",
     "",
   );
-  const artifact = await prompter.ask("Where does a reviewer look? A path or pr:comment.", "pr:comment");
+  const artifact = await prompter.ask(
+    "Where does a reviewer look? A path or pr:comment.",
+    "pr:comment",
+  );
   const owner = await prompter.ask("Who owns the rule?", defaultOwner(root));
 
   return {
@@ -68,7 +71,8 @@ export function ruleDocument(rule: NewRule): string {
   const [path, ...markers] = rule.mechanism.split("|").map((part) => part.trim());
   if (path && path.length > 0) {
     const match = markers.filter((marker) => marker.length > 0);
-    document.enforced_by = match.length > 0 ? [{ path, match: match.length === 1 ? match[0] : match }] : [{ path }];
+    document.enforced_by =
+      match.length > 0 ? [{ path, match: match.length === 1 ? match[0] : match }] : [{ path }];
   }
   document.artifact = [{ path: rule.artifact }];
   document.failure = `${rule.failure}\n`;
@@ -97,7 +101,7 @@ export async function runNew(options: NewOptions): Promise<number> {
 
   writeProjectFile(options.root, `${RULES_DIR}/${rule.id}.yaml`, ruleDocument(rule));
   console.log(`Wrote ${RULES_DIR}/${rule.id}.yaml`);
-  console.log("Run \"bun run rules:audit\" and then \"bun run rules:sync\".");
+  console.log('Run "bun run rules:audit" and then "bun run rules:sync".');
   return 0;
 }
 

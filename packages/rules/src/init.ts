@@ -116,7 +116,9 @@ function historyRuleDocument(text: string, owner: string): { id: string; documen
       id,
       title: text.split("\n")[0]?.trim() || id,
       layer: "prose",
-      artifact: [{ path: "pr:comment", note: "The pull request comment that carries the evidence." }],
+      artifact: [
+        { path: "pr:comment", note: "The pull request comment that carries the evidence." },
+      ],
       failure: `${today()}. ${text.trim()}\n`,
       owner,
     },
@@ -185,11 +187,7 @@ export interface Written {
   projectionError: string;
 }
 
-export function writeProject(
-  root: string,
-  chosen: Bootstrap,
-  answers: Answers,
-): Written {
+export function writeProject(root: string, chosen: Bootstrap, answers: Answers): Written {
   const files: string[] = [];
   const resolution = resolveCatalogue(chosen.catalogue, {
     root,
@@ -359,7 +357,7 @@ function printReport(root: string, answers: Answers, written: Written, proof: Pr
     console.log(`  ${written.historyRuleId}: one strike, so one rule.`);
   }
   console.log("  Strike one is a bug. Strike two is a class, and it earns a rule. Strike three is");
-  console.log("  a pattern, and it earns a lint rule or a hook. Run \"rules new\" at strike two.");
+  console.log('  a pattern, and it earns a lint rule or a hook. Run "rules new" at strike two.');
   console.log("");
 
   console.log("The check works");
@@ -376,7 +374,7 @@ function printReport(root: string, answers: Answers, written: Written, proof: Pr
     if (written.projectionError.length > 0) {
       console.log(`    ${written.projectionError.split("\n")[0]}`);
     }
-    console.log("  Add a README.md, then run \"bun run rules:sync\".");
+    console.log('  Add a README.md, then run "bun run rules:sync".');
   }
   console.log("  Edit docs/ai/context.yaml with the facts only you know.");
   console.log(`  ${answers.owner} owns the table and the code owners file.`);

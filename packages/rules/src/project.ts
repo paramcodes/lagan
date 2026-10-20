@@ -23,7 +23,10 @@ export const AUDITOR_CANDIDATES = [AUDITOR_FILE, "packages/rules/templates/audit
 /**
  * Where a project's own copy of the projector can be.
  */
-export const PROJECTOR_CANDIDATES = [PROJECTOR_FILE, "packages/rules/templates/sync-agent-rules.ts"];
+export const PROJECTOR_CANDIDATES = [
+  PROJECTOR_FILE,
+  "packages/rules/templates/sync-agent-rules.ts",
+];
 
 export const COMMANDS = ["rules-init.md", "rules-audit.md", "rules-new.md", "rules-upgrade.md"];
 

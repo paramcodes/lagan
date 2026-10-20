@@ -21,7 +21,7 @@ export function runProjectScript(
     console.error(
       `This project has no ${label}. Looked in: ${candidates.join(", ")}.`,
       "",
-      "Run \"rules init\" to create one. The package's own copy is not run on purpose: it would",
+      'Run "rules init" to create one. The package\'s own copy is not run on purpose: it would',
       "check the package instead of the project.",
     );
     return 1;

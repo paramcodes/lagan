@@ -86,9 +86,7 @@ export function compare(root: string, cataloguePaths?: string[]): UpgradeReport 
     }
   }
 
-  const dropped = table.rules
-    .filter((rule) => !catalogueIds.has(rule.id))
-    .map((rule) => rule.id);
+  const dropped = table.rules.filter((rule) => !catalogueIds.has(rule.id)).map((rule) => rule.id);
 
   return { catalogue: chosen.catalogue.id, added, changed, dropped };
 }
