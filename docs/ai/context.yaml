@@ -74,5 +74,6 @@ sections:
       - Never force-push.
       - Two subagents never edit the same file or package at the same time. The per-item file
         manifest in each brief is what keeps them apart.
-      - Keep code comments to a minimum, and explain why in the pull request rather than in
-        the source. Prefer clear names and small functions.
+      - No comments except where technically required. Explain why in the pull request, not in
+        the code.
+      - Keep code comments to a minimum, and prefer clear names and small functions.
