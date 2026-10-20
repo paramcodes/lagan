@@ -1,12 +1,9 @@
 id: no-silent-test-skip
 title: The Postgres integration job runs against a real database.
-layer: ci
-enforced_by:
-  - path: .github/workflows/ci.yml
-    match: DATABASE_URL
+layer: prose
 artifact:
   - path: ci:job
-    note: The job that gives the integration tests a database.
+    note: The CI job that would give the integration tests a database.
 failure: |
   2026-10-20. The CI job that ran the four Postgres integration test files had no database,
   so every one of them skipped and the suite reported success while covering nothing.

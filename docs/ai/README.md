@@ -66,6 +66,12 @@ mechanism and not about the file name: a rule that points at `lefthook.yml` with
 passes as long as a file of that name exists, and a rule with the marker fails the moment the
 guard is renamed or deleted.
 
+Every entry has to match, so one rule can pin a mechanism with more than one marker. A marker
+also has to be specific enough that deleting the mechanism takes the marker with it.
+`bun run test` is a prefix of `bun run test:e2e`, so a rule that means one CI job pins the step
+name as well as the command. A marker that still matches after the mechanism is gone is not a
+check.
+
 `artifact` is where the reviewer looks, and it is what makes a rule checkable. A `path` that
 starts with `pr:`, `ci:` or `git:` is a locator for evidence that lives outside the repository,
 such as a pull request comment. Every other `path` must exist in the repository.
