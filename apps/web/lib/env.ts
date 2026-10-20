@@ -62,7 +62,7 @@ export function readEnvFile(filePath: string): Record<string, string> {
 }
 
 export function findEnvFile(startDir: string = process.cwd()): string | null {
-  let directory = resolve(startDir);
+  let directory = resolve(/*turbopackIgnore: true*/ startDir);
 
   for (let depth = 0; depth <= MAX_ENV_FILE_SEARCH_DEPTH; depth += 1) {
     const candidate = join(directory, ENV_FILE_NAME);
