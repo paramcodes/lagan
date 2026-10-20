@@ -4,15 +4,40 @@ import { Sidebar } from "@lagan/ui";
 import { ChevronDown, Search, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { authClient } from "../../lib/auth-client";
 import { COURSE_CATEGORY_OPTIONS } from "./courses/params";
 import { NotificationCenter } from "../../components/notification-center";
 const COURSES_PATH = "/courses";
 const SEARCH_DEBOUNCE_MS = 300;
+/** Matches Tailwind's `md` breakpoint: below it the 260px rail squeezes the content column. */
+const COMPACT_VIEWPORT_QUERY = "(max-width: 767.98px)";
+
+function subscribeToCompactViewport(onChange: () => void) {
+  const media = window.matchMedia(COMPACT_VIEWPORT_QUERY);
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+}
+
+function readCompactViewport() {
+  return window.matchMedia(COMPACT_VIEWPORT_QUERY).matches;
+}
+
+/** The server cannot know the viewport, so it ships the roomy shell and the client corrects it. */
+function readCompactViewportOnServer() {
+  return false;
+}
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const [collapsed, setCollapsed] = useState(false);
+  const compact = useSyncExternalStore(
+    subscribeToCompactViewport,
+    readCompactViewport,
+    readCompactViewportOnServer,
+  );
+  const [manualChoice, setManualChoice] = useState<{ compact: boolean; collapsed: boolean } | null>(
+    null,
+  );
+  const collapsed = manualChoice?.compact === compact ? manualChoice.collapsed : compact;
 
   const pathname = usePathname();
   const router = useRouter();
@@ -110,13 +135,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     applyParams({ category: value });
   };
 
+  const overlaySidebar = compact && !collapsed;
+
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
-      <Sidebar collapsed={collapsed} onCollapsedChange={setCollapsed} />
+    <div className="relative flex h-screen w-full overflow-hidden bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+      <div
+        className={
+          overlaySidebar ? "absolute inset-y-0 left-0 z-40 shadow-lg" : "relative h-full shrink-0"
+        }
+      >
+        <Sidebar
+          collapsed={collapsed}
+          onCollapsedChange={(next) => setManualChoice({ compact, collapsed: next })}
+        />
+      </div>
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 shrink-0 items-center gap-3 border-b border-zinc-200 bg-white px-4 dark:border-zinc-800 dark:bg-zinc-950">
-          <search className="relative flex-1 max-w-xl">
-            <form onSubmit={submitSearch}>
+        <header className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-zinc-200 bg-white px-3 py-2 sm:h-16 sm:flex-nowrap sm:px-4 sm:py-0 dark:border-zinc-800 dark:bg-zinc-950">
+          <search className="relative min-w-0 grow basis-full sm:basis-auto sm:max-w-xl">
+            <form onSubmit={submitSearch} className="min-w-0">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
               <input
                 type="search"
@@ -126,15 +162,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 autoComplete="off"
                 aria-label="Search courses, lessons, people"
                 placeholder="Search courses, lessons, people…"
-                className="h-10 w-full rounded-md border border-zinc-200 bg-zinc-50 pl-9 pr-12 text-sm outline-none transition-colors placeholder:text-zinc-400 focus:border-zinc-400 focus:bg-white dark:border-zinc-800 dark:bg-zinc-900 dark:focus:border-zinc-600 dark:focus:bg-zinc-950"
+                className="h-10 w-full min-w-0 rounded-md border border-zinc-200 bg-zinc-50 pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-zinc-400 focus:border-zinc-400 focus:bg-white sm:pr-12 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:border-zinc-600 dark:focus:bg-zinc-950"
               />
-              <kbd className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded border border-zinc-200 bg-white px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
+              <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-zinc-200 bg-white px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 sm:block dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
                 ⌘K
               </kbd>
             </form>
           </search>
 
-          <div className="relative">
+          <div className="relative shrink-0">
             <select
               value={category}
               onChange={selectCategory}
@@ -193,7 +229,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto p-6">{children}</main>
+        <main className="flex-1 overflow-auto p-4 sm:p-6">{children}</main>
       </div>
     </div>
   );
