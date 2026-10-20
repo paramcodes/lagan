@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
 
 export const RULE_LAYERS = ["type", "primitive", "runtime", "test", "lint", "ci", "prose"] as const;
@@ -638,4 +639,106 @@ function findContradictions(rules: Rule[]): Finding[] {
     }
   }
   return findings;
+}
+
+function formatTable(result: AuditResult): string {
+  const headers = ["ID", "LAYER", "ENFORCED", "ARTIFACTS", "OWNER", "TITLE"];
+  const rows = result.rules.map((rule) => [
+    rule.id,
+    rule.layer ?? "-",
+    rule.enforced_by.length > 0 ? "yes" : "no",
+    String(rule.artifact.length),
+    rule.owner || "-",
+    rule.title || "-",
+  ]);
+  const widths = headers.map((header, column) =>
+    Math.max(header.length, ...rows.map((row) => (row[column] ?? "").length)),
+  );
+  const line = (cells: string[]) =>
+    cells
+      .map((cell, column) => cell.padEnd(widths[column] ?? 0))
+      .join("  ")
+      .trimEnd();
+
+  const lines = [
+    `Rule table: ${RULES_DIR} (${result.summary.rules} rules)`,
+    "",
+    line(headers),
+    line(widths.map((width) => "-".repeat(width))),
+    ...rows.map(line),
+    "",
+  ];
+
+  const errors = result.findings.filter((item) => item.severity === "error");
+  const warnings = result.findings.filter((item) => item.severity === "warning");
+  lines.push(`Findings (${errors.length} errors, ${warnings.length} warnings)`);
+  if (result.findings.length === 0) {
+    lines.push("  none");
+  }
+  for (const item of [...errors, ...warnings]) {
+    lines.push(
+      `  ${item.severity.padEnd(7)} ${item.code.padEnd(28)} ${item.rule.padEnd(34)} ${item.message}`,
+    );
+  }
+  lines.push("");
+  lines.push("Summary");
+  lines.push(`  rules      ${result.summary.rules}`);
+  lines.push(`  enforced   ${result.summary.enforced}`);
+  lines.push(`  unenforced ${result.summary.unenforced}`);
+  lines.push(`  unearned   ${result.summary.unearned}`);
+  return lines.join("\n");
+}
+
+function parseArgs(argv: string[]): { json: boolean; root: string } {
+  let json = false;
+  let root = process.cwd();
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (arg === "--json") json = true;
+    else if (arg === "--root") {
+      const next = argv[index + 1];
+      if (next) {
+        root = resolve(next);
+        index += 1;
+      }
+    }
+  }
+  return { json, root };
+}
+
+function isMainModule(): boolean {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  return resolve(entry) === fileURLToPath(import.meta.url);
+}
+
+if (isMainModule()) {
+  const options = parseArgs(process.argv.slice(2));
+  const result = runAudit(options.root);
+  if (options.json) {
+    console.log(
+      JSON.stringify(
+        {
+          ok: result.ok,
+          root: relative(process.cwd(), result.root) || ".",
+          summary: result.summary,
+          findings: result.findings,
+          rules: result.rules.map((rule) => ({
+            id: rule.id,
+            title: rule.title,
+            layer: rule.layer,
+            owner: rule.owner,
+            enforcedBy: rule.enforced_by,
+            artifacts: rule.artifact,
+            protects: rule.protects,
+          })),
+        },
+        null,
+        2,
+      ),
+    );
+  } else {
+    console.log(formatTable(result));
+  }
+  process.exit(result.ok ? 0 : 1);
 }
