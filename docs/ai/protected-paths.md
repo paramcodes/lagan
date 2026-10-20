@@ -1,5 +1,5 @@
 <!-- GENERATED FILE. DO NOT EDIT BY HAND. -->
-<!-- Regenerate with: bun scripts/sync-agent-rules.ts -->
+<!-- Regenerate with: bun run rules:sync -->
 
 # Protected paths
 

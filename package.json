@@ -17,7 +17,13 @@
     "db:migrate": "drizzle-kit migrate",
     "seed:demo": "bun scripts/seed-demo.ts",
     "seed:demo:clean": "bun scripts/seed-demo.ts --clean",
-    "test": "vitest run",
+    "rules:audit": "bun packages/rules/bin/rules.ts audit",
+    "rules:sync": "bun packages/rules/bin/rules.ts sync",
+    "rules:sync:check": "bun packages/rules/bin/rules.ts sync --check",
+    "rules:new": "bun packages/rules/bin/rules.ts new",
+    "rules:upgrade": "bun packages/rules/bin/rules.ts upgrade",
+    "test:rules": "vitest run --root packages/rules",
+    "test": "vitest run && bun run test:rules",
     "test:e2e": "playwright test"
   },
   "devDependencies": {
