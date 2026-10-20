@@ -68,9 +68,10 @@ sections:
 
   - title: Preferences
     body: |
-      These are preferences, not rules. No failure has produced them, so they have no rule
-      file: the brief, the checklist or the skill of the work carries them, and the
-      coordinator's brief carries the ones that keep a merge safe.
+      These are preferences, not constraints. Nothing in this repository checks them and
+      nothing in this repository enforces them: no failure has produced them, so they have no
+      rule file, and their enforcement lives in the brief, the checklist or the skill of the
+      work. A reader who finds one of them here should not assume a check holds it.
 
       - Never force-push.
       - Two subagents never edit the same file or package at the same time. The per-item file
