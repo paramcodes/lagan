@@ -38,14 +38,15 @@ bun run test:e2e      # playwright (needs Postgres + a dev server)
 4. Run gates. In the edit loop, run only the tests for the files you changed, for
    example `bunx vitest run "apps/web/app/(app)/courses/page.test.tsx"`. Before opening
    the pull request, run the full `bun run test` once, plus `bun install` and
-   `bun run lint`. CI still runs typecheck, test, lint and build on every pull request,
-   so dropping the local duplicates loses nothing.
+   `bun run lint`, unless the change is documentation-only. CI still runs typecheck, test,
+   lint and build on every pull request, so dropping the local duplicates loses nothing.
 5. Push the branch and open the pull request with `gh pr create`. The body carries
    What, Why and How, and ends with `Closes #<issue>`.
 6. A separate reviewer subagent inspects the diff, re-runs the gates on the rebased
    branch, then squash-merges with `gh pr merge <n> --squash` and deletes the remote
-   branch. Docs-only changes (only files under `docs/`) skip heavy gates: run only
-   `bun run format` and `bun run lint`, not build, test, or typecheck.
+   branch. A documentation-only change, where every changed file is under `docs/`, skips
+   the heavy gates: run only `bun run format` and `bun run lint`, not build, test, or
+   typecheck.
 7. After the merge, a reconciler subagent fast-forwards the local `master` to
    `origin/master` and updates `todos.md`.
 
@@ -74,6 +75,10 @@ bun run test:e2e      # playwright (needs Postgres + a dev server)
 - Conventional commit messages.
 
 ## Tests and evidence
+
+These are preferences, not constraints. Nothing in this repository checks them and
+nothing in this repository enforces them. A reader who finds one of them here should
+not assume a check holds it.
 
 - Every change carries tests, or an explicit reason it cannot.
 - A visual change needs a screenshot or a GIF. A performance change needs measured

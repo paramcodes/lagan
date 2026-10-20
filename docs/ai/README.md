@@ -123,7 +123,7 @@ the rule can be enforced.
 | `primitive` | A shared library primitive. | One wrapper that every caller goes through. |
 | `runtime` | Runtime code at a boundary. | An error boundary, a guard that throws. |
 | `test` | A test. | A behaviour the suite asserts. |
-| `lint` | A lint rule or a static check. | The `lefthook.yml` size guard. |
+| `lint` | A lint rule or a static check. | A Biome rule that bans a structural pattern. |
 | `ci` | A CI job. | The `verify` job that runs the suite. |
 | `prose` | Nothing. | A rule a human or an agent reads and follows. |
 
