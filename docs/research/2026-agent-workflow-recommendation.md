@@ -371,13 +371,14 @@ by whoever reads it next.
 ## Step 10. Layer the instruction files by scope
 
 - The root `AGENTS.md` holds repository-wide context, the rule table, the validation ladder and
-  the definition of done. It stays short. Anthropic's guidance is under 200 lines, and the
-  practitioner convergence is 100 to 250 lines or under 500 tokens. Codex caps the combined chain
+  the definition of done. It stays short. Anthropic's guidance is
+  [under 200 lines per file](https://code.claude.com/docs/en/memory), and the practitioner
+  convergence is 100 to 250 lines or under 500 tokens. Codex caps the combined chain
   at 32 KiB, and the practical ceiling for a file an agent reads on every single task is far
   lower.
 - A nested `AGENTS.md` holds only subtree-specific additions and overrides. Scope is the unit.
   The pattern to copy is one nested file per package. The widely repeated figure of 88 such files
-  in one large repository is unverified, the site names no repository, so treat the mechanism as
+  in one large repository is unverified, no repository is named for it, so treat the mechanism as
   the evidence and the number as folklore.
 - Never repeat the parent's wording in a child. Review the combined chain, not each file alone.
 - Keep the process for authoring and pruning these files out of the files themselves. A runtime
@@ -456,11 +457,13 @@ broker are shared state. And orphaned background workers, because a worker still
 an earlier session will pick up another session's jobs and run them against old code. The fix
 people use for that is a rule you have to remember, "which means it is not really fixed".
 
-One warning from a production postmortem in the same corpus. Worktree isolation can remove
-accidental shared state that the whole team was relying on. One team had a `node_modules` shared
-by every worktree, and isolating it broke builds that "had worked locally for months". If your
-worktrees each run their own install, that is a cost you pay on every agent. Symlink the
-dependency directory to one shared location instead, and never commit the symlink.
+One warning from a production postmortem, written up by
+[baro](https://www.baro.rs/blog/how-we-run-a-fleet-of-ai-agents-on-one-repo). Worktree
+isolation can remove accidental shared state that the whole team was relying on. One team had a
+`node_modules` shared by every worktree, and isolating it broke builds that "had worked locally
+for months". If your worktrees each run their own install, that is a cost you pay on every
+agent. Symlink the dependency directory to one shared location instead, and never commit the
+symlink.
 
 ---
 
