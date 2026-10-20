@@ -5,7 +5,7 @@ import {
   DEMO_ID_PREFIX,
   requireDatabaseUrl,
   seedDemoData,
-} from "../../../scripts/seed-demo";
+} from "./seed-demo-data";
 
 const DATABASE_URL = process.env.DATABASE_URL;
 const TEST_SCHEMA = "p9_6_seed_demo_integration";
