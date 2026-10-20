@@ -2,8 +2,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parse } from "yaml";
-import { loadRuleTable, RULES_DIR, type Rule } from "./audit-rules";
+import { loadRuleTable, parseYaml, RULES_DIR, type Rule } from "./audit-rules";
 
 export const AGENTS_FILE = "AGENTS.md";
 export const CODEOWNERS_FILE = ".github/CODEOWNERS";
@@ -154,7 +153,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export function parseContext(source: string): ContextSection[] {
   let raw: unknown;
   try {
-    raw = parse(source);
+    raw = parseYaml(source);
   } catch (error) {
     throw new Error(
       `${CONTEXT_FILE} is not valid YAML: ${error instanceof Error ? error.message : String(error)}`,
