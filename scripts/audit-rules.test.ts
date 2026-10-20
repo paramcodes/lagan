@@ -22,6 +22,10 @@ describe("runAudit", () => {
 
   beforeEach(() => {
     root = mkdtempSync(join(tmpdir(), "lagan-audit-"));
+    write(
+      "docs/ai/protected-paths.md",
+      "# Protected paths\n\n| Path pattern | Kind |\n| --- | --- |\n",
+    );
   });
 
   afterEach(() => {
@@ -243,6 +247,18 @@ owner: "@paramcodes"
 
     expect(codes(result)).not.toContain("contradiction");
     expect(result.ok).toBe(true);
+  });
+
+  it("fails when the protected paths table is missing", () => {
+    rmSync(join(root, "docs/ai/protected-paths.md"), { force: true });
+    write("src/guard.ts", "export const guard = true;\n");
+    write("src/guard.test.ts", "it('guards', () => {});\n");
+    writeRule("sample-rule", VALID_RULE);
+
+    const result = runAudit(root);
+
+    expect(result.ok).toBe(false);
+    expect(codes(result)).toContain("protected-paths-missing");
   });
 
   it("fails when a protected path is missing from the protected paths table", () => {

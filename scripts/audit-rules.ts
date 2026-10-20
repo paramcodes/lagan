@@ -577,7 +577,16 @@ export function runAudit(root: string): AuditResult {
   findings.push(...findContradictions(rules));
 
   const protectedCells = readProtectedPathCells(root);
-  if (protectedCells !== null) {
+  if (protectedCells === null) {
+    findings.push(
+      finding(
+        "protected-paths-missing",
+        "error",
+        "-",
+        `${PROTECTED_PATHS_FILE} does not exist, so the protected paths cannot be checked.`,
+      ),
+    );
+  } else {
     for (const rule of rules) {
       for (const protectedPath of rule.protects) {
         if (!protectedCells.includes(protectedPath.path)) {
