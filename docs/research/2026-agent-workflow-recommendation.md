@@ -323,3 +323,172 @@ produced. Anthropic's fix was to compile most of the kernel with GCC and only th
 files with their own compiler, so each agent could tell whether the failure was in their files
 or somewhere else.
 
+For a repository, the equivalent is a known-good reference the agents compare against. The
+production build. The database fixture. The reference screenshot.
+
+### Do not build a merge queue
+
+[Anthropic's source control post](https://www.anthropic.com/engineering/redesigning-source-control)
+reports that at their scale, roughly 30,000 merged changes per day, a merge queue stops making
+sense, and the check moves to after the merge and before the deploy. A rule built on a merge
+queue will not hold once the agents scale, so build on post-merge verification instead.
+
+---
+
+## Step 8. Budget the machine, not the agent count
+
+"Keep at least three agents in flight" is a rule written for a bigger machine. On a four-core
+box it makes three agents wait on each other's builds.
+
+Write the rule in terms of the scarce resource instead.
+
+- Name the heavy gates: the full test suite, a production build, a browser run.
+- Say how many may run at once on the stated hardware. One, on four cores.
+- Say that the other agents keep editing while a heavy gate runs.
+- Say that worktrees and dependency installs are prepared before the agents are dispatched, so
+  three agents never compete on the install.
+- Say how long a heavy gate takes on this machine, so an agent can tell a slow run from a hung
+  one.
+
+---
+
+## Step 9. Keep an incident log
+
+A single file, one row per incident, four columns.
+
+| Date | What went wrong | Which rule would have caught it | What was added to make it structural | Strike count for the class |
+|---|---|---|---|---|
+
+Every "the gate passed and it was still wrong" gets a row. Every row either produces a rule with
+a layer and an artefact, or is closed with a note that it did not earn one. The strike counter
+lives in the last column.
+
+Without this log the instruction file can only grow, and every rule in it has to be re-litigated
+by whoever reads it next.
+
+---
+
+## Step 10. Layer the instruction files by scope
+
+- The root `AGENTS.md` holds repository-wide context, the rule table, the validation ladder and
+  the definition of done. It stays short. Anthropic's guidance is under 200 lines, and the
+  practitioner convergence is 100 to 250 lines or under 500 tokens. Codex caps the combined chain
+  at 32 KiB, and the practical ceiling for a file an agent reads on every single task is far
+  lower.
+- A nested `AGENTS.md` holds only subtree-specific additions and overrides. Scope is the unit.
+  The pattern to copy is one nested file per package. The widely repeated figure of 88 such files
+  in one large repository is unverified, the site names no repository, so treat the mechanism as
+  the evidence and the number as folklore.
+- Never repeat the parent's wording in a child. Review the combined chain, not each file alone.
+- Keep the process for authoring and pruning these files out of the files themselves. A runtime
+  file that tells agents how to maintain runtime files is a policy document in the wrong place.
+
+---
+
+## Step 11. Give every rule a comment, so it can be deleted later
+
+[arXiv:2608.11095](https://arxiv.org/abs/2608.11095) measured why instruction files grow without
+bound. Every instruction carries latent reasoning, the failure that motivated it, the hypothesis
+and the outcome. At write time that reasoning is free. Months later, recovering it is
+exponentially costly, so deletion feels unsafe, and the measurement confirms it. Older
+instructions are *less* likely to be deleted, not more. A wholesale rewrite regrows to 91.5% of
+its previous size within 10 commits.
+
+The fix, measured in the same paper. An HTML comment on each instruction recording the failure
+history, the hypothesis and the outcome removes 99.3% of the excess growth, taking +211.3% down
+to +1.4%, and improves instruction following by up to 23.1%. The comment is invisible to the
+model. It exists so a human can decide, weeks later, whether the rule still earns its place.
+
+The paper's closing line. "If English is the new code, why don't we have comments yet?"
+
+```markdown
+- Commit with `--only <paths>`, never a plain `git commit`.
+  <!-- 2026-04-11: a sibling session staged its own work between my `git add` and
+       `git commit`, and my commit swept it in. Happened twice in one day.
+       Hypothesis: the index is one shared file, so there is a race window.
+       Outcome: `--only` has no window. No recurrence in 4 months. -->
+```
+
+Prune by ablation, and by contradiction rather than length. Archive the file, record which
+mistakes actually repeat, restore only the lines that prevent them, move the rest into scoped
+files and hooks, and re-run on each model change. The trigger for trimming is a rule that fights
+another rule, because the model then picks a different one each session and the behaviour
+becomes random and undebuggable.
+
+---
+
+## Step 12. Plan before code, in a file, as a checkable artifact
+
+[CooperBench](https://arxiv.org/abs/2601.13295) measured this, and it is the cheapest win in
+this document. A planning message in the very first turn nearly halves the conflict rate, 29.4%
+against 51.5%, and the effect is larger for harder tasks, 39% at the highest difficulty bucket.
+
+The practitioner economics are the reason it matters to you, not just to the agents. From a
+review thread.
+
+> What actually cut my review time: make the agent produce the plan first, in a file, before
+> code. What's changing, what's out of scope, what should break if it's wrong. Then the diff gets
+> read against that instead of against nothing. Half the time the plan is wrong and I kill it
+> before any code exists, which is the cheapest review there is.
+
+So the plan file has three parts. What is changing. What is out of scope. What should break if
+it is wrong. That third part is the one agents skip, and it is the one that makes a plan
+checkable.
+
+---
+
+## Step 13. Isolate the runtime, not just the code
+
+Worktrees solve the code collision. Almost nobody stops there, and the runtime is where the
+work is.
+
+For each worktree, give it its own compose project name, its own ports derived from the branch,
+its own seeded database, never a shared dump, and a teardown that is part of the task
+definition rather than something you remember. Then the acceptance step is a single command
+whose exit code the agent can read.
+
+The rule that decides whether a task is parallelisable at all.
+
+> If it can't self-verify in isolation, it isn't parallelizable.
+
+Two things everyone forgets. Redis and queues, not just Postgres, because the cache and the
+broker are shared state. And orphaned background workers, because a worker still running from
+an earlier session will pick up another session's jobs and run them against old code. The fix
+people use for that is a rule you have to remember, "which means it is not really fixed".
+
+One warning from a production postmortem in the same corpus. Worktree isolation can remove
+accidental shared state that the whole team was relying on. One team had a `node_modules` shared
+by every worktree, and isolating it broke builds that "had worked locally for months". If your
+worktrees each run their own install, that is a cost you pay on every agent. Symlink the
+dependency directory to one shared location instead, and never commit the symlink.
+
+---
+
+## Step 14. Parallel feature work, serialised integration
+
+The step most teams miss, and the one that would have caught the two agents in this session that
+each believed they owned the test configuration.
+
+- Feature work runs in parallel, in isolated worktrees, each with its own runtime.
+- Integration is serialised. One merge at a time, in dependency order.
+- The checks are run again on the combined tree, not only inside each worktree.
+
+The pattern to use for the serialised part comes from Anthropic's source control post. A merge
+queue does not survive agent scale, so the check moves to after the merge and before the
+deploy.
+
+---
+
+## The order to do it in
+
+1. The rule table, with the layer, artefact and failure columns. Nothing else until this exists.
+2. The checks that can fail, and the configuration source that cannot be silently wrong.
+3. The validation ladder and the definition of done.
+4. The plan file, so a change is reviewed against an intent rather than against nothing.
+5. The ownership claims, the runtime isolation, and the pull request check.
+6. The incident log, kept from then on.
+7. The instruction files, written last, from the rule table, with a comment on every rule.
+
+Doing it in the other order, which is what most repositories do, produces a long instruction file
+that describes a process nobody has made enforceable, and a set of checks that pass while the
+layer they cover never runs.
