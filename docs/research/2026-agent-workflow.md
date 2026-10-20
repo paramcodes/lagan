@@ -8,7 +8,7 @@ Every external claim cites the source that owns it, with its publication date. A
 not trace to a primary source is marked `UNVERIFIED:`.
 
 This file is the research record. The recommendation for the next project is in
-[the working note](./2026-agent-workflow-recommendation.md).
+[the recommendation document](./2026-agent-workflow-recommendation.md).
 
 ---
 
@@ -51,6 +51,11 @@ request, and the page still rendered.
 Every automated gate passed throughout. The pre-commit hook ran format, lint, typecheck and a
 diff size guard. The unit suite passed. The e2e suite passed. The axe accessibility suite
 passed. The visual evidence capture produced screenshots.
+
+That hook configuration is the configuration at the time of the incident, not the current one.
+Pull request #103, merged the same day, removed the typecheck from the pre-commit hook and
+removed the pre-push hook, whose only command was the full test suite. The incident is
+unchanged. The hook is not.
 
 The reachable defects were all below the gate line.
 
@@ -141,8 +146,9 @@ agent's mistake.
 
 Predominantly sensors. The pre-commit hook, the unit suite, the e2e suite, the axe suite and the
 visual evidence capture are all sensors with validators attached. The gates were the pre-push
-hook and the CI job. Almost nothing was a constraint, because nothing constrained the agent at
-the point of writing.
+hook and the CI job, as of the time of the audit; the pre-push hook is gone since pull request
+#103, which removed it and the typecheck in the pre-commit hook. Almost nothing was a
+constraint, because nothing constrained the agent at the point of writing.
 
 The one genuinely mechanical constraint in the repository was the diff size guard in
 `lefthook.yml`. It held on every commit. It also produced a worse outcome than the rule wanted,
@@ -621,9 +627,17 @@ possible.
 
 ---
 
-## F. Local audit of the current rules
+## F. Local audit of the rules at the time
 
-Every rule in this repository's `AGENTS.md`, scored against what actually happened.
+Every rule this repository's `AGENTS.md` held at the time of the audit, scored against what
+actually happened.
+
+This is a snapshot of the rule set as it stood on 2026-10-20, not of the rule set as it stands
+now. One row has since been replaced. The rule "Run install, typecheck, test, lint" was the
+flat, unscoped gate list, and pull request #103 replaced it with the scoped validation ladder
+described in G5. The row is kept in the table because the audit is the evidence for G5, and
+because a table that silently drops the rule it scored is not an audit. Read every verdict in
+this table as a verdict on the rule that existed then.
 
 | Rule | Layer | Artifact that proves it | Verdict |
 |---|---|---|---|
@@ -682,10 +696,12 @@ fail at startup with a message that names the file and the variable.
 
 ### G5. Scope validation to the change
 
-Replace the flat gate list with a ladder. A documentation change needs lint. A change inside one
-package runs that package's tests. A change to a shared package runs the full suite. A change to
-a route runs the browser journey for that route. The current flat rule made every small change
-pay the 6.7-minute floor.
+**Shipped.** Pull request #103 replaced the flat gate list with a ladder, and the ladder is now
+the rule in `AGENTS.md`. A documentation change needs lint. A change inside one package runs
+that package's tests. A change to a shared package runs the full suite. A change to a route
+runs the browser journey for that route. The flat rule it replaced made every small change pay
+the 6.7-minute floor, which is the number that came out of the measurement in that pull
+request.
 
 ### G6. Make ownership machine-readable
 
