@@ -1,11 +1,7 @@
 import { Client } from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import {
-  cleanDemoData,
-  DEMO_ID_PREFIX,
-  requireDatabaseUrl,
-  seedDemoData,
-} from "./seed-demo-data";
+import { cleanDemoData, requireDatabaseUrl, seedDemoData } from "./seed-demo";
+import { DEMO_ID_PREFIX } from "./seed-demo-data";
 
 const DATABASE_URL = process.env.DATABASE_URL;
 const TEST_SCHEMA = "p9_6_seed_demo_integration";
