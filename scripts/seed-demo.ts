@@ -6,6 +6,7 @@
  * command can remove exactly those rows and leave the courses the app ships
  * with, the e2e fixtures and any real user data untouched.
  */
+import { createHash } from "node:crypto";
 
 export const DEMO_ID_PREFIX = "demo_";
 export const DEMO_TENANT_ID = "default";
@@ -706,4 +707,657 @@ export interface DemoEnrollment {
   courseId: string;
   stripePaymentId: string;
   enrolledDaysAgo: number;
+}
+
+export const DEMO_ENROLLMENTS: DemoEnrollment[] = [
+  {
+    id: "demo_enrollment_ada_db",
+    userKey: "ada",
+    courseId: "demo_course_database_internals",
+    stripePaymentId: "demo_pi_ada_db",
+    enrolledDaysAgo: 20,
+  },
+  {
+    id: "demo_enrollment_bo_db",
+    userKey: "bo",
+    courseId: "demo_course_database_internals",
+    stripePaymentId: "demo_pi_bo_db",
+    enrolledDaysAgo: 19,
+  },
+  {
+    id: "demo_enrollment_cleo_db",
+    userKey: "cleo",
+    courseId: "demo_course_database_internals",
+    stripePaymentId: "demo_pi_cleo_db",
+    enrolledDaysAgo: 16,
+  },
+  {
+    id: "demo_enrollment_ada_ds",
+    userKey: "ada",
+    courseId: "demo_course_distributed_consensus",
+    stripePaymentId: "demo_pi_ada_ds",
+    enrolledDaysAgo: 13,
+  },
+  {
+    id: "demo_enrollment_bo_ds",
+    userKey: "bo",
+    courseId: "demo_course_distributed_consensus",
+    stripePaymentId: "demo_pi_bo_ds",
+    enrolledDaysAgo: 11,
+  },
+  {
+    id: "demo_enrollment_cleo_ds",
+    userKey: "cleo",
+    courseId: "demo_course_distributed_consensus",
+    stripePaymentId: "demo_pi_cleo_ds",
+    enrolledDaysAgo: 8,
+  },
+  {
+    id: "demo_enrollment_ada_sys",
+    userKey: "ada",
+    courseId: "demo_course_systems_programming",
+    stripePaymentId: "demo_pi_ada_sys",
+    enrolledDaysAgo: 4,
+  },
+  {
+    id: "demo_enrollment_bo_sys",
+    userKey: "bo",
+    courseId: "demo_course_systems_programming",
+    stripePaymentId: "demo_pi_bo_sys",
+    enrolledDaysAgo: 6,
+  },
+  {
+    id: "demo_enrollment_cleo_sys",
+    userKey: "cleo",
+    courseId: "demo_course_systems_programming",
+    stripePaymentId: "demo_pi_cleo_sys",
+    enrolledDaysAgo: 5,
+  },
+  {
+    id: "demo_enrollment_ada_ts",
+    userKey: "ada",
+    courseId: "demo_course_type_design",
+    stripePaymentId: "demo_pi_ada_ts",
+    enrolledDaysAgo: 1,
+  },
+  {
+    id: "demo_enrollment_cleo_ts",
+    userKey: "cleo",
+    courseId: "demo_course_type_design",
+    stripePaymentId: "demo_pi_cleo_ts",
+    enrolledDaysAgo: 2,
+  },
+];
+
+export interface DemoProgress {
+  id: string;
+  userKey: string;
+  courseId: string;
+  lessonId: string;
+  completed: boolean;
+  positionSeconds: number;
+  daysAgo: number;
+}
+
+export const DEMO_PROGRESS: DemoProgress[] = [
+  {
+    id: "demo_progress_ada_db_0",
+    userKey: "ada",
+    courseId: "demo_course_database_internals",
+    lessonId: "demo_lesson_db_pages",
+    completed: true,
+    positionSeconds: 540,
+    daysAgo: 24,
+  },
+  {
+    id: "demo_progress_ada_db_1",
+    userKey: "ada",
+    courseId: "demo_course_database_internals",
+    lessonId: "demo_lesson_db_btree",
+    completed: true,
+    positionSeconds: 720,
+    daysAgo: 21,
+  },
+  {
+    id: "demo_progress_ada_db_2",
+    userKey: "ada",
+    courseId: "demo_course_database_internals",
+    lessonId: "demo_lesson_db_lsm",
+    completed: true,
+    positionSeconds: 600,
+    daysAgo: 17,
+  },
+  {
+    id: "demo_progress_ada_db_3",
+    userKey: "ada",
+    courseId: "demo_course_database_internals",
+    lessonId: "demo_lesson_db_wal",
+    completed: true,
+    positionSeconds: 660,
+    daysAgo: 12,
+  },
+  {
+    id: "demo_progress_ada_db_4",
+    userKey: "ada",
+    courseId: "demo_course_database_internals",
+    lessonId: "demo_lesson_db_quiz",
+    completed: false,
+    positionSeconds: 420,
+    daysAgo: 1,
+  },
+  {
+    id: "demo_progress_bo_db_0",
+    userKey: "bo",
+    courseId: "demo_course_database_internals",
+    lessonId: "demo_lesson_db_pages",
+    completed: true,
+    positionSeconds: 600,
+    daysAgo: 20,
+  },
+  {
+    id: "demo_progress_bo_db_1",
+    userKey: "bo",
+    courseId: "demo_course_database_internals",
+    lessonId: "demo_lesson_db_btree",
+    completed: true,
+    positionSeconds: 780,
+    daysAgo: 18,
+  },
+  {
+    id: "demo_progress_bo_db_2",
+    userKey: "bo",
+    courseId: "demo_course_database_internals",
+    lessonId: "demo_lesson_db_lsm",
+    completed: true,
+    positionSeconds: 660,
+    daysAgo: 14,
+  },
+  {
+    id: "demo_progress_bo_db_3",
+    userKey: "bo",
+    courseId: "demo_course_database_internals",
+    lessonId: "demo_lesson_db_wal",
+    completed: true,
+    positionSeconds: 720,
+    daysAgo: 9,
+  },
+  {
+    id: "demo_progress_bo_db_4",
+    userKey: "bo",
+    courseId: "demo_course_database_internals",
+    lessonId: "demo_lesson_db_quiz",
+    completed: true,
+    positionSeconds: 300,
+    daysAgo: 4,
+  },
+  {
+    id: "demo_progress_cleo_db_0",
+    userKey: "cleo",
+    courseId: "demo_course_database_internals",
+    lessonId: "demo_lesson_db_pages",
+    completed: true,
+    positionSeconds: 480,
+    daysAgo: 16,
+  },
+  {
+    id: "demo_progress_cleo_db_1",
+    userKey: "cleo",
+    courseId: "demo_course_database_internals",
+    lessonId: "demo_lesson_db_btree",
+    completed: false,
+    positionSeconds: 180,
+    daysAgo: 6,
+  },
+  {
+    id: "demo_progress_ada_ds_0",
+    userKey: "ada",
+    courseId: "demo_course_distributed_consensus",
+    lessonId: "demo_lesson_ds_clocks",
+    completed: true,
+    positionSeconds: 540,
+    daysAgo: 13,
+  },
+  {
+    id: "demo_progress_ada_ds_1",
+    userKey: "ada",
+    courseId: "demo_course_distributed_consensus",
+    lessonId: "demo_lesson_ds_raft",
+    completed: true,
+    positionSeconds: 660,
+    daysAgo: 8,
+  },
+  {
+    id: "demo_progress_ada_ds_2",
+    userKey: "ada",
+    courseId: "demo_course_distributed_consensus",
+    lessonId: "demo_lesson_ds_paxos",
+    completed: false,
+    positionSeconds: 615,
+    daysAgo: 2,
+  },
+  {
+    id: "demo_progress_bo_ds_0",
+    userKey: "bo",
+    courseId: "demo_course_distributed_consensus",
+    lessonId: "demo_lesson_ds_clocks",
+    completed: true,
+    positionSeconds: 420,
+    daysAgo: 11,
+  },
+  {
+    id: "demo_progress_cleo_ds_0",
+    userKey: "cleo",
+    courseId: "demo_course_distributed_consensus",
+    lessonId: "demo_lesson_ds_clocks",
+    completed: true,
+    positionSeconds: 480,
+    daysAgo: 8,
+  },
+  {
+    id: "demo_progress_cleo_ds_1",
+    userKey: "cleo",
+    courseId: "demo_course_distributed_consensus",
+    lessonId: "demo_lesson_ds_raft",
+    completed: true,
+    positionSeconds: 720,
+    daysAgo: 7,
+  },
+  {
+    id: "demo_progress_cleo_ds_2",
+    userKey: "cleo",
+    courseId: "demo_course_distributed_consensus",
+    lessonId: "demo_lesson_ds_paxos",
+    completed: true,
+    positionSeconds: 660,
+    daysAgo: 6,
+  },
+  {
+    id: "demo_progress_cleo_ds_3",
+    userKey: "cleo",
+    courseId: "demo_course_distributed_consensus",
+    lessonId: "demo_lesson_ds_quorum",
+    completed: true,
+    positionSeconds: 600,
+    daysAgo: 5,
+  },
+  {
+    id: "demo_progress_cleo_ds_4",
+    userKey: "cleo",
+    courseId: "demo_course_distributed_consensus",
+    lessonId: "demo_lesson_ds_quiz",
+    completed: true,
+    positionSeconds: 240,
+    daysAgo: 4,
+  },
+  {
+    id: "demo_progress_ada_sys_0",
+    userKey: "ada",
+    courseId: "demo_course_systems_programming",
+    lessonId: "demo_lesson_sys_layout",
+    completed: true,
+    positionSeconds: 540,
+    daysAgo: 4,
+  },
+  {
+    id: "demo_progress_ada_sys_1",
+    userKey: "ada",
+    courseId: "demo_course_systems_programming",
+    lessonId: "demo_lesson_sys_borrow",
+    completed: false,
+    positionSeconds: 180,
+    daysAgo: 1,
+  },
+  {
+    id: "demo_progress_cleo_sys_0",
+    userKey: "cleo",
+    courseId: "demo_course_systems_programming",
+    lessonId: "demo_lesson_sys_layout",
+    completed: true,
+    positionSeconds: 480,
+    daysAgo: 5,
+  },
+  {
+    id: "demo_progress_cleo_sys_1",
+    userKey: "cleo",
+    courseId: "demo_course_systems_programming",
+    lessonId: "demo_lesson_sys_borrow",
+    completed: true,
+    positionSeconds: 720,
+    daysAgo: 3,
+  },
+  {
+    id: "demo_progress_cleo_sys_2",
+    userKey: "cleo",
+    courseId: "demo_course_systems_programming",
+    lessonId: "demo_lesson_sys_ffi",
+    completed: true,
+    positionSeconds: 540,
+    daysAgo: 2,
+  },
+  {
+    id: "demo_progress_ada_ts_0",
+    userKey: "ada",
+    courseId: "demo_course_type_design",
+    lessonId: "demo_lesson_ts_brands",
+    completed: true,
+    positionSeconds: 480,
+    daysAgo: 1,
+  },
+];
+
+export interface DemoNotification {
+  id: string;
+  userKey: string;
+  type: string;
+  title: string;
+  courseId: string;
+  courseTitle: string;
+  lessonId: string | null;
+  summary: string;
+  read: boolean;
+  createdDaysAgo: number;
+}
+
+export const DEMO_NOTIFICATIONS: DemoNotification[] = [
+  {
+    id: "demo_notif_ada_course_db",
+    userKey: "ada",
+    type: "course_published",
+    title: "Database Internals is now open",
+    courseId: "demo_course_database_internals",
+    courseTitle: "Database Internals: B-Trees, LSM Trees and Write-Ahead Logging",
+    lessonId: null,
+    summary: "The free storage engine course is live, with fourteen lessons across two modules.",
+    read: false,
+    createdDaysAgo: 4,
+  },
+  {
+    id: "demo_notif_ada_lesson_ds",
+    userKey: "ada",
+    type: "lesson_published",
+    title: "New lesson: Paxos and Multi-Paxos",
+    courseId: "demo_course_distributed_consensus",
+    courseTitle: "Distributed Systems: Consensus, Replication and Failure",
+    lessonId: "demo_lesson_ds_paxos",
+    summary: "Omar Haddad published a new lesson in the replication module.",
+    read: false,
+    createdDaysAgo: 2,
+  },
+  {
+    id: "demo_notif_ada_enrollment_sys",
+    userKey: "ada",
+    type: "enrollment_confirmed",
+    title: "Enrollment confirmed",
+    courseId: "demo_course_systems_programming",
+    courseTitle: "Systems Programming in Rust: Ownership, FFI and Zero-Copy",
+    lessonId: null,
+    summary: "You are enrolled in Systems Programming in Rust. Start with Memory and Ownership.",
+    read: false,
+    createdDaysAgo: 4,
+  },
+  {
+    id: "demo_notif_ada_announcement_ts",
+    userKey: "ada",
+    type: "announcement_posted",
+    title: "Office hours for the type-level track",
+    courseId: "demo_course_type_design",
+    courseTitle: "Type-Level Design with TypeScript",
+    lessonId: null,
+    summary: "Mira answers questions about template literal types every Thursday.",
+    read: true,
+    createdDaysAgo: 6,
+  },
+  {
+    id: "demo_notif_ada_course_ts",
+    userKey: "ada",
+    type: "course_published",
+    title: "Type-Level Design with TypeScript is live",
+    courseId: "demo_course_type_design",
+    courseTitle: "Type-Level Design with TypeScript",
+    lessonId: null,
+    summary: "A new course on making invalid states unrepresentable.",
+    read: false,
+    createdDaysAgo: 1,
+  },
+  {
+    id: "demo_notif_mira_course_db",
+    userKey: "mira",
+    type: "course_published",
+    title: "Your course is published",
+    courseId: "demo_course_database_internals",
+    courseTitle: "Database Internals: B-Trees, LSM Trees and Write-Ahead Logging",
+    lessonId: null,
+    summary: "The catalogue now lists your free course.",
+    read: true,
+    createdDaysAgo: 26,
+  },
+  {
+    id: "demo_notif_mira_course_ts",
+    userKey: "mira",
+    type: "course_published",
+    title: "Your course is published",
+    courseId: "demo_course_type_design",
+    courseTitle: "Type-Level Design with TypeScript",
+    lessonId: null,
+    summary: "The catalogue now lists your course.",
+    read: false,
+    createdDaysAgo: 6,
+  },
+];
+
+export interface DemoCourseActivity {
+  courseId: string;
+  learnerKey: string;
+  views: number;
+  completes: number;
+  finishCourse: boolean;
+  dropLesson: number | null;
+  startDayAgo: number;
+}
+
+export const DEMO_ACTIVITY: DemoCourseActivity[] = [
+  {
+    courseId: "demo_course_database_internals",
+    learnerKey: "ada",
+    views: 5,
+    completes: 4,
+    finishCourse: false,
+    dropLesson: null,
+    startDayAgo: 26,
+  },
+  {
+    courseId: "demo_course_database_internals",
+    learnerKey: "bo",
+    views: 5,
+    completes: 5,
+    finishCourse: true,
+    dropLesson: null,
+    startDayAgo: 22,
+  },
+  {
+    courseId: "demo_course_database_internals",
+    learnerKey: "cleo",
+    views: 3,
+    completes: 1,
+    finishCourse: false,
+    dropLesson: 2,
+    startDayAgo: 18,
+  },
+  {
+    courseId: "demo_course_distributed_consensus",
+    learnerKey: "ada",
+    views: 3,
+    completes: 2,
+    finishCourse: false,
+    dropLesson: null,
+    startDayAgo: 14,
+  },
+  {
+    courseId: "demo_course_distributed_consensus",
+    learnerKey: "bo",
+    views: 2,
+    completes: 1,
+    finishCourse: false,
+    dropLesson: 1,
+    startDayAgo: 12,
+  },
+  {
+    courseId: "demo_course_distributed_consensus",
+    learnerKey: "cleo",
+    views: 5,
+    completes: 5,
+    finishCourse: true,
+    dropLesson: null,
+    startDayAgo: 9,
+  },
+  {
+    courseId: "demo_course_systems_programming",
+    learnerKey: "ada",
+    views: 2,
+    completes: 1,
+    finishCourse: false,
+    dropLesson: null,
+    startDayAgo: 5,
+  },
+  {
+    courseId: "demo_course_systems_programming",
+    learnerKey: "bo",
+    views: 1,
+    completes: 0,
+    finishCourse: false,
+    dropLesson: 0,
+    startDayAgo: 7,
+  },
+  {
+    courseId: "demo_course_systems_programming",
+    learnerKey: "cleo",
+    views: 3,
+    completes: 3,
+    finishCourse: false,
+    dropLesson: null,
+    startDayAgo: 6,
+  },
+  {
+    courseId: "demo_course_type_design",
+    learnerKey: "ada",
+    views: 1,
+    completes: 1,
+    finishCourse: false,
+    dropLesson: null,
+    startDayAgo: 2,
+  },
+  {
+    courseId: "demo_course_type_design",
+    learnerKey: "cleo",
+    views: 1,
+    completes: 0,
+    finishCourse: false,
+    dropLesson: 0,
+    startDayAgo: 3,
+  },
+];
+
+type DemoEventType = "view" | "progress" | "complete" | "drop";
+
+export interface DemoEvent {
+  id: string;
+  courseId: string;
+  userKey: string;
+  lessonId: string | null;
+  type: DemoEventType;
+  positionSeconds: number;
+  createdAt: Date;
+}
+
+function lessonsOfCourse(courseId: string): DemoLesson[] {
+  const moduleIds = new Set(
+    DEMO_MODULES.filter((module) => module.courseId === courseId).map((module) => module.id),
+  );
+  return DEMO_LESSONS.filter(
+    (lesson) => moduleIds.has(lesson.moduleId) && lesson.status === "published",
+  ).sort((a, b) => a.position - b.position);
+}
+
+/**
+ * Builds the course_event rows for the last 30 days.
+ *
+ * Events are spread between the learner's first day and yesterday so the
+ * analytics dashboard has a trend to draw, and every row gets a stable id so a
+ * second run updates the same rows instead of appending new ones.
+ */
+export function buildCourseEvents(now: Date): DemoEvent[] {
+  const events: DemoEvent[] = [];
+  let counter = 0;
+
+  for (const activity of DEMO_ACTIVITY) {
+    const lessons = lessonsOfCourse(activity.courseId);
+    const types: Array<{ type: DemoEventType; lessonId: string | null; positionSeconds: number }> =
+      [];
+
+    for (let index = 0; index < activity.views; index += 1) {
+      const lesson = lessons[index];
+      if (lesson) types.push({ type: "view", lessonId: lesson.id, positionSeconds: 0 });
+    }
+
+    const lastViewed = lessons[activity.views - 1];
+    if (lastViewed) {
+      types.push({
+        type: "progress",
+        lessonId: lastViewed.id,
+        positionSeconds: 90 + activity.views * 47,
+      });
+    }
+
+    for (let index = 0; index < activity.completes; index += 1) {
+      const lesson = lessons[index];
+      if (lesson) types.push({ type: "complete", lessonId: lesson.id, positionSeconds: 0 });
+    }
+
+    if (activity.dropLesson !== null) {
+      const lesson = lessons[activity.dropLesson];
+      if (lesson) types.push({ type: "drop", lessonId: lesson.id, positionSeconds: 0 });
+      types.push({ type: "drop", lessonId: null, positionSeconds: 0 });
+    }
+
+    if (activity.finishCourse) {
+      types.push({ type: "complete", lessonId: null, positionSeconds: 0 });
+    }
+
+    const span = Math.max(0, activity.startDayAgo - 1);
+
+    types.forEach((entry, index) => {
+      const daysAgo = Math.max(
+        1,
+        Math.round(activity.startDayAgo - (span * index) / Math.max(1, types.length - 1)),
+      );
+      counter += 1;
+      events.push({
+        id: `demo_event_${counter}`,
+        courseId: activity.courseId,
+        userKey: activity.learnerKey,
+        lessonId: entry.lessonId,
+        type: entry.type,
+        positionSeconds: entry.positionSeconds,
+        createdAt: atHour(now, daysAgo, 8 + (index % 9)),
+      });
+    });
+  }
+
+  return events;
+}
+
+/** A timestamp `daysAgo` days back, at a fixed hour of the day and never in the future. */
+export function atHour(now: Date, daysAgo: number, hour: number): Date {
+  const date = new Date(now.getTime());
+  date.setUTCDate(date.getUTCDate() - daysAgo);
+  date.setUTCHours(hour, (daysAgo * 17) % 60, 0, 0);
+  if (date.getTime() > now.getTime()) {
+    date.setUTCDate(date.getUTCDate() - 1);
+  }
+  return date;
+}
+
+/** Deterministic salt so the seeded credential hashes are reproducible. */
+export function demoPasswordSalt(userId: string): string {
+  return createHash("sha256").update(`${userId}:${DEMO_PASSWORD}`).digest("hex").slice(0, 32);
 }
