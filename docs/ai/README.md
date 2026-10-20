@@ -79,17 +79,22 @@ block: the lines from the line that holds it to the next line indented no furthe
 marker has to be inside that block, and a marker at the left margin has no block to open, so its
 scope is the whole file. That is what scopes a rule to one job of a workflow file. A marker of
 `DATABASE_URL` on its own matches the occurrence in any job, so a rule that claimed the verify
-job runs the database backed tests passed while the mechanism was absent:
+job runs the database backed tests passed while the mechanism was absent. The rule that does it
+is `no-silent-test-skip`:
 
 ```yaml
 enforced_by:
   - path: .github/workflows/ci.yml
     match:
       - "  verify:"
-      - "DATABASE_URL"
+      - "      postgres:"
+      - "      DATABASE_URL: postgres://"
+      - "        run: bun run db:migrate"
+      - "      - name: Test\n        run: bun run test\n"
 ```
 
-The job key anchors the block, and `DATABASE_URL` has to be inside it.
+The job key anchors the block and every other marker has to be inside it, so removing the
+service, the url, the migrations or the test step turns the audit red.
 
 A marker can hold a newline, and it can end with one. A marker that ends with a newline pins
 the end of a line, so `run: bun run test` is not a prefix of `run: bun run test:e2e`. The

@@ -44,7 +44,8 @@ bun run test:e2e      # playwright (needs Postgres + a dev server)
    What, Why and How, and ends with `Closes #<issue>`.
 6. A separate reviewer subagent inspects the diff, re-runs the gates on the rebased
    branch, then squash-merges with `gh pr merge <n> --squash` and deletes the remote
-   branch.
+   branch. Docs-only changes (only files under `docs/`) skip heavy gates: run only
+   `bun run format` and `bun run lint`, not build, test, or typecheck.
 7. After the merge, a reconciler subagent fast-forwards the local `master` to
    `origin/master` and updates `todos.md`.
 
@@ -87,9 +88,10 @@ bun run test:e2e      # playwright (needs Postgres + a dev server)
 
 ## Preferences
 
-These are preferences, not rules. No failure has produced them, so they have no rule
-file: the brief, the checklist or the skill of the work carries them, and the
-coordinator's brief carries the ones that keep a merge safe.
+These are preferences, not constraints. Nothing in this repository checks them and
+nothing in this repository enforces them: no failure has produced them, so they have no
+rule file, and their enforcement lives in the brief, the checklist or the skill of the
+work. A reader who finds one of them here should not assume a check holds it.
 
 - Never force-push.
 - Two subagents never edit the same file or package at the same time. The per-item file
@@ -100,7 +102,7 @@ coordinator's brief carries the ones that keep a merge safe.
 
 ## Rules
 
-The operating rules live in `docs/ai/rules/`, one YAML file per rule. There are 12 rules: 4 enforced, 8 unenforced.
+The operating rules live in `docs/ai/rules/`, one YAML file per rule. There are 12 rules: 5 enforced, 7 unenforced.
 
 - `docs/ai/README.md` documents the format, the layers and how to add a rule.
 - `docs/ai/protected-paths.md` lists the guarded paths and what enforces each one.

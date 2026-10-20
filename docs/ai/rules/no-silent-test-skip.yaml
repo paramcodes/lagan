@@ -1,16 +1,28 @@
 id: no-silent-test-skip
-title: Every change carries a test that runs, or it says why it cannot.
-layer: prose
+title: The verify job runs the Postgres integration tests against a real database.
+layer: ci
+enforced_by:
+  - path: .github/workflows/ci.yml
+    match:
+      - "  verify:"
+      - "      postgres:"
+      - "      DATABASE_URL: postgres://"
+      - "        run: bun run db:migrate"
+      - "      - name: Test\n        run: bun run test\n"
 artifact:
   - path: ci:job
-    note: The CI job that would give the integration tests a database.
+    note: The verify job that gives the integration tests a database.
   - path: pr:comment
     note: The pull request states which test covers the change.
 failure: |
   2026-10-20. The CI job that ran the four Postgres integration test files had no database,
   so every one of them skipped and the suite reported success while covering the one layer
-  that broke. The rule "every change carries a test" recorded this same incident, so the two
-  are one rule and not two files.
+  that broke. The rule then named that job as its mechanism on a plain DATABASE_URL marker,
+  and the only DATABASE_URL in the workflow file was in another job, so the rule passed on a
+  check that was not there and it was demoted to prose. The fix is in the verify job: it
+  runs a Postgres service, it points DATABASE_URL at it, it applies the migrations, and
+  only then does it run the suite. The markers are scoped to that job, so removing the
+  service, the url, the migrations or the test step turns the audit red.
 owner: "@paramcodes"
 protects:
   - path: .github/workflows/ci.yml
