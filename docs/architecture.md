@@ -38,7 +38,7 @@ Other root files that shape how the repo behaves:
 | `tsconfig.base.json` | Shared compiler options: `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax`, `erasableSyntaxOnly`. Root script `bun run typecheck` runs `tsc --noEmit -p tsconfig.base.json`. |
 | `apps/web/tsconfig.json` | The app's own config (does not extend the base): `jsx: react-jsx`, path alias `@/*` → `./*`. |
 | `biome.json` | Lint and format, 2-space indent, 100 columns. |
-| `lefthook.yml` | Pre-commit: format, lint, `cd apps/web && bunx next typegen && bunx tsc --noEmit`, and a 5000-token diff size guard. Pre-push: Vitest. |
+| `lefthook.yml` | Pre-commit: format, lint, and a 5000-token diff size guard. CI runs typecheck, test, lint and build on every pull request. |
 | `vitest.config.ts` | jsdom environment; includes `packages/**/*.test.ts(x)` and `apps/**/*.test.ts(x)`. |
 | `playwright.config.ts` | `testDir: ./apps/web/e2e`, Chromium, dev server `bun --cwd apps/web dev`. |
 | `bunfig.toml` | `exact = true` for installs. |

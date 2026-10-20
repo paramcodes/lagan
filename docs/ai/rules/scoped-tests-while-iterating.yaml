@@ -1,0 +1,10 @@
+id: scoped-tests-while-iterating
+title: While iterating, run only the tests for the files that changed.
+layer: prose
+artifact:
+  - path: vitest.config.ts
+    note: The include patterns that decide which files the runner collects.
+failure: |
+  2026-10-20. The full suite takes 404 seconds, and three agents running it concurrently is
+  what pushed the load average to 25 in the machine budget rule.
+owner: "@paramcodes"

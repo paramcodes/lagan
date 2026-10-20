@@ -1,0 +1,15 @@
+id: visual-change-carries-screenshot
+title: A visual change carries a screenshot in the pull request.
+layer: prose
+artifact:
+  - path: pr:comment
+    note: The screenshot the reviewer reads.
+  - path: docs/evidence/README.md
+    note: The recorded evidence set for the routes the app ships.
+failure: |
+  2026-10-20. No visual change has shipped without evidence, and this is the rule that
+  produced the most value, because the evidence lands in a pull request comment a human reads.
+owner: "@paramcodes"
+protects:
+  - path: docs/evidence/
+    protection: The recorded evidence is regenerated from the running app, never hand-edited.

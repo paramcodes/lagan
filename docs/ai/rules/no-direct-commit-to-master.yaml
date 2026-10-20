@@ -1,0 +1,10 @@
+id: no-direct-commit-to-master
+title: Nothing is committed directly to master.
+layer: prose
+artifact:
+  - path: pr:comment
+    note: The pull request carries the change instead of a direct push.
+failure: |
+  2026-10-20. A queue-file update was pushed straight to master, and it had to be rebased
+  after a concurrent push landed.
+owner: "@paramcodes"

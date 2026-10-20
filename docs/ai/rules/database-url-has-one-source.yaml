@@ -1,0 +1,17 @@
+id: database-url-has-one-source
+title: The database target comes from one canonical source.
+layer: runtime
+enforced_by:
+  - path: apps/web/lib/env.ts
+    match: resolveDatabaseUrl
+artifact:
+  - path: apps/web/lib/env.test.ts
+    note: The unit test that pins the resolution order.
+failure: |
+  2026-10-20. The database layer fell back to a hard-coded database URL when DATABASE_URL was
+  unset, and the root .env file was never read by the production server inside apps/web, so
+  the app could talk to a different database than the one under test.
+owner: "@paramcodes"
+protects:
+  - path: apps/web/lib/env.ts
+    protection: The resolver is the one place that decides which database the app talks to.

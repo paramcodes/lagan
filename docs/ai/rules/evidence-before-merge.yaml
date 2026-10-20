@@ -1,0 +1,10 @@
+id: evidence-before-merge
+title: Evidence is attached to the pull request before the merge.
+layer: prose
+artifact:
+  - path: pr:comment
+    note: The evidence comment on the pull request.
+failure: |
+  2026-10-20. No merge has been blocked by missing evidence, and the rule is what makes a
+  review possible without reading the whole diff.
+owner: "@paramcodes"
