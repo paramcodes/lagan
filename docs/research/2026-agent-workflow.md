@@ -277,3 +277,284 @@ It gives the concrete version of the same idea, a vague instruction versus a usa
 | Use the standard build process. | What is standard here | Run `make build` from the repository root. Do not use `go build`; the wrapper supplies required build metadata. |
 
 It draws the conclusion that Kubo's `AGENTS.md` shows by pointing at `make build` instead of
+`go build`, because the Makefile supplies linker flags an experienced Go developer would still
+get wrong.
+
+The same source states the definition-of-done problem.
+
+> "Run the tests" and "make sure everything works" are weak definitions of done.
+
+And the fix, drawn from Rails, which offers commands for a component's tests, one test file, an
+individual test or line.
+
+> For changes under `apps/web`, run the relevant Vitest file while iterating. Before completing
+> the task, run `pnpm --filter web test`. Run the full workspace test suite only when the change
+> touches a shared package under `packages/`.
+
+### The rule that decides what stays out
+
+[charlielabs, AGENTS.md instructions](https://docs.charlielabs.ai/llms-full.txt) states the
+inclusion test and the pruning discipline.
+
+> Add content when at least one of these tests is met: it has demonstrated behavioral value, or
+> its absence has caused observable mistakes or wasted work. It defines a historically
+> misunderstood or rare but high-consequence boundary. It provides durable company, product,
+> customer, system, or operating context that changes which otherwise valid decision is best. It
+> routes work correctly or reveals a valuable tool, workflow, entrypoint, or source an agent may
+> not discover on its own.
+
+> "Important information" alone is not an inclusion test. [...] Tune instructions to observed
+> behavior rather than accumulating generic best practices. One low-consequence mistake rarely
+> justifies another permanent rule; a recurring or high-consequence failure may.
+
+It also states the ordering that decides the whole design.
+
+> Use the earliest reliable intervention. Prefer code structure, types, linting, formatting,
+> tests, or CI when they can enforce an invariant effectively. Keep a concise instruction when
+> enforcement is late, partial, expensive, unreliable, or unclear enough that an agent still
+> needs guidance.
+
+And the governance rule that keeps instruction files from becoming a dumping ground.
+
+> Keep authoring governance outside runtime files. Runtime content tells agents how to operate in
+> the repository. The process for authoring, evaluating, and maintaining that content belongs in
+> an external policy or review workflow.
+
+> Do not paste meta-instructions such as "keep this file short," "avoid duplication," "maintain
+> `AGENTS.md`," or "update this file when behavior changes" into runtime files. Size is a review
+> signal, not the objective; retrieval and correct behavior are the objective.
+
+That last one is a warning about this document. A research file that tells agents how to write
+instruction files is authoring governance, and it belongs outside the runtime file.
+
+---
+
+## D. Structured specifications
+
+[GitHub Spec Kit](https://github.github.io/spec-kit/reference/overview.html) ships a process
+rather than a file, and the process is the interesting part.
+
+Specify, clarify, plan, checklist, tasks, analyze, implement, converge. The artifacts are
+Markdown files that feed each other, so the agent gets structured context instead of ad-hoc
+prompts. The constitution is established once per project and every later phase is evaluated
+against it.
+
+Two parts are worth copying even without the toolkit.
+
+`/speckit-analyze` is a read-only cross-artifact consistency check that reports a task with no
+matching requirement, or a plan choice that contradicts the spec, and never edits files. The
+instruction is to run it before implementing, while the artifacts are still cheap to change, and
+to return to the earlier step that owns the problem rather than patching downstream.
+
+`/speckit-converge` checks the codebase against the spec, the plan and the tasks. If it finds
+gaps it appends new tasks and the implement step runs again, until it reports Converged. That is
+a completeness loop an agent can run without a human, and it is the closest thing found to an
+answer for "the agent said it was done and it was not".
+
+[GitHub's blog post on Spec Kit, 2025-09-02](https://github.blog/ai-and-ml/generative-ai/spec-driven-development-with-ai-get-started-with-a-new-open-source-toolkit/)
+describes the change in reviewer role. The reviewer stops reading code dumps and starts
+validating artifacts, at each phase, before the next one starts.
+
+[Microsoft's walkthrough, 2025-09-15](https://developer.microsoft.com/blog/spec-driven-development-spec-kit/)
+adds the phasing rule that maps directly onto parallel work. Setup, then Foundational as
+blocking prerequisites, then one phase per user story in priority order, then Polish for
+cross-cutting concerns. Tasks inside a story phase are marked for parallel execution where
+possible.
+
+---
+
+## E. Parallel work and collisions
+
+### E1. The brief format
+
+[The Anthropic multi-agent research system post, 2025-06-13](https://www.anthropic.com/engineering/multi-agent-research-system)
+states what a worker needs, and what happens without it.
+
+> Each subagent needs an objective, an output format, guidance on the tools and sources to use,
+> and clear task boundaries. Without detailed task descriptions, agents duplicate work, leave
+> gaps, or fail to find necessary information. [...] We started by allowing the lead agent to
+> give simple, short instructions like "research the semiconductor shortage," but found these
+> instructions often were vague enough that subagents misinterpreted the task or performed the
+> exact same searches as other agents.
+
+Four required fields. Objective, output format, tool and source guidance, task boundaries. The
+failure it names, two agents running the same searches because nobody said which was which, is
+the same failure as two agents editing the same package.
+
+The same post also separates what multi-agent systems are good at from what they are not.
+
+> Multi-agent systems work mainly because they help spend enough tokens to solve the problem.
+> [...] some domains that require all agents to share the same context or involve many
+> dependencies between agents are not a good fit for multi-agent systems today. For instance,
+> most coding tasks involve fewer truly parallelizable tasks than research.
+
+And its evaluation principle, which is the right frame for a review rule.
+
+> We found success focusing on end-state evaluation rather than turn-by-turn analysis. Instead
+> of judging whether the agent followed a specific process, evaluate whether it achieved the
+> correct final state.
+
+### E2. The strongest primary source on the whole problem
+
+[Anthropic, "Building a C compiler with a team of parallel Claudes", 2026-02-05](https://www.anthropic.com/engineering/building-c-compiler).
+Sixteen agents, roughly 2,000 Claude Code sessions, $20,000, two weeks, and a 100,000-line C
+compiler that builds Linux 6.9. This is the closest published account of many agents writing
+code on one repository.
+
+The lock mechanism is the part to copy.
+
+> To prevent two agents from trying to solve the same problem at the same time, the harness uses
+> a simple synchronization algorithm: Claude takes a "lock" on a task by writing a text file to
+> `current_tasks/` (e.g., one agent might lock `current_tasks/parse_if_statement.txt`, while
+> another locks `current_tasks/codegen_function_definition.txt`). If two agents try to claim the
+> same task, git's synchronization forces the second agent to pick a different one.
+
+A file in a directory, arbitrated by git. Not a coordination service. And the source is honest
+about the cost: "Merge conflicts are frequent, but Claude is smart enough to figure that out."
+
+The finding that explains the slow fan-out, in the source's words.
+
+> Make parallelism easy. When there are many distinct failing tests, parallelization is trivial:
+> each agent picks a different failing test to work on. [...] But when agents started to compile
+> the Linux kernel, they got stuck. Unlike a test suite with hundreds of independent tests,
+> compiling the Linux kernel is one giant task. Every agent would hit the same bug, fix that bug,
+> and then overwrite each other's changes. Having 16 agents running didn't help because each was
+> stuck solving the same task.
+
+The fix was not more coordination. It was to restructure the task so it decomposes, using an
+external known-good oracle.
+
+> The fix was to use GCC as an online known-good compiler oracle to compare against. [...] This
+> let each agent work in parallel, fixing different bugs in different files.
+
+Two rules fall out of that. A task that does not decompose into independent units gets no
+speedup from agents and causes overwrites. Parallel work needs a shared reference that is not
+produced by any of the agents.
+
+The verification-quality finding is the one that indicts a green build.
+
+> Write extremely high-quality tests. Claude will work autonomously to solve whatever problem I
+> give it. So it's important that the task verifier is nearly perfect, otherwise Claude will
+> solve the wrong problem.
+
+And the closing warning.
+
+> When a human sits with Claude during development, they can ensure consistent quality and catch
+> errors in real time. For autonomous systems, it is easy to see tests pass and assume the job
+> is done, when this is rarely the case.
+
+The same source is candid about what it did not do. "I don't use an orchestration agent. Instead,
+I leave it up to each Claude agent to decide how to act."
+
+### E3. A machine-readable task list with pass and fail state
+
+[Anthropic, "Effective harnesses for long-running agents", 2025-11-26](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
+describes a two-role split, an initializer that writes the task file and a coding agent that
+executes it.
+
+> We prompted the initializer agent to write a comprehensive file of feature requirements
+> expanding on the user's initial prompt. In the claude.ai clone example, this meant over 200
+> features, such as "a user can open a new chat, type in a query, press enter, and see an AI
+> response." These features were all initially marked as "failing" so that later coding agents
+> would have a clear outline of what full functionality looked like.
+
+> We prompt coding agents to edit this file only by changing the status of a passes field, and we
+> use strongly-worded instructions like "It is unacceptable to remove or edit tests because this
+> could lead to missing or buggy functionality." After some experimentation, we landed on using
+> JSON for this, as the model is less likely to inappropriately change or overwrite JSON files
+> compared to Markdown files.
+
+Three design decisions worth copying. The file is JSON, because a model overwrites Markdown
+more readily. The only legal edit is a boolean flag, so the artifact cannot be rewritten to
+claim success. And tests are explicitly protected.
+
+The failure mode it names is this repository's exact failure mode.
+
+> One final major failure mode that we observed was Claude's tendency to mark a feature as
+> complete without proper testing. Absent explicit prompting, Claude tended to make code
+> changes, and even do testing with unit tests or `curl` commands against a development server,
+> but would fail recognize that the feature didn't work end-to-end.
+
+And the orientation procedure every session runs, which answers the "each agent wakes up blind"
+problem.
+
+> 1. Run `pwd` to see the directory you're working in. 2. Read the git logs and progress files
+> to get up to speed on what was recently worked on. 3. Read the features list file and choose
+> the highest-priority feature that is not yet done to work on.
+
+### E4. The grader must not be the worker
+
+[Anthropic, "Harness design for long-running application development", 2026-03-24](https://www.anthropic.com/engineering/harness-design-long-running-apps)
+states the separation and the reason.
+
+> When asked to evaluate work they've produced, agents tend to respond by confidently praising
+> the work, even when, to a human observer, the quality is obviously mediocre. [...] Separating
+> the agent doing the work from the agent judging it proves to be a strong lever.
+
+> Out of the box, Claude is a poor QA agent. In early runs, I watched it identify legitimate
+> issues, then talk itself into deciding they weren't a big deal and approve the work anyway.
+
+The contract mechanism is a negotiated per-chunk agreement, written before the code.
+
+> Before each sprint, the generator and evaluator negotiated a sprint contract: agreeing on what
+> "done" looked like for that chunk of work before any code was written.
+
+And the source's own example of a bug that only end-to-end evaluation caught, a FastAPI route
+declared after a parameterised route so the parameter swallowed the literal. It is the same
+shape as this repository's blank catalogue page, and it is invisible to a unit test.
+
+The cost, stated plainly. A full harness with a separate evaluator ran 6 hours and $200 against
+20 minutes and $9 for a solo run, and the source calls it over 20x more expensive. The
+difference in output quality was, in the source's word, immediately apparent.
+
+The source also names the property that matters for a rule set.
+
+> Every component in a harness encodes an assumption about what the model can't do on its own,
+> and those assumptions are worth stress testing, both because they may be incorrect, and
+> because they can quickly go stale as models improve.
+
+### E5. The benchmark contract
+
+[OpenAI, "Introducing SWE-bench Verified", 2024-08-13](https://openai.com/index/introducing-swe-bench-verified/)
+defines the grading contract every harness in this space borrows.
+
+> These unit tests fail before the solution code in the PR is added, but pass afterwards, and
+> are therefore called FAIL_TO_PASS tests. Each sample also has associated PASS_TO_PASS tests,
+> which pass both before and after the PR is merged, and are used to check that existing
+> unrelated functionality in the codebase has not been broken by the PR.
+
+> The tests are not shown to the agent. A proposed edit is evaluated by running both the
+> FAIL_TO_PASS and PASS_TO_PASS tests. [...] Both sets of tests are required to pass for the
+> edit to fully resolve the original GitHub issue.
+
+Three consequences. A test must fail before the fix, or it proves nothing. A test that passed
+before must still pass, or the change broke something. And the grader's tests are hidden from
+the agent, which is the oracle separation in mechanical form.
+
+The same source's measurement of issue quality is the argument for writing issues carefully.
+38.3% of samples were flagged for underspecified problem statements, 61.1% for unit tests that
+may unfairly mark valid solutions incorrect, and 68.3% of the original dataset was filtered
+out for those reasons. The agent can be right and fail.
+
+### E6. How often "the tests pass" is wrong
+
+The three numbers that make the case.
+
+[SWE-Bench+, arXiv:2410.06992, 2024-10-09](https://arxiv.org/abs/2410.06992). 32.67% of
+successful patches involved solution leakage, and 31.08% of the passed patches are suspicious
+because of weak test cases.
+
+[UTBoost, arXiv:2506.09289, 2025-06-10](https://arxiv.org/abs/2506.09289). 345 erroneous
+patches were incorrectly labelled as passed, affecting 24.4% of SWE-bench Verified
+leaderboard entries and 40.9% of SWE-bench Lite.
+
+[Anthropic, "Demystifying evals for AI agents", 2026-01-09](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents)
+gives the vocabulary and the diagnostic. The outcome is the state in the environment, not the
+agent's claim. A 0% pass rate across many trials is most often a signal of a broken task rather
+than an incapable agent. And a grader needs a reference solution, a known-good output that
+passes it, which proves the task is solvable and the grader is configured correctly.
+
+### E7. The live disagreement about parallel writers
+
+Cognition's [argument against multi-agents](https://cognition.ai/blog/dont-build-multi-agents),
+2025-06-12, rests on two principles. Share context and share full agent traces, not just
