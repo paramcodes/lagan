@@ -43,7 +43,7 @@ re-run them locally unless you changed the thing that runs them.**
 | A script under `scripts/` | That script, once, against a scratch path or port |
 
 The full `bun run test` takes over 400 seconds on this box and it is the single biggest source of
-contention. Three agents running it at once is what pushed the load average to 25 and made
+contention. Three agents running it at once is what pushed the load average past 17 and made
 reviews time out. Run it once, at the end, only if your change plausibly affects it.
 
 ---
