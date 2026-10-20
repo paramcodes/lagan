@@ -387,6 +387,8 @@ describe.skipIf(!DATABASE_URL)("access verification against Postgres", () => {
 
   beforeAll(async () => {
     if (!pool) return;
+    const { rows } = await pool.query<{ search_path: string }>("show search_path");
+    expect(rows[0]?.search_path).toBe(TEST_SCHEMA);
     await pool.query(`create schema if not exists ${TEST_SCHEMA}`);
     await pool.query(`
       create table if not exists "user" (id text primary key not null);
