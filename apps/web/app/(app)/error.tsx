@@ -18,7 +18,7 @@ export default function AppError({ error, reset }: AppErrorProps) {
       <div
         role="alert"
         aria-live="assertive"
-        className="flex w-full flex-col items-center rounded-[var(--radius-panel)] border border-[var(--color-alert)]/30 bg-[var(--color-surface)] p-10 text-center shadow-xs"
+        className="flex w-full flex-col items-center rounded-[var(--radius-panel)] border border-[var(--color-alert)]/30 bg-[var(--color-surface)] p-6 text-center shadow-xs sm:p-10"
       >
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-alert)]/10 text-[var(--color-alert)]">
           <AlertCircle className="h-6 w-6" aria-hidden="true" />
