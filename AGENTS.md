@@ -54,6 +54,7 @@ bun run test:e2e      # playwright (needs Postgres + a dev server)
   wait for their parent merge.
 - Keep at least three subagents in flight, and refill the queue the moment one
   finishes.
+- The queue lives in `todos.md`. A completed item moves to `[x]` only after its merge.
 - The heavy gates are the full test suite, `next build` and a Playwright or browser run.
   At most one of them runs at a time on this four-core box, and the other agents keep
   editing while it runs.
