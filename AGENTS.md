@@ -18,7 +18,7 @@ executed so progress stays parallel, reviewable, and conflict-free.
    (lockfiles excluded). The lefthook `size-guard` enforces this.
 4. No comments except where technically required. Explain "why" in the PR, not the code.
 5. Run gates. In the edit loop, run only the tests for the files you changed, for
-   example `bunx vitest run apps/web/app/(app)/courses/page.test.tsx`. Before opening
+   example `bunx vitest run "apps/web/app/(app)/courses/page.test.tsx"`. Before opening
    the pull request, run the full `bun run test` once, plus `bun install` and
    `bun run lint`. CI still runs typecheck, test, lint and build on every pull
    request, so dropping the local duplicates loses nothing.
@@ -32,8 +32,9 @@ executed so progress stays parallel, reviewable, and conflict-free.
 ## Parallelism rules
 
 - Keep at least three subagents in flight. Refill the queue the moment one finishes.
-- On a small machine, at most one heavy gate runs at a time: the full test suite,
-  `next build`, and a Playwright or browser run.
+- On this 4-core box, at most one heavy gate runs at a time: the full test suite,
+  `next build`, and a Playwright or browser run. The other agents keep editing while
+  a heavy gate runs.
 - Pre-create the worktrees and install the dependencies before dispatching the
   subagents, so three agents do not compete on `bun install` at the same time.
 - Never run two subagents that edit the same file or package at the same time.
