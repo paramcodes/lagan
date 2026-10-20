@@ -1,0 +1,11 @@
+id: one-owner-per-file
+title: Two subagents never edit the same file or package at the same time.
+layer: prose
+artifact:
+  - path: pr:comment
+    note: The brief lists the files the subagent owns.
+failure: |
+  2026-10-20. No collision was observed, but the rule only held because the coordinator wrote
+  an explicit per-item file manifest into every brief. The manifest was the enforcement, not
+  the rule.
+owner: "@paramcodes"

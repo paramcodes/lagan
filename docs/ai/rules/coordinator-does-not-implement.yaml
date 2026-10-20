@@ -1,0 +1,11 @@
+id: coordinator-does-not-implement
+title: The coordinator plans and delegates, and does not write feature code.
+layer: prose
+artifact:
+  - path: pr:comment
+    note: The pull request names the subagent that produced each change.
+failure: |
+  2026-10-20. The coordinator wrote a small change itself while subagents were working, so
+  two sessions touched the same package and the coordinator's edit never went through the
+  reviewer subagent.
+owner: "@paramcodes"

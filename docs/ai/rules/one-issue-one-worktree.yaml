@@ -1,0 +1,9 @@
+id: one-issue-one-worktree
+title: One subagent owns one issue and one worktree.
+layer: prose
+artifact:
+  - path: pr:comment
+    note: The brief names the issue number and the worktree path.
+failure: |
+  2026-10-20. Two agents edited the same file, and one had to be aborted after the fact.
+owner: "@paramcodes"
