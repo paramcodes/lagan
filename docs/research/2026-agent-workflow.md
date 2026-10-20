@@ -8,7 +8,7 @@ Every external claim cites the source that owns it, with its publication date. A
 not trace to a primary source is marked `UNVERIFIED:`.
 
 This file is the research record. The recommendation for the next project is in
-[the working note](./2026-agent-workflow-recommendation.md).
+[the recommendation document](./2026-agent-workflow-recommendation.md).
 
 ---
 
@@ -51,6 +51,11 @@ request, and the page still rendered.
 Every automated gate passed throughout. The pre-commit hook ran format, lint, typecheck and a
 diff size guard. The unit suite passed. The e2e suite passed. The axe accessibility suite
 passed. The visual evidence capture produced screenshots.
+
+That hook configuration is the configuration at the time of the incident, not the current one.
+Pull request #103, merged the same day, removed the typecheck from the pre-commit hook and
+removed the pre-push hook, whose only command was the full test suite. The incident is
+unchanged. The hook is not.
 
 The reachable defects were all below the gate line.
 
@@ -141,8 +146,9 @@ agent's mistake.
 
 Predominantly sensors. The pre-commit hook, the unit suite, the e2e suite, the axe suite and the
 visual evidence capture are all sensors with validators attached. The gates were the pre-push
-hook and the CI job. Almost nothing was a constraint, because nothing constrained the agent at
-the point of writing.
+hook and the CI job, as of the time of the audit; the pre-push hook is gone since pull request
+#103, which removed it and the typecheck in the pre-commit hook. Almost nothing was a
+constraint, because nothing constrained the agent at the point of writing.
 
 The one genuinely mechanical constraint in the repository was the diff size guard in
 `lefthook.yml`. It held on every commit. It also produced a worse outcome than the rule wanted,
@@ -222,16 +228,20 @@ app and look at the change" becomes a command rather than an instruction.
 
 ### The measured size of the problem
 
-Reported by [Specstory](https://specstory.com/learning/verification/ai-generated-code-testing),
-which cites the underlying studies. These are the source's figures, not reproduced here.
+These are the sources' figures, not reproduced here.
 
-- 2026 study of 86,156 changes to test files by five coding agents. 80.2% had weak or no
-  explicit oracle signals. Many of those tests ran code while checking little or nothing about
-  its output.
-- 2026 study of 33,596 pull requests opened by coding agents. Failing CI or tests was the most
-  common code-level reason for rejection, 17.6% of rejected pull requests analysed.
-- Stack Overflow 2025 survey. 66% of the developers who answered had hit AI output that was
-  almost right but still wrong.
+- 2026 study of 86,156 changes to test files by five coding agents, reported by
+  [Specstory](https://specstory.com/learning/verification/ai-generated-code-testing). 80.2% had
+  weak or no explicit oracle signals. Many of those tests ran code while checking little or
+  nothing about its output.
+- 2026 study of 33,596 pull requests opened by coding agents, reported by
+  [Specstory](https://specstory.com/learning/debugging/agents-break-working-features) from
+  [the underlying paper, "Where Do AI Coding Agents Fail?", arXiv:2601.15195,
+  2026-01-21](https://arxiv.org/abs/2601.15195). Failing CI or tests was the most common
+  code-level reason for rejection, 17.6% of rejected pull requests analysed.
+- Stack Overflow 2025 survey, reported by
+  [Specstory](https://specstory.com/learning/verification/ai-generated-code-testing). 66% of the
+  developers who answered had hit AI output that was almost right but still wrong.
 
 Caveat worth stating. Most of the advice in this section is a rule, not a measurement. The
 sources say so directly: "The sources contain no measurements of the effect: only rules and
@@ -253,9 +263,12 @@ repository root to the current working directory. In each directory Codex reads
 Files concatenate from the root down, so the closest file wins. The combined size stops at
 `project_doc_max_bytes`, 32 KiB by default.
 
-The same page records scope as the unit rather than the file, and points at nesting an
-`AGENTS.md` per package in a large monorepo. The widely repeated figure of 88 nested files in
-one large repository is `UNVERIFIED:` the site names no repository, and the count could not be
+The same page records scope as the unit rather than the file: Codex stops searching at the
+current working directory, tells you to split instructions across nested directories when the
+cap is hit, and puts overrides in the directory that owns the rule. The nesting advice itself
+comes from the open format's own site, which points at one `AGENTS.md` per package in a large
+monorepo. The widely repeated figure of 88 nested files in one large repository is
+`UNVERIFIED:` neither page carries it, no repository is named for it, and the count could not be
 reproduced across the public OpenAI repositories on 2026-10-20. The mechanism is verified. The
 number is not.
 
@@ -293,8 +306,10 @@ individual test or line.
 
 ### The rule that decides what stays out
 
-[charlielabs, AGENTS.md instructions](https://docs.charlielabs.ai/llms-full.txt) states the
-inclusion test and the pruning discipline.
+[charlielabs, AGENTS.md instructions](https://web.archive.org/web/20260930020741/https://docs.charlielabs.ai/llms-full.txt)
+states the inclusion test and the pruning discipline. The link is an archive copy on purpose:
+the live `llms-full.txt` no longer serves this page, and the archived snapshot is the copy that
+carries the text quoted below.
 
 > Add content when at least one of these tests is met: it has demonstrated behavioral value, or
 > its absence has caused observable mistakes or wasted work. It defines a historically
@@ -352,14 +367,21 @@ a completeness loop an agent can run without a human, and it is the closest thin
 answer for "the agent said it was done and it was not".
 
 [GitHub's blog post on Spec Kit, 2025-09-02](https://github.blog/ai-and-ml/generative-ai/spec-driven-development-with-ai-get-started-with-a-new-open-source-toolkit/)
-describes the change in reviewer role. The reviewer stops reading code dumps and starts
-validating artifacts, at each phase, before the next one starts.
+describes the change in reviewer role. Instead of reviewing thousand-line code dumps, the
+developer reviews focused changes that solve specific problems, and the role shifts from
+steering to verifying, at each phase.
 
 [Microsoft's walkthrough, 2025-09-15](https://developer.microsoft.com/blog/spec-driven-development-spec-kit/)
+gives the walkthrough of the command sequence. `/specify` outlines the what and the why and
+excludes technical decisions, `/plan` outlines the how, `/tasks` breaks the two down into
+phased chunks, and the commands are used in that order. The constitution is the file that
+holds the non-negotiable principles every later phase is checked against.
+
+[Spec Kit's own agentic SDD reference](https://github.github.io/spec-kit/reference/agentic-sdd.html)
 adds the phasing rule that maps directly onto parallel work. Setup, then Foundational as
 blocking prerequisites, then one phase per user story in priority order, then Polish for
-cross-cutting concerns. Tasks inside a story phase are marked for parallel execution where
-possible.
+cross-cutting concerns. Tests are generated inside a story's phase rather than as a phase of
+their own, and tasks inside a story phase are marked for parallel execution where possible.
 
 ---
 
@@ -516,7 +538,8 @@ The source also names the property that matters for a rule set.
 ### E5. The benchmark contract
 
 [OpenAI, "Introducing SWE-bench Verified", 2024-08-13](https://openai.com/index/introducing-swe-bench-verified/)
-defines the grading contract every harness in this space borrows.
+defines the grading contract every harness in this space borrows. The benchmark underneath it is
+[SWE-bench, Jimenez et al, arXiv:2310.06770, 2023-10-10](https://arxiv.org/abs/2310.06770).
 
 > These unit tests fail before the solution code in the PR is added, but pass afterwards, and
 > are therefore called FAIL_TO_PASS tests. Each sample also has associated PASS_TO_PASS tests,
@@ -576,8 +599,8 @@ write-heavy workflows.
 
 Both tool authors have since shipped write-heavy parallel agents, which changes the shape of the
 argument. Anthropic's C compiler, with file locks and an external oracle.
-[Cognition's "Manage Devins", 2026-03-19](https://cognition.ai/blog/manage-devins), where each
-managed Devin runs in its own isolated virtual machine and the main session acts as a
+[Cognition, "Devin can now Manage Devins", 2026-03-19](https://cognition.com/blog/devin-can-now-manage-devins),
+where each managed Devin runs in its own isolated virtual machine and the main session acts as a
 coordinator that scopes the work, assigns pieces, monitors progress, resolves conflicts, and
 compiles the results. Cognition's stated reason is that a single agent handling too much
 accumulates context and degrades focus, so each managed Devin gets a clean slate and a narrow
@@ -613,17 +636,26 @@ on one will not hold. And the check moves to after the merge, not before it.
 
 ### E9. Phasing
 
-[Microsoft's walkthrough, 2025-09-15](https://developer.microsoft.com/blog/spec-driven-development-spec-kit/)
+[Spec Kit's agentic SDD reference](https://github.github.io/spec-kit/reference/agentic-sdd.html)
 adds the phasing rule that maps directly onto parallel work. Setup, then Foundational as
 blocking prerequisites, then one phase per user story in priority order, then Polish for
 cross-cutting concerns. Tasks inside a story phase are marked for parallel execution where
-possible.
+possible. The rule it encodes is that the phases are the dependency order, and the markers
+are the parallelism, so the two never have to be guessed.
 
 ---
 
-## F. Local audit of the current rules
+## F. Local audit of the rules at the time
 
-Every rule in this repository's `AGENTS.md`, scored against what actually happened.
+Every rule this repository's `AGENTS.md` held at the time of the audit, scored against what
+actually happened.
+
+This is a snapshot of the rule set as it stood on 2026-10-20, not of the rule set as it stands
+now. One row has since been replaced. The rule "Run install, typecheck, test, lint" was the
+flat, unscoped gate list, and pull request #103 replaced it with the scoped validation ladder
+described in G5. The row is kept in the table because the audit is the evidence for G5, and
+because a table that silently drops the rule it scored is not an audit. Read every verdict in
+this table as a verdict on the rule that existed then.
 
 | Rule | Layer | Artifact that proves it | Verdict |
 |---|---|---|---|
@@ -682,10 +714,12 @@ fail at startup with a message that names the file and the variable.
 
 ### G5. Scope validation to the change
 
-Replace the flat gate list with a ladder. A documentation change needs lint. A change inside one
-package runs that package's tests. A change to a shared package runs the full suite. A change to
-a route runs the browser journey for that route. The current flat rule made every small change
-pay the 6.7-minute floor.
+**Shipped.** Pull request #103 replaced the flat gate list with a ladder, and the ladder is now
+the rule in `AGENTS.md`. A documentation change needs lint. A change inside one package runs
+that package's tests. A change to a shared package runs the full suite. A change to a route
+runs the browser journey for that route. The flat rule it replaced made every small change pay
+the 6.7-minute floor, which is the number that came out of the measurement in that pull
+request.
 
 ### G6. Make ownership machine-readable
 
@@ -781,15 +815,25 @@ And the measured cost of the conversation itself. Agents spent as much as 20% of
 communication, within which planning, questioning and updating each took about a third of the
 steps.
 
+One finding from the same paper is the cheapest win available, and it is the paper's own words.
+
+> Second, first-turn planning is the strongest predictor. Having a Plan message in the very first
+> turn nearly halves the conflict rate (29.4% vs 51.5%). This effect is robust across difficulty
+> levels: in 7 out of 8 difficulty buckets, first-turn planning significantly reduces conflicts,
+> with the effect actually stronger for harder tasks (39% reduction at the highest difficulty).
+
 [Anthropic, "Patterns and problems in emerging multiagent systems", 2026-08-13](https://www.anthropic.com/research/multiagent-systems)
 reaches a compatible conclusion from a different direction. Newer models reduced conflicts by
 maintaining very high ownership of each of their files, "reducing the potential for conflict",
-and only the most recent model both shared files and kept PR throughput. The conflict problem
-was solved by not working together.
+and only the most recent model both shared files and kept PR throughput.
 
-One finding from the same paper is the cheapest win available. A planning message in the first
-turn nearly halves the conflict rate, 29.4% against 51.5%, and the effect is larger for harder
-tasks, 39% at the highest difficulty bucket.
+> More recent models (in particular, Opus 4.8 and Mythos Preview) have "solved" this problem, but
+> only by hardly working together at all: the median agent maintained very high ownership of each
+> of its files, reducing the potential for conflict.
+
+The conflict problem was solved by not working together. That article carries no percentages
+and no planning-message finding; the measurement above is CooperBench's, and the two agree on
+the direction rather than sharing a number.
 
 ### I3. The instruction file grows without bound and cannot be pruned by discipline
 
@@ -890,8 +934,9 @@ global synchronization barriers.
 > sometimes more than the leaderboard gap between top models.
 
 Measured on Terminal-Bench 2.0 across six resource configurations, same model and same task set.
-Infrastructure error rate from 5.8% under strict enforcement to 0.5% uncapped, a lift of 6
-percentage points at p < 0.01.
+The infrastructure error rate fell from 5.8% under strict enforcement to 0.5% uncapped, and the
+success rate lifted by 6 percentage points over that range at p < 0.01. Two numbers, not one:
+the error rate is the mechanism, the 6 points is the result.
 
 > Agentic evals are end-to-end system tests by construction, and any component of that system
 > can act as a confounder.
@@ -908,7 +953,8 @@ parallelism rather than an incidental detail.
 
 Practitioner sources are weaker than the studies in section I. The ones below are reported
 because they carry specifics that the studies do not. Single anonymous comments are leads, not
-findings. Where a claim appears in several independent places it is marked as convergent.
+findings. Where a claim appears in several independent places it is marked as convergent. The
+corpus they come from is described in the practitioner paragraph at the end of this document.
 
 ### J1. The collision layers
 
@@ -964,9 +1010,12 @@ the test configuration, and it is the step the repository's own rules did not ha
 ### J4. The negative results, ranked
 
 1. Two agents on overlapping work is worse than one agent doing both. Measured, section I2.
-2. Agent-to-agent conversation is nearly pure overhead. 20% of steps, 4x the tokens, and
-   Anthropic's coordinating swarm found a comparable yield per token only after restricting its
-   scope. Write contracts instead of chatting.
+2. Agent-to-agent conversation is nearly pure overhead. CooperBench measures up to 20% of all
+   steps spent on communication. Anthropic's multi-agent research system burns about 4x the
+   tokens of a chat interaction, and 15x for the whole multi-agent system, and its BrowseComp
+   analysis found that token usage by itself explains 80% of the performance variance, so the
+   swarm buys its result with tokens rather than with coordination. Write contracts instead of
+   chatting.
 3. A gate stack does not protect a team from agent-written defects. Measured, section I5.
 4. Context files generally reduce success and cost more. Measured, section I1.
 5. Agents are too obedient, so an unnecessary rule is a cost, not a free sentence.
@@ -978,10 +1027,12 @@ the test configuration, and it is the step the repository's own rules did not ha
    advises.
 8. Isolation setups are hours of work, hand-fitted, and break when you add a service. Nobody
    described one that survives a new service.
-9. Isolating the environment can break things that worked for months. One engineering blog
+9. Isolating the environment can break things that worked for months.
+   [baro, "How We Run a Fleet of AI Agents on One Repo Without Chaos"](https://www.baro.rs/blog/how-we-run-a-fleet-of-ai-agents-on-one-repo)
    documents its own bug where worktree isolation silently removed the shared `node_modules` the
    whole team had been relying on, and it "had worked locally for months" because locally
-   everyone shared one working directory.
+   everyone shared one working directory. Its fix is to share the dependency directory on
+   purpose rather than by accident.
 10. Some teams removed agents from the codebase. A 20-year engineer reported wasting almost a
     week with Claude Code and Codex on one complex task and going back to autocomplete.
 
@@ -1007,10 +1058,20 @@ partition and scheduling are right.
 
 ### J6. What the practitioners changed their file into
 
-Convergent shape across six independent sources. A thin root file, under 100 to 250 lines or
-under 500 tokens, holding only what applies to every session. Everything else in scoped files
-that are read on demand, with one index line each. The file tells the agent what to read, and
-nothing else.
+Convergent shape across six independent sources, and the shape the tool vendors now document
+themselves. A thin root file, under 100 to 250 lines or under 500 tokens, holding only what
+applies to every session. Everything else in scoped files that are read on demand, with one
+index line each. The file tells the agent what to read, and nothing else.
+
+Anthropic's own guidance is the first-party version of the same rule. The
+[Claude Code memory documentation](https://code.claude.com/docs/en/memory) sets the size
+target, "under 200 lines per CLAUDE.md file", because longer files consume more context and
+reduce adherence, and it moves the overflow into path-scoped rules that load only when Claude
+works with matching files. The
+[Claude Code best practices](https://code.claude.com/docs/en/best-practices) give the reason
+and the test: only include what applies to every session, and ask of every line whether
+removing it would cause mistakes, because bloated instruction files cause Claude to ignore the
+instructions that are in them.
 
 One practitioner reported going from 400k tokens of context to 8k after the restructure. One
 reported that the only thing their file does is tell the agent what to read at session start.
@@ -1051,6 +1112,15 @@ executing test needs a CI job that reaches into the real database and asserts th
 the rows, which the agent cannot write, edit or self-report on. The blank catalogue page needs
 an end-to-end assertion that the route renders a non-blank error state.
 
+The other way to satisfy this is to put a second model in the gate itself, and one vendor does
+exactly that. [Cloudflare, "Orchestrating AI Code Review at scale",
+2026-04-20](https://blog.cloudflare.com/ai-code-review/) runs specialist reviewers managed by a
+coordinator agent, across tens of thousands of merge requests, and it "actively blocks merges
+when it finds genuine, serious problems or security vulnerabilities". That is a different
+placement from the one above. The check is no longer outside the agent's path, it is another
+model in the pipeline, and it carries the risk named in J4 number 7, a nondeterministic check
+sitting in the position of a deterministic one.
+
 ### J8. Plan before code, in a file, as a checkable artifact
 
 Convergent, and measured in section I2. A planning message in the first turn nearly halves the
@@ -1082,6 +1152,10 @@ always get a human read. Everything else rides on automated checks.
 
 ## Sources
 
+Every source below is cited in the body of this document or in the companion recommendation
+document. A source that is not cited is not listed, and a source that is cited is listed once,
+here, with the date of the version that was read.
+
 ### Primary, measured
 
 - [ETH Zurich SRI Lab, "Evaluating AGENTS.md", arXiv:2602.11988, 2026-02-12, v3 2026-09-29](https://arxiv.org/abs/2602.11988)
@@ -1089,9 +1163,8 @@ always get a human read. Everything else rides on automated checks.
 - [Chakrabarti, "Why Does CLAUDE.md Keep Growing?", arXiv:2608.11095, 2026-08-11](https://arxiv.org/abs/2608.11095)
 - [dos Santos et al, "Configuration Smells in AGENTS.md Files", SCAM 2026, arXiv:2606.15828](https://arxiv.org/abs/2606.15828)
 - [Co-Coder, UT Austin and Oxford, arXiv:2606.00953, 2026-05-31](https://arxiv.org/abs/2606.00953)
+- ["Where Do AI Coding Agents Fail?", arXiv:2601.15195, 2026-01-21](https://arxiv.org/abs/2601.15195)
 - [SWE-bench, Jimenez et al, arXiv:2310.06770, 2023-10-10](https://arxiv.org/abs/2310.06770)
-- [SWE-agent, Yang et al, arXiv:2405.15793, 2024-05-06](https://arxiv.org/abs/2405.15793)
-- [OpenHands, Wang et al, arXiv:2407.16741, ICLR 2025](https://arxiv.org/abs/2407.16741)
 - [SWE-Bench+, Aleithan et al, arXiv:2410.06992, 2024-10-09](https://arxiv.org/abs/2410.06992)
 - [UTBoost, arXiv:2506.09289, 2025-06-10](https://arxiv.org/abs/2506.09289)
 - [OpenAI, "Introducing SWE-bench Verified", 2024-08-13](https://openai.com/index/introducing-swe-bench-verified/)
@@ -1106,22 +1179,18 @@ always get a human read. Everything else rides on automated checks.
 - [Anthropic, "Demystifying evals for AI agents", 2026-01-09](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents)
 - [Anthropic, "Quantifying infrastructure noise in agentic coding evals", 2026-02-05](https://www.anthropic.com/engineering/infrastructure-noise)
 - [Anthropic, "Patterns and problems in emerging multiagent systems", 2026-08-13](https://www.anthropic.com/research/multiagent-systems)
-- [Anthropic, "How we built Claude Code auto mode", 2026-03-25](https://www.anthropic.com/engineering/claude-code-auto-mode)
 - [Anthropic, "Redesigning source control at Anthropic", 2026-10-13](https://www.anthropic.com/engineering/redesigning-source-control)
 - [Claude Code best practices](https://code.claude.com/docs/en/best-practices) and
   [memory docs](https://code.claude.com/docs/en/memory)
 - [OpenAI Codex, "Custom instructions with AGENTS.md"](https://learn.chatgpt.com/docs/agent-configuration/agents-md) and
-  [Rules](https://developers.openai.com/codex/agent-configuration/rules)
+  [subagents](https://developers.openai.com/codex/subagents)
 - [OpenAI, "A practical guide to building agents", 2025-04](https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf)
 - [agents.md](https://agents.md/), the open format
 - [AAIF, "Writing an effective AGENTS.md", Steve Kearns, 2026-08-13](https://aaif.io/blog/writing-an-effective-agents-md)
-- [charlielabs, "AGENTS.md instructions"](https://docs.charlielabs.ai/llms-full.txt)
-- [GitHub Copilot custom instructions](https://docs.github.com/en/copilot/concepts/prompting-and-context/custom-instructions)
-- [Cursor rules](https://cursor.com/docs/rules)
-- [Cloudflare, "Orchestrating AI code review at scale", 2026-05](https://blog.cloudflare.com/ai-code-review/)
-- [GitHub Spec Kit](https://github.github.io/spec-kit/reference/overview.html), the
-  [repository](https://github.com/github/spec-kit/), and the
-  [bug-fix guide](https://github.github.io/spec-kit/guides/bugfix.html)
+- [charlielabs, "AGENTS.md instructions"](https://web.archive.org/web/20260930020741/https://docs.charlielabs.ai/llms-full.txt), archived copy, because the live `llms-full.txt` no longer serves this page
+- [Cloudflare, "Orchestrating AI Code Review at scale", 2026-04-20](https://blog.cloudflare.com/ai-code-review/)
+- [GitHub Spec Kit reference](https://github.github.io/spec-kit/reference/overview.html) and
+  [agentic SDD reference](https://github.github.io/spec-kit/reference/agentic-sdd.html)
 - [Microsoft, "Diving into Spec-Driven Development with GitHub Spec Kit", 2025-09-15](https://developer.microsoft.com/blog/spec-driven-development-spec-kit/)
 - [GitHub, "Spec-driven development with AI", 2025-09-02](https://github.blog/ai-and-ml/generative-ai/spec-driven-development-with-ai-get-started-with-a-new-open-source-toolkit/)
 
@@ -1129,22 +1198,20 @@ always get a human read. Everything else rides on automated checks.
 
 - [understandingdata.com, "The Constraint Escalation Ladder", 2026-02-27](https://understandingdata.com/posts/constraint-escalation-ladder/)
 - [MAGE, "Constraints, Sensors, Validators, and Gates", chapter 3.3](https://davisjam.github.io/model-based-agentic-software-engineering/book/mage-book/3.3-constraints-sensors-validators-gates.html)
-- [Cambridge, "Software Development Life Cycle in the AI Era"](https://www.cl.cam.ac.uk/~dgk27/sse/lecture3.pdf)
-- [Specstory, "How to test AI-generated code"](https://specstory.com/learning/verification/ai-generated-code-testing) and
-  ["Definition of done for AI coding agents", 2026-09-29](https://specstory.com/learning/verification/definition-of-done-for-coding-agents)
+- [Specstory, "How to test AI-generated code"](https://specstory.com/learning/verification/ai-generated-code-testing),
+  ["Definition of done for AI coding agents", 2026-09-29](https://specstory.com/learning/verification/definition-of-done-for-coding-agents) and
+  ["Why do AI coding agents break working features?", 2026-09-29](https://specstory.com/learning/debugging/agents-break-working-features)
 - [Learn Harness Engineering, lecture 9](https://walkinglabs.github.io/learn-harness-engineering/en/lectures/lecture-09-why-agents-declare-victory-too-early/)
 - [Tarmac, "A definition of done for humans and agents", 2026-07-30](https://www.tarmac.io/resources/definition-of-done-humans-and-agents/)
 - [Claude Code `/run` and `/verify` skills, 2026-05-26](https://wmedia.es/en/tips/claude-code-run-verify-app)
 - [dependency-cruiser](https://github.com/sverweij/dependency-cruiser) and
-  [ArchUnit](https://www.archunit.org/userguide/html/000_Index.html)
+  [ArchUnit](https://www.archunit.org/userguide/html/000_Index.html), cited in the companion
+  recommendation document
 - [Cognition, "Don't Build Multi-Agents", 2025-06-12](https://cognition.ai/blog/dont-build-multi-agents) and
-  ["Manage Devins", 2026-03-19](https://cognition.ai/blog/manage-devins)
+  ["Devin can now Manage Devins", 2026-03-19](https://cognition.com/blog/devin-can-now-manage-devins)
 - [LangChain, "How and when to build multi-agent systems", 2025-06-16](https://www.langchain.com/blog/how-and-when-to-build-multi-agent-systems)
 - [Coldtea, "AGENTS.md field study", 2026-08-21](https://www.coldtea.ai/blog/agents-md-field-study), one author's analysis
 - [baro, "How We Run a Fleet of AI Agents on One Repo Without Chaos"](https://www.baro.rs/blog/how-we-run-a-fleet-of-ai-agents-on-one-repo), vendor blog, self-incriminating production bugs
-- [aider benchmarks](https://aider.chat/docs/benchmarks.html) and
-  [leaderboards](https://aider.chat/docs/leaderboards/)
-- [mini-swe-agent](https://github.com/SWE-agent/mini-swe-agent), README score is a self-reported claim
 
 ### Practitioner, lead grade
 
