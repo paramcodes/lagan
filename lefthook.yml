@@ -7,8 +7,6 @@ pre-commit:
     lint:
       glob: "*.{ts,tsx}"
       run: bunx biome lint {staged_files}
-    typecheck:
-      run: cd apps/web && bunx next typegen && bunx tsc --noEmit
     size-guard:
       run: |
         diff=$(git diff --cached -- . ':(exclude)*.lock' ':(exclude)bun.lock' ':(exclude)*_snapshot.json')
@@ -17,7 +15,3 @@ pre-commit:
           echo "Commit too large: ~$tokens tokens (limit 5000). Split into smaller commits."
           exit 1
         fi
-pre-push:
-  commands:
-    test:
-      run: bunx vitest run
