@@ -1152,6 +1152,10 @@ always get a human read. Everything else rides on automated checks.
 
 ## Sources
 
+Every source below is cited in the body of this document or in the companion recommendation
+document. A source that is not cited is not listed, and a source that is cited is listed once,
+here, with the date of the version that was read.
+
 ### Primary, measured
 
 - [ETH Zurich SRI Lab, "Evaluating AGENTS.md", arXiv:2602.11988, 2026-02-12, v3 2026-09-29](https://arxiv.org/abs/2602.11988)
@@ -1159,9 +1163,8 @@ always get a human read. Everything else rides on automated checks.
 - [Chakrabarti, "Why Does CLAUDE.md Keep Growing?", arXiv:2608.11095, 2026-08-11](https://arxiv.org/abs/2608.11095)
 - [dos Santos et al, "Configuration Smells in AGENTS.md Files", SCAM 2026, arXiv:2606.15828](https://arxiv.org/abs/2606.15828)
 - [Co-Coder, UT Austin and Oxford, arXiv:2606.00953, 2026-05-31](https://arxiv.org/abs/2606.00953)
+- ["Where Do AI Coding Agents Fail?", arXiv:2601.15195, 2026-01-21](https://arxiv.org/abs/2601.15195)
 - [SWE-bench, Jimenez et al, arXiv:2310.06770, 2023-10-10](https://arxiv.org/abs/2310.06770)
-- [SWE-agent, Yang et al, arXiv:2405.15793, 2024-05-06](https://arxiv.org/abs/2405.15793)
-- [OpenHands, Wang et al, arXiv:2407.16741, ICLR 2025](https://arxiv.org/abs/2407.16741)
 - [SWE-Bench+, Aleithan et al, arXiv:2410.06992, 2024-10-09](https://arxiv.org/abs/2410.06992)
 - [UTBoost, arXiv:2506.09289, 2025-06-10](https://arxiv.org/abs/2506.09289)
 - [OpenAI, "Introducing SWE-bench Verified", 2024-08-13](https://openai.com/index/introducing-swe-bench-verified/)
@@ -1176,22 +1179,18 @@ always get a human read. Everything else rides on automated checks.
 - [Anthropic, "Demystifying evals for AI agents", 2026-01-09](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents)
 - [Anthropic, "Quantifying infrastructure noise in agentic coding evals", 2026-02-05](https://www.anthropic.com/engineering/infrastructure-noise)
 - [Anthropic, "Patterns and problems in emerging multiagent systems", 2026-08-13](https://www.anthropic.com/research/multiagent-systems)
-- [Anthropic, "How we built Claude Code auto mode", 2026-03-25](https://www.anthropic.com/engineering/claude-code-auto-mode)
 - [Anthropic, "Redesigning source control at Anthropic", 2026-10-13](https://www.anthropic.com/engineering/redesigning-source-control)
 - [Claude Code best practices](https://code.claude.com/docs/en/best-practices) and
   [memory docs](https://code.claude.com/docs/en/memory)
 - [OpenAI Codex, "Custom instructions with AGENTS.md"](https://learn.chatgpt.com/docs/agent-configuration/agents-md) and
-  [Rules](https://developers.openai.com/codex/agent-configuration/rules)
+  [subagents](https://developers.openai.com/codex/subagents)
 - [OpenAI, "A practical guide to building agents", 2025-04](https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf)
 - [agents.md](https://agents.md/), the open format
 - [AAIF, "Writing an effective AGENTS.md", Steve Kearns, 2026-08-13](https://aaif.io/blog/writing-an-effective-agents-md)
-- [charlielabs, "AGENTS.md instructions"](https://docs.charlielabs.ai/llms-full.txt)
-- [GitHub Copilot custom instructions](https://docs.github.com/en/copilot/concepts/prompting-and-context/custom-instructions)
-- [Cursor rules](https://cursor.com/docs/rules)
-- [Cloudflare, "Orchestrating AI code review at scale", 2026-05](https://blog.cloudflare.com/ai-code-review/)
-- [GitHub Spec Kit](https://github.github.io/spec-kit/reference/overview.html), the
-  [repository](https://github.com/github/spec-kit/), and the
-  [bug-fix guide](https://github.github.io/spec-kit/guides/bugfix.html)
+- [charlielabs, "AGENTS.md instructions"](https://web.archive.org/web/20260930020741/https://docs.charlielabs.ai/llms-full.txt), archived copy, because the live `llms-full.txt` no longer serves this page
+- [Cloudflare, "Orchestrating AI Code Review at scale", 2026-04-20](https://blog.cloudflare.com/ai-code-review/)
+- [GitHub Spec Kit reference](https://github.github.io/spec-kit/reference/overview.html) and
+  [agentic SDD reference](https://github.github.io/spec-kit/reference/agentic-sdd.html)
 - [Microsoft, "Diving into Spec-Driven Development with GitHub Spec Kit", 2025-09-15](https://developer.microsoft.com/blog/spec-driven-development-spec-kit/)
 - [GitHub, "Spec-driven development with AI", 2025-09-02](https://github.blog/ai-and-ml/generative-ai/spec-driven-development-with-ai-get-started-with-a-new-open-source-toolkit/)
 
@@ -1199,22 +1198,20 @@ always get a human read. Everything else rides on automated checks.
 
 - [understandingdata.com, "The Constraint Escalation Ladder", 2026-02-27](https://understandingdata.com/posts/constraint-escalation-ladder/)
 - [MAGE, "Constraints, Sensors, Validators, and Gates", chapter 3.3](https://davisjam.github.io/model-based-agentic-software-engineering/book/mage-book/3.3-constraints-sensors-validators-gates.html)
-- [Cambridge, "Software Development Life Cycle in the AI Era"](https://www.cl.cam.ac.uk/~dgk27/sse/lecture3.pdf)
-- [Specstory, "How to test AI-generated code"](https://specstory.com/learning/verification/ai-generated-code-testing) and
-  ["Definition of done for AI coding agents", 2026-09-29](https://specstory.com/learning/verification/definition-of-done-for-coding-agents)
+- [Specstory, "How to test AI-generated code"](https://specstory.com/learning/verification/ai-generated-code-testing),
+  ["Definition of done for AI coding agents", 2026-09-29](https://specstory.com/learning/verification/definition-of-done-for-coding-agents) and
+  ["Why do AI coding agents break working features?", 2026-09-29](https://specstory.com/learning/debugging/agents-break-working-features)
 - [Learn Harness Engineering, lecture 9](https://walkinglabs.github.io/learn-harness-engineering/en/lectures/lecture-09-why-agents-declare-victory-too-early/)
 - [Tarmac, "A definition of done for humans and agents", 2026-07-30](https://www.tarmac.io/resources/definition-of-done-humans-and-agents/)
 - [Claude Code `/run` and `/verify` skills, 2026-05-26](https://wmedia.es/en/tips/claude-code-run-verify-app)
 - [dependency-cruiser](https://github.com/sverweij/dependency-cruiser) and
-  [ArchUnit](https://www.archunit.org/userguide/html/000_Index.html)
+  [ArchUnit](https://www.archunit.org/userguide/html/000_Index.html), cited in the companion
+  recommendation document
 - [Cognition, "Don't Build Multi-Agents", 2025-06-12](https://cognition.ai/blog/dont-build-multi-agents) and
-  ["Manage Devins", 2026-03-19](https://cognition.ai/blog/manage-devins)
+  ["Devin can now Manage Devins", 2026-03-19](https://cognition.com/blog/devin-can-now-manage-devins)
 - [LangChain, "How and when to build multi-agent systems", 2025-06-16](https://www.langchain.com/blog/how-and-when-to-build-multi-agent-systems)
 - [Coldtea, "AGENTS.md field study", 2026-08-21](https://www.coldtea.ai/blog/agents-md-field-study), one author's analysis
 - [baro, "How We Run a Fleet of AI Agents on One Repo Without Chaos"](https://www.baro.rs/blog/how-we-run-a-fleet-of-ai-agents-on-one-repo), vendor blog, self-incriminating production bugs
-- [aider benchmarks](https://aider.chat/docs/benchmarks.html) and
-  [leaderboards](https://aider.chat/docs/leaderboards/)
-- [mini-swe-agent](https://github.com/SWE-agent/mini-swe-agent), README score is a self-reported claim
 
 ### Practitioner, lead grade
 
